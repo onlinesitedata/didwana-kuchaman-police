@@ -927,6 +927,9 @@ footer{background:#fff;color:var(--soft);text-align:center;padding:22px;font-siz
 .cmp-tbl thead th:first-child{background:var(--navy);color:#fff;}
 .cmp-tbl td.good{color:var(--good);font-weight:700;background:var(--good-tint);}
 .cmp-tbl td.warn{color:var(--maroon);font-weight:700;background:var(--warn-tint);}
+html[data-theme="dark"] .cmp-tbl td,html[data-theme="dark"] .cmp-tbl td:first-child{background:var(--card);color:var(--ink);}
+html[data-theme="dark"] .cmp-tbl td.good{background:var(--good-tint);color:#34D399;}
+html[data-theme="dark"] .cmp-tbl td.warn{background:var(--warn-tint);color:#F87171;}
 @media(max-width:520px){ .cmp-tbl{font-size:10.5px;} .cmp-tbl th,.cmp-tbl td{padding:5px 6px;} }
 
 .dropzone{border:1.5px dashed var(--line);border-radius:var(--r-md);padding:30px 14px;text-align:center;color:var(--soft);font-size:13px;cursor:pointer;transition:border-color .15s,color .15s,background .15s}
@@ -1178,7 +1181,7 @@ footer{background:#fff;color:var(--soft);text-align:center;padding:22px;font-siz
   function hasDirectEntryBypass(){
     try{
       var params=new URLSearchParams(location.search);
-      return params.has('entry') || params.has('openpg');
+      return params.has('entry') || params.has('openpg') || params.has('mon');
     }catch(e){ return false; }
   }
   window.siteLockTogglePw=function(){
@@ -1483,6 +1486,7 @@ footer{background:#fff;color:var(--soft);text-align:center;padding:22px;font-siz
       </div>
     </div>
 
+    <div id="dw2-host-dashboard"></div>
     <div class="sh"><span class="tag" style="background:linear-gradient(135deg,var(--maroon),var(--maroon2))">🗺️ थानावार</span><h2>थानावार / सर्किलवार तुलनात्मक सारणी (दो तिथियों की तुलना)</h2></div>
     <div class="pcard" id="psCmpSection" style="--ca:var(--maroon);">
       <div class="pcard-head" style="flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:flex-end;">
@@ -1503,7 +1507,7 @@ footer{background:#fff;color:var(--soft);text-align:center;padding:22px;font-siz
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn-ghost" onclick="printPsCmpTable()">🖨️ इस सारणी का प्रिंट लें</button>
-          <button class="btn-fill amber" onclick="exportContainerToExcel('psCmpSection','थानावार/सर्किलवार तुलनात्मक सारणी','thana-circle-comparative.xls')">⬇️ Excel (चयनित श्रेणी)</button>
+          <button class="btn-fill amber" onclick="exportPsCmpToExcel()">⬇️ Excel (चयनित श्रेणी)</button>
           <button class="btn-fill maroon" onclick="exportAllCategoriesPsCmpToPDF()">📄 PDF (सभी श्रेणी एक साथ)</button>
         </div>
       </div>
@@ -1517,7 +1521,7 @@ footer{background:#fff;color:var(--soft);text-align:center;padding:22px;font-siz
           <tbody id="psCmpBody"></tbody>
         </table>
       </div>
-      <div class="note">हरा = कमी (गत तिथि से कम प्रकरण), लाल = वृद्धि (गत तिथि से अधिक प्रकरण)। "ग्रैंड टोटल" स्तंभ सभी उप-श्रेणी स्तंभों का योग है।</div>
+      <div class="note" id="psCmpLegend">हरा = कमी (गत तिथि से कम प्रकरण), लाल = वृद्धि (गत तिथि से अधिक प्रकरण)। "ग्रैंड टोटल" स्तंभ सभी उप-श्रेणी स्तंभों का योग है।</div>
     </div>
 
     <div class="sh"><span class="tag" style="background:linear-gradient(135deg,var(--blue),var(--blue2))">📋 सारणी</span><h2>अपराध शीर्षवार सारणी</h2></div>
@@ -1805,6 +1809,8 @@ footer{background:#fff;color:var(--soft);text-align:center;padding:22px;font-siz
       <div id="d60SourceNote"></div>
     </div>
 
+    <div id="dw-host-disp60"></div>
+    <div id="dw2-host-disp60"></div>
     <div class="sh"><span class="tag" style="background:linear-gradient(135deg,var(--amber),var(--amber2))">💡 इनसाइट्स</span><h2>स्मार्ट इनसाइट्स</h2></div>
     <div id="d60Insights" style="margin-bottom:10px;"></div>
 
@@ -1814,6 +1820,15 @@ footer{background:#fff;color:var(--soft);text-align:center;padding:22px;font-siz
       <button class="btn-fill green" onclick="downloadDisposalPendingList(60)">📥 पेंडिंग सूची (समस्त + 60 दिन / 45-60 दिन) डाउनलोड</button>
       <button class="btn-fill maroon" onclick="exportOnePagePortraitPDF('disp60','60 दिवस निस्तारण विश्लेषण — जिला डीडवाना-कुचामन','60-din-nistaran-vishleshan.pdf')">📄 PDF डाउनलोड (थानों हेतु)</button>
       <button class="btn-ghost" onclick="window.print()">🖨️ पेज प्रिंट करें</button>
+    </div>
+    <div class="pcard" style="--ca:#1D4ED8;margin:4px 0 14px;">
+      <div class="pcard-title">📝 वृत्ताधिकारी हेतु Word रिपोर्ट</div>
+      <div class="pcard-desc" style="margin-bottom:10px;">अपना वृत्त चुनें — 60 व 90 दिवस की समस्त पेंडिंग प्रकरणों की पूर्ण सारणी तथा 15 दिवस शेष रहने वाले प्रकरणों की सारणी, आकर्षक Word (.doc) फाइल में डाउनलोड होगी।</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+        <div><label style="font-size:11.5px;font-weight:700;color:var(--soft);display:block;margin-bottom:5px;">वृत्त चुनें</label>
+          <select id="dispWordCircle60" onchange="dispWordCircleChanged(60)" style="padding:8px 10px;border-radius:12px;border:1.5px solid var(--line);font-size:13px;min-width:170px;"></select></div>
+        <button class="btn-fill blue" onclick="downloadCircleDisposalWord(60)">📝 Word में डाउनलोड करें</button>
+      </div>
     </div>
     <div id="d60Table"></div>
     <div class="sh" style="margin:22px 0 10px;"><span class="tag" style="background:linear-gradient(135deg,#4A148C,#2A0A4F)">IO रैंकिंग</span><h2 style="font-size:16px;">अनुसंधान अधिकारी टॉप/बॉटम 15 (60 दिन)</h2></div>
@@ -1859,6 +1874,8 @@ footer{background:#fff;color:var(--soft);text-align:center;padding:22px;font-siz
       <div id="d90SourceNote"></div>
     </div>
 
+    <div id="dw-host-disp90"></div>
+    <div id="dw2-host-disp90"></div>
     <div class="sh"><span class="tag" style="background:linear-gradient(135deg,var(--amber),var(--amber2))">💡 इनसाइट्स</span><h2>स्मार्ट इनसाइट्स</h2></div>
     <div id="d90Insights" style="margin-bottom:10px;"></div>
 
@@ -1868,6 +1885,15 @@ footer{background:#fff;color:var(--soft);text-align:center;padding:22px;font-siz
       <button class="btn-fill green" onclick="downloadDisposalPendingList(90)">📥 पेंडिंग सूची (समस्त + 90 दिन / 75-90 दिन) डाउनलोड</button>
       <button class="btn-fill maroon" onclick="exportOnePagePortraitPDF('disp90','90 दिवस निस्तारण विश्लेषण — जिला डीडवाना-कुचामन','90-din-nistaran-vishleshan.pdf')">📄 PDF डाउनलोड (थानों हेतु)</button>
       <button class="btn-ghost" onclick="window.print()">🖨️ पेज प्रिंट करें</button>
+    </div>
+    <div class="pcard" style="--ca:#1D4ED8;margin:4px 0 14px;">
+      <div class="pcard-title">📝 वृत्ताधिकारी हेतु Word रिपोर्ट</div>
+      <div class="pcard-desc" style="margin-bottom:10px;">अपना वृत्त चुनें — 60 व 90 दिवस की समस्त पेंडिंग प्रकरणों की पूर्ण सारणी तथा 15 दिवस शेष रहने वाले प्रकरणों की सारणी, आकर्षक Word (.doc) फाइल में डाउनलोड होगी।</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+        <div><label style="font-size:11.5px;font-weight:700;color:var(--soft);display:block;margin-bottom:5px;">वृत्त चुनें</label>
+          <select id="dispWordCircle90" onchange="dispWordCircleChanged(90)" style="padding:8px 10px;border-radius:12px;border:1.5px solid var(--line);font-size:13px;min-width:170px;"></select></div>
+        <button class="btn-fill blue" onclick="downloadCircleDisposalWord(90)">📝 Word में डाउनलोड करें</button>
+      </div>
     </div>
     <div id="d90Table"></div>
     <div class="sh" style="margin:22px 0 10px;"><span class="tag" style="background:linear-gradient(135deg,#4A148C,#2A0A4F)">IO रैंकिंग</span><h2 style="font-size:16px;">अनुसंधान अधिकारी टॉप/बॉटम 15 (90 दिन)</h2></div>
@@ -1905,6 +1931,8 @@ footer{background:#fff;color:var(--soft);text-align:center;padding:22px;font-siz
       <div id="pendSourceNote"></div>
     </div>
 
+    <div id="dw-host-pendency"></div>
+    <div id="dw2-host-pendency"></div>
     <div class="sh"><span class="tag" style="background:linear-gradient(135deg,var(--amber),var(--amber2))">💡 इनसाइट्स</span><h2>स्मार्ट इनसाइट्स</h2></div>
     <div id="pendInsights" style="margin-bottom:10px;"></div>
 
@@ -2771,6 +2799,24 @@ function reply(obj) {
       </div>
     </div>
 
+    <div class="pcard" style="--ca:#4F46E5;margin-top:8px">
+      <div class="pcard-head"><div class="pcard-icon">🔗</div><span class="pcard-badge" style="background:#eceafd;color:#4F46E5">मॉनिटरिंग शेयर लिंक</span></div>
+      <div class="pcard-title">चुनिंदा अधिकारियों हेतु मॉनिटरिंग लिंक बनाएं</div>
+      <div class="pcard-desc" style="margin-bottom:10px">नीचे से केवल वही मॉनिटरिंग हेड चुनें जो अधिकारी को दिखाने हैं। बनी हुई लिंक खोलने पर <b>पासवर्ड नहीं माँगा जाएगा</b> और अधिकारी को सिर्फ चुने हुए पेज ही दिखेंगे — शाखाएँ, सेटिंग्स, एडमिन व अन्य पेज बंद रहेंगे।</div>
+      <div id="monShareHeads" style="display:flex;flex-direction:column;gap:8px"></div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="btn-ghost" onclick="monShareSelectAll(true)">☑️ सभी चुनें</button>
+        <button type="button" class="btn-ghost" onclick="monShareSelectAll(false)">⬜ सभी हटाएं</button>
+      </div>
+      <label style="font-size:13px;font-weight:600;color:var(--navy);display:block;margin-top:12px">बनी हुई लिंक</label>
+      <textarea id="monShareUrl" rows="3" readonly onclick="this.select()" placeholder="ऊपर से कम से कम एक हेड चुनें" style="width:100%;padding:10px;border-radius:8px;border:1.5px solid #ccc;margin-top:4px;font-family:monospace;font-size:12px"></textarea>
+      <div class="pcard-actions" style="flex-wrap:wrap;margin-top:8px">
+        <button type="button" class="btn-fill blue" onclick="monShareCopy()">📋 लिंक कॉपी करें</button>
+        <button type="button" class="btn-fill" style="background:linear-gradient(135deg,#25D366,#128C7E)" onclick="monShareWhatsapp()">💬 WhatsApp पर भेजें</button>
+        <button type="button" class="btn-fill amber" onclick="monShareOpen()">👁️ लिंक खोलकर जाँचें</button>
+      </div>
+    </div>
+
     <div class="pcard" style="--ca:#B71C1C;margin-top:8px">
       <div class="pcard-head"><div class="pcard-icon">🗑️</div><span class="pcard-badge" style="background:#fdecea;color:#B71C1C">डिवाइस डेटा प्रबंधन</span></div>
       <div class="pcard-title">इस डिवाइस से सारा भरा हुआ डेटा हटाएं</div>
@@ -2835,6 +2881,7 @@ function reply(obj) {
         <button class="btn-fill sm" style="background:linear-gradient(135deg,#7C2D12,#4A1224)" onclick="awGenerateLettersWord()">📄 कम कार्यवाही वाले थानों हेतु पत्र (Word)</button>
       </div>
     </div>
+    <div id="dw-host-actWatch"></div>
     <div id="aw-letters-status" class="note" style="margin-top:8px"></div>
     <div id="aw-result" style="margin-top:16px"></div>
   </div>
@@ -7468,10 +7515,11 @@ function buildRowsSAS(limit, df){
     const ps=r[0], regDateStr=r[1], status=r[9], act=r[10]||'', csDateStr=r[11];
     if(classifyLimitFromText(act)!==limit) return;
     if(df && !inRange(regDateStr, df)) return;
-    const disposed = (status==='Chargesheet'||status==='F.R.');
-    let dd=null, rd=null;
     const regDate = regDateStr? new Date(regDateStr): null;
     const csDate = csDateStr? new Date(csDateStr): null;
+    // चालान/FR स्थिति होने पर भी चालान-दिनांक न हो तो प्रकरण पेंडिंग माना जाएगा (समय-सीमा आज की तारीख से गिनी जाएगी)
+    const disposed = (status==='Chargesheet'||status==='F.R.') && !!csDate && !isNaN(csDate.getTime());
+    let dd=null, rd=null;
     if(disposed && regDate && csDate) dd = Math.round((csDate-regDate)/86400000);
     else if(!disposed && regDate) rd = Math.round((today-regDate)/86400000);
     let ctype=null;
@@ -9039,9 +9087,15 @@ function buildPendencyRowsFDC(){
     return {ps, fir:r[2], reg:r[3], section:FDC.act1[r[4]]||'', cat, pendingLike:cat!=null, regYear:regYearOf(r[3])};
   });
 }
+function sasCatOfRaw(r){
+  const c = sasCatOf(r[9]); if(c) return c;
+  const s = r[9];
+  if((s==='Chargesheet'||s==='F.R.') && !r[11]) return 'ui'; // चालान-दिनांक नहीं = पेंडिंग
+  return null;
+}
 function buildPendencyRowsSAS(){
   return RAW.map(r=>{
-    const cat = sasCatOf(r[9]);
+    const cat = sasCatOfRaw(r);
     return {ps:r[0], fir:r[2], reg:r[1], section:r[10]||'', cat, pendingLike:cat!=null, regYear:regYearOf(r[1])};
   });
 }
@@ -9053,7 +9107,7 @@ function buildPendencyRowsAutoMerge(){
   function keyOf(ps,fir){ return ps+'|'+String(fir||'').trim(); }
   GEN.forEach(r=>{ const cat=genCatOf(r[5]); map.set(keyOf(r[0],r[2]), {ps:r[0], fir:r[2], reg:r[3], section:r[9]||'', cat, pendingLike:cat!=null, regYear:regYearOf(r[3])}); });
   FDC.rows.forEach(r=>{ const ps=FDC.ps[r[1]]; const k=keyOf(ps,r[2]); if(!map.has(k)){ const cat=fdcCatOf(FDC.cst[r[10]]); map.set(k,{ps, fir:r[2], reg:r[3], section:FDC.act1[r[4]]||'', cat, pendingLike:cat!=null, regYear:regYearOf(r[3])}); } });
-  RAW.forEach(r=>{ const k=keyOf(r[0],r[2]); if(!map.has(k)){ const cat=sasCatOf(r[9]); map.set(k,{ps:r[0], fir:r[2], reg:r[1], section:r[10]||'', cat, pendingLike:cat!=null, regYear:regYearOf(r[1])}); } });
+  RAW.forEach(r=>{ const k=keyOf(r[0],r[2]); if(!map.has(k)){ const cat=sasCatOfRaw(r); map.set(k,{ps:r[0], fir:r[2], reg:r[1], section:r[10]||'', cat, pendingLike:cat!=null, regYear:regYearOf(r[1])}); } });
   return Array.from(map.values());
 }
 function buildPendencyRows(source){
@@ -9288,7 +9342,9 @@ function buildPsCmpDataForField(field, date1, date2){
   }
   function varCell(v1,v2,bold){
     const diff = v2-v1;
-    const cls = diff<0 ? 'good' : diff>0 ? 'warn' : '';
+    // सामान्य श्रेणियों में कमी = हरा, वृद्धि = लाल। SLL में इसका उलट: वृद्धि (+) = हरा, कमी (−) = लाल।
+    const inv = (field==='sll');
+    const cls = diff<0 ? (inv?'warn':'good') : diff>0 ? (inv?'good':'warn') : '';
     const sign = diff>0?'+':'';
     return `<td class="${cls}"${bold?' style="font-weight:700;"':''}>${sign}${diff}</td>`;
   }
@@ -9334,7 +9390,10 @@ function buildPsCmpDataForField(field, date1, date2){
   gCells += `<td><b>${grand.__total.v1}</b></td><td><b>${grand.__total.v2}</b></td>` + varCell(grand.__total.v1, grand.__total.v2, true);
   rows += `<tr style="background:var(--navy);color:#000;">${gCells}</tr>`;
 
-  return {head1, head2, rows, note};
+  const legend = (field==='sll')
+    ? 'SLL में रंग-संकेत: हरा = वृद्धि (गत तिथि से अधिक प्रकरण), लाल = कमी / ऋणात्मक (गत तिथि से कम प्रकरण)। "ग्रैंड टोटल" स्तंभ सभी उप-श्रेणी स्तंभों का योग है।'
+    : 'हरा = कमी (गत तिथि से कम प्रकरण), लाल = वृद्धि (गत तिथि से अधिक प्रकरण)। "ग्रैंड टोटल" स्तंभ सभी उप-श्रेणी स्तंभों का योग है।';
+  return {head1, head2, rows, note, legend};
 }
 
 function renderPsCmpTable(){
@@ -9347,6 +9406,7 @@ function renderPsCmpTable(){
   if(!data) return;
 
   document.getElementById('psCmpNote').textContent = data.note;
+  const _lg = document.getElementById('psCmpLegend'); if(_lg) _lg.textContent = data.legend;
   document.getElementById('psCmpHeadRow1').innerHTML = data.head1;
   document.getElementById('psCmpHeadRow2').innerHTML = data.head2;
   document.getElementById('psCmpBody').innerHTML = data.rows;
@@ -9391,22 +9451,25 @@ async function exportAllCategoriesPsCmpToPDF(){
     // हर श्रेणी को पूरी टेबल समेत एक ही पेज पर छोटा करके फिट कर देगा।
     const wrap = document.createElement('div');
     wrap.id = 'psCmpAllPdfWrap';
-    wrap.style.cssText = 'position:fixed;left:-99999px;top:0;width:max-content;background:#fff;padding:4px;font-family:Hind,Arial,sans-serif;';
+    const _th = psCmpThemeColors();
+    wrap.style.cssText = `position:fixed;left:-99999px;top:0;width:max-content;background:${_th.bg};color:${_th.ink};padding:4px;font-family:Hind,Arial,sans-serif;`;
     // महत्वपूर्ण फिक्स: .cmp-tbl की थाना/सर्किल कॉलम वाली position:sticky रूल ऑन-स्क्रीन scroll के लिए है।
     // इस ऑफ-स्क्रीन (डिटैच्ड, बिना scroll container वाले) wrap में html2canvas उस sticky पोजीशनिंग को
     // सही तरह हैंडल नहीं कर पाता — जिससे थाना/सर्किल कॉलम बायीं ओर से गायब होकर दायीं ओर हैडरों पर
     // ओवरलैप हो जाता था। नीचे की स्कोप्ड स्टाइल इसे केवल इसी PDF-कैप्चर wrap में static कर देती है
     // (ऑन-स्क्रीन सारणी के sticky व्यवहार पर कोई असर नहीं पड़ता)।
     wrap.innerHTML = `<style>#psCmpAllPdfWrap .cmp-tbl td:first-child,#psCmpAllPdfWrap .cmp-tbl th:first-child{position:static !important;box-shadow:none !important;}</style>
-      <div style="font-size:20px;font-weight:700;color:#152A4A;margin-bottom:4px;">जिला डीडवाना-कुचामन — थानावार/सर्किलवार तुलनात्मक सारणी (सभी अपराध श्रेणी)</div>
-      <div style="font-size:13px;color:#555;margin-bottom:3px;">${data.note}</div>
-      <div style="font-size:12px;color:#888;margin-bottom:10px;">जनरेट दिनांक: ${new Date().toLocaleString('hi-IN')}</div>
+      <div style="font-size:20px;font-weight:700;color:${_th.title};margin-bottom:4px;">जिला डीडवाना-कुचामन — थानावार/सर्किलवार तुलनात्मक सारणी (सभी अपराध श्रेणी)</div>
+      <div style="font-size:13px;color:${_th.soft};margin-bottom:3px;">${data.note}</div>
+      <div style="font-size:12px;color:${_th.soft};margin-bottom:10px;">${data.legend} &nbsp;|&nbsp; जनरेट दिनांक: ${new Date().toLocaleString('hi-IN')}</div>
       <table class="data-tbl cmp-tbl" style="border:1.5px solid #0E1B33;"><thead><tr>${data.head1}</tr><tr>${data.head2}</tr></thead><tbody>${data.rows}</tbody></table>`;
     document.body.appendChild(wrap);
 
     try{
       // हर श्रेणी को बिना पेज बांटे — एक ही पेज़ पर समाने के लिए चौड़ाई व ऊँचाई दोनों में fit-to-page स्केल
-      const canvas = await html2canvas(wrap, {scale:2, backgroundColor:'#ffffff'});
+      const canvas = await html2canvas(wrap, {scale:2, backgroundColor:_th.bg});
+      // पेज का बैकग्राउंड भी उसी थीम का (डार्क थीम में PDF पेज भी डार्क)
+      doc.setFillColor(_th.bg); doc.rect(0,0,pageW,pageH,'F');
       const availW = pageW - marginX*2;
       const availH = pageH - startY - 20;
       const fitScale = Math.min(availW / canvas.width, availH / canvas.height);
@@ -11849,8 +11912,8 @@ function awMatchCat(sll){
 
 function awInitSelects(){
   const ys=document.getElementById('aw-year'), ms=document.getElementById('aw-month');
-  if(ys && !ys.dataset.filled){ for(let y=CY+3;y>=CY-3;y--){ const o=document.createElement('option'); o.value=y;o.textContent=y+'';ys.appendChild(o); } ys.dataset.filled='1'; }
-  if(ms && !ms.dataset.filled){ MONTHS.forEach((m,i)=>{ const o=document.createElement('option'); o.value=i+1;o.textContent=m;ms.appendChild(o); }); ms.dataset.filled='1'; }
+  if(ys && !ys.dataset.filled){ for(let y=CY+3;y>=CY-3;y--){ const o=document.createElement('option'); o.value=y;o.textContent=y+'';ys.appendChild(o); } ys.dataset.filled='1'; ys.value=CY; }
+  if(ms && !ms.dataset.filled){ MONTHS.forEach((m,i)=>{ const o=document.createElement('option'); o.value=i+1;o.textContent=m;ms.appendChild(o); }); ms.dataset.filled='1'; ms.value=new Date().getMonth()+1; }
   // यह पेज एक चालू-माह "निगरानी" औज़ार है (सूचना-प्रारूप की तरह पूर्ण-हो-चुके माह की रिपोर्टिंग नहीं) —
   // इसलिए डिफ़ॉल्ट रूप से चालू माह चुना जाता है, ताकि इसी माह में गत वर्ष की तुलना में कमी दिखे तो अभी कार्यवाही हो सके।
   if(ys && !ys.value) ys.value=CY;
@@ -13488,6 +13551,1000 @@ function downloadPivotDrill(){
       }, 60);
     }, 60);
   }catch(e){}
+})();
+</script>
+<script>
+// ============================================================
+// थानावार/सर्किलवार तुलनात्मक सारणी — स्क्रीन की थीम (लाइट/डार्क) के अनुसार Excel / PDF
+// ============================================================
+function psCmpThemeColors(){
+  const cs = getComputedStyle(document.documentElement);
+  const sec = document.getElementById('psCmpSection');
+  const bg = (sec && rgbToHex(getComputedStyle(sec).backgroundColor)) || (cs.getPropertyValue('--card').trim()) || '#ffffff';
+  const ink = cs.getPropertyValue('--ink').trim() || '#101828';
+  const soft = cs.getPropertyValue('--soft').trim() || '#64748B';
+  const dark = document.documentElement.getAttribute('data-theme')==='dark';
+  return {bg, ink, soft, title: dark ? ink : '#152A4A', dark};
+}
+
+function exportPsCmpToExcel(){
+  const tbl = document.getElementById('psCmpTable');
+  if(!tbl || !document.getElementById('psCmpBody').children.length){ toast('कोई सारणी उपलब्ध नहीं — पहले दोनों तिथियाँ चुनकर सारणी बनायें'); return; }
+  const th = psCmpThemeColors();
+  const clone = tbl.cloneNode(true);
+  const srcRows = tbl.querySelectorAll('tr'), cloneRows = clone.querySelectorAll('tr');
+  srcRows.forEach((sr,ri)=>{
+    const sCells = sr.children, cCells = cloneRows[ri].children;
+    for(let ci=0; ci<sCells.length; ci++){
+      const cs = getComputedStyle(sCells[ci]);
+      let bgc = rgbToHex(cs.backgroundColor);
+      if(!bgc || /rgba\(\d+,\s*\d+,\s*\d+,\s*0\)/.test(cs.backgroundColor)) bgc = th.bg;
+      const fg = rgbToHex(cs.color) || th.ink;
+      const bold = (parseInt(cs.fontWeight,10)>=600 || cs.fontWeight==='bold') ? 'bold' : 'normal';
+      const bd = rgbToHex(cs.borderBottomColor) || '#999999';
+      const align = cs.textAlign==='left' ? 'left' : 'center';
+      cCells[ci].setAttribute('bgcolor', bgc);
+      cCells[ci].setAttribute('style', `background:${bgc};color:${fg};font-weight:${bold};text-align:${align};border:1px solid ${bd};padding:5px 9px;font-size:12px;white-space:nowrap;`);
+    }
+  });
+  const note = document.getElementById('psCmpNote').textContent;
+  const legend = (document.getElementById('psCmpLegend')||{}).textContent || '';
+  const body = `<h2 style="font-family:Arial;color:${th.title};">जिला डीडवाना-कुचामन — थानावार/सर्किलवार तुलनात्मक सारणी</h2>
+    <p style="font-family:Arial;font-size:12px;color:${th.soft};">${escHtml(note)}</p>
+    <p style="font-family:Arial;font-size:11px;color:${th.soft};">${escHtml(legend)} &nbsp;|&nbsp; जनरेट दिनांक: ${new Date().toLocaleString('hi-IN')}</p>
+    ${clone.outerHTML}`;
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>तुलनात्मक सारणी</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><style>body{font-family:Arial;background:${th.bg};color:${th.ink};}table{border-collapse:collapse;font-family:Arial;}</style></head><body bgcolor="${th.bg}">${body}</body></html>`;
+  dlBlob(html, 'application/vnd.ms-excel', 'thana-circle-comparative.xls');
+  toast('✅ Excel डाउनलोड हो रही है (स्क्रीन की थीम व रंगों सहित)');
+}
+
+// ============================================================
+// वृत्ताधिकारी हेतु — अपने वृत्त की 60/90 दिवस पेंडिंग पूर्ण सारणी + 15 दिवस शेष सारणी (Word)
+// ============================================================
+function dispWordCircleChanged(page){
+  const sel = document.getElementById('dispWordCircle'+page);
+  if(!sel) return;
+  try{ localStorage.setItem('dispWordCircle', sel.value); }catch(e){}
+  const other = document.getElementById('dispWordCircle'+(page===60?90:60));
+  if(other) other.value = sel.value;
+}
+function initDispWordCircle(){
+  let saved = 'ALL';
+  try{ saved = localStorage.getItem('dispWordCircle') || 'ALL'; }catch(e){}
+  [60,90].forEach(p=>{
+    const sel = document.getElementById('dispWordCircle'+p);
+    if(!sel) return;
+    sel.innerHTML = '<option value="ALL">सम्पूर्ण जिला</option>' + DISP_CIRCLE_ORDER.map(c=>`<option value="${c}">${c} वृत्त</option>`).join('');
+    sel.value = Array.from(sel.options).some(o=>o.value===saved) ? saved : 'ALL';
+  });
+}
+
+function downloadCircleDisposalWord(page){
+  const sel = document.getElementById('dispWordCircle'+page);
+  const circle = sel ? sel.value : 'ALL';
+  const circleLabel = circle==='ALL' ? 'सम्पूर्ण जिला' : circle+' वृत्त';
+  const source = (GEN && GEN.length) ? 'generic' : 'automerge';
+  const inCircle = ps => circle==='ALL' || dispCircleOf(ps)===circle;
+  const WARN = DEADLINE_WARN_DAYS, CRIT = 5;
+  const hiPS = ps => ENG2HI_PS[ps] || ps;
+
+  const D = {};
+  [60,90].forEach(limit=>{
+    const rows = buildRowsForSource(source, limit, null)
+      .filter(r=>!r.disposed && r.rd!=null && inCircle(r.ps))
+      .sort((a,b)=>b.rd-a.rd);
+    D[limit] = {
+      all: rows,
+      over: rows.filter(r=>r.rd>limit),
+      near: rows.filter(r=>r.rd<=limit && r.rd>=limit-WARN)
+    };
+  });
+  const totalAll = D[60].all.length + D[90].all.length;
+  if(!totalAll){ toast('⚠️ चयनित वृत्त में कोई पेंडिंग प्रकरण नहीं मिला'); return; }
+
+  const now = new Date();
+  const dateStr = String(now.getDate()).padStart(2,'0')+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+now.getFullYear();
+  const nearTotal = D[60].near.length + D[90].near.length;
+  const critTotal = [60,90].reduce((n,l)=> n + D[l].near.filter(r=>(l-r.rd)<=CRIT).length, 0);
+  const overTotal = D[60].over.length + D[90].over.length;
+
+  const card = (num,label,bg,fg)=>`<td width="25%" align="center" bgcolor="${bg}" style="background:${bg};border:2px solid #FFFFFF;padding:10px 6px;">
+      <div style="font-size:22pt;font-weight:bold;color:${fg};">${num}</div>
+      <div style="font-size:9.5pt;color:${fg};font-weight:bold;">${label}</div></td>`;
+
+  const th = labels => `<tr>${labels.map(l=>`<th bgcolor="#102C57" style="background:#102C57;color:#FFFFFF;border:1px solid #B4C3D7;padding:6px 6px;font-size:9.5pt;text-align:center;">${l}</th>`).join('')}</tr>`;
+  const td = (v,extra)=>`<td style="border:1px solid #B4C3D7;padding:5px 6px;font-size:9.5pt;${extra||''}">${v}</td>`;
+
+  function pendingRows(list, limit){
+    if(!list.length) return `<tr><td colspan="8" align="center" style="border:1px solid #B4C3D7;padding:10px;color:#555;">कोई प्रकरण नहीं</td></tr>`;
+    return list.map((r,i)=>{
+      const over = r.rd>limit, rem = limit-r.rd;
+      const crit = !over && rem<=CRIT;
+      const bg = over ? '#FDE8E8' : (crit ? '#FFF1E0' : (i%2 ? '#F5F8FC' : '#FFFFFF'));
+      const stTxt = over ? `सीमा पार (+${r.rd-limit} दिन)` : `${rem} दिन शेष`;
+      const stCol = over ? '#B71C1C' : (crit ? '#B45309' : '#1B5E20');
+      return `<tr bgcolor="${bg}" style="background:${bg};">`+
+        td(i+1,'text-align:center;')+td(hiPS(r.ps))+td(escHtml(r.fir||'-'))+td(escHtml(r.reg||'-'),'text-align:center;')+
+        td(escHtml(r.section||'-'))+td(escHtml(r.io||'-'))+td(r.rd,'text-align:center;font-weight:bold;')+
+        td(stTxt,`text-align:center;font-weight:bold;color:${stCol};`)+`</tr>`;
+    }).join('');
+  }
+  function nearRows(list, limit){
+    if(!list.length) return `<tr><td colspan="8" align="center" style="border:1px solid #B4C3D7;padding:10px;color:#555;">आगामी ${WARN} दिवस में सीमा पूर्ण करने वाला कोई प्रकरण नहीं</td></tr>`;
+    return list.map((r,i)=>{
+      const rem = limit-r.rd, crit = rem<=CRIT;
+      const bg = crit ? '#FCE4E4' : (i%2 ? '#F5F8FC' : '#FFFFFF');
+      return `<tr bgcolor="${bg}" style="background:${bg};">`+
+        td(i+1,'text-align:center;')+td(hiPS(r.ps))+td(escHtml(r.fir||'-'))+td(escHtml(r.reg||'-'),'text-align:center;')+
+        td(escHtml(r.section||'-'))+td(escHtml(r.io||'-'))+td(r.rd,'text-align:center;')+
+        td(rem+(crit?' ⚠':''),`text-align:center;font-weight:bold;color:${crit?'#B71C1C':'#1B5E20'};`)+`</tr>`;
+    }).join('');
+  }
+
+  const stations = ALL_PS_EN.filter(inCircle);
+  const stationRows = stations.map((ps,i)=>{
+    const g = l => D[l].all.filter(r=>r.ps===ps);
+    const a60=g(60), a90=g(90);
+    const o = a60.filter(r=>r.rd>60).length + a90.filter(r=>r.rd>90).length;
+    const n = a60.filter(r=>r.rd<=60&&r.rd>=60-WARN).length + a90.filter(r=>r.rd<=90&&r.rd>=90-WARN).length;
+    const bg = i%2 ? '#F5F8FC' : '#FFFFFF';
+    return `<tr bgcolor="${bg}">`+td(i+1,'text-align:center;')+td(hiPS(ps))+td(a60.length,'text-align:center;')+td(a90.length,'text-align:center;')+
+      td(o,'text-align:center;font-weight:bold;color:'+(o?'#B71C1C':'#1B5E20')+';')+td(n,'text-align:center;font-weight:bold;color:'+(n?'#B45309':'#1B5E20')+';')+`</tr>`;
+  }).join('');
+
+  const section = (limit, partNo)=>`
+    <div style="page-break-before:always;"></div>
+    <table width="100%" cellspacing="0" cellpadding="0"><tr><td bgcolor="#102C57" style="background:#102C57;color:#FFFFFF;padding:8px 12px;font-size:13pt;font-weight:bold;">भाग-${partNo} : ${limit} दिवस सीमा के प्रकरण — ${circleLabel}</td></tr></table>
+    <p style="margin:10px 0 4px 0;font-weight:bold;color:#102C57;font-size:11.5pt;">सारणी ${partNo}-क : समस्त पेंडिंग प्रकरण (कुल ${D[limit].all.length}; सीमा पार ${D[limit].over.length})</p>
+    <table width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">${th(['क्र.सं','थाना','FIR नंबर','पंजीकरण दिनांक','धारा / Act','अनुसंधान अधिकारी (IO)','लंबित दिन','स्थिति'])}${pendingRows(D[limit].all, limit)}</table>
+    <p style="margin:16px 0 4px 0;font-weight:bold;color:#B45309;font-size:11.5pt;">सारणी ${partNo}-ख : आगामी ${WARN} दिवस में ${limit}-दिवस सीमा पूर्ण करने वाले प्रकरण (कुल ${D[limit].near.length})</p>
+    <table width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">${th(['क्र.सं','थाना','FIR नंबर','पंजीकरण दिनांक','धारा / Act','अनुसंधान अधिकारी (IO)','लंबित दिन','शेष दिन'])}${nearRows(D[limit].near, limit)}</table>`;
+
+  const html = `<!DOCTYPE html>
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head><meta charset='utf-8'>
+<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->
+<style>
+  @page Section1{ size:841.9pt 595.3pt; mso-page-orientation:landscape; margin:0.55in 0.55in 0.55in 0.55in; }
+  div.Section1{ page:Section1; }
+  body{ font-family:'Mangal','Nirmala UI',Arial,sans-serif; font-size:10pt; color:#1a1a1a; }
+  p{ margin:0; }
+  tr{ page-break-inside:avoid; }
+</style></head>
+<body><div class="Section1">
+  <table width="100%" cellspacing="0" cellpadding="0"><tr><td bgcolor="#102C57" style="background:#102C57;height:8px;font-size:2pt;">&nbsp;</td></tr></table>
+  <p align="center" style="font-weight:bold;color:#6B7280;font-size:10pt;margin-top:8px;letter-spacing:1px;">राजस्थान सरकार</p>
+  <p align="center" style="font-weight:bold;color:#102C57;font-size:17pt;">कार्यालय पुलिस अधीक्षक, जिला डीडवाना-कुचामन</p>
+  <p align="center" style="font-weight:bold;color:#B45309;font-size:10pt;">सांख्यिकी शाखा (Statistics Branch)</p>
+  <hr style="border:none;border-top:2px solid #B4C3D7;margin:8px 0;">
+  <table width="100%" cellspacing="0" cellpadding="0"><tr><td bgcolor="#EEF3FA" style="background:#EEF3FA;border-left:6px solid #102C57;padding:10px 14px;">
+    <p style="font-size:14pt;font-weight:bold;color:#102C57;">60/90 दिवस पेंडिंग प्रकरण रिपोर्ट — ${circleLabel}</p>
+    <p style="font-size:9.5pt;color:#444;margin-top:3px;">रिपोर्ट दिनांक : ${dateStr} &nbsp;|&nbsp; डेटा : ${source==='generic'?'Generic Data':'Auto Merge'} &nbsp;|&nbsp; गणना : पंजीकरण से अब तक के दिन (लंबित दिन)</p>
+  </td></tr></table>
+  <p style="height:8px;">&nbsp;</p>
+  <table width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;"><tr>
+    ${card(totalAll,'कुल पेंडिंग प्रकरण (60+90)','#E7ECF3','#102C57')}
+    ${card(overTotal,'सीमा पार प्रकरण','#FDE8E8','#B71C1C')}
+    ${card(nearTotal,'आगामी '+WARN+' दिवस में सीमा','#FFF1E0','#B45309')}
+    ${card(critTotal,'अत्यावश्यक (≤ '+CRIT+' दिन शेष)','#FCE4E4','#B71C1C')}
+  </tr></table>
+  <p style="margin:14px 0 4px 0;font-weight:bold;color:#102C57;font-size:11.5pt;">थानावार सारांश</p>
+  <table width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+    ${th(['क्र.सं','थाना','60 दिवस — पेंडिंग','90 दिवस — पेंडिंग','सीमा पार (कुल)','आगामी '+WARN+' दिवस में सीमा (कुल)'])}
+    ${stationRows}
+  </table>
+  <p style="margin-top:10px;font-size:9pt;color:#555;">रंग-संकेत : <span style="color:#B71C1C;font-weight:bold;">लाल</span> = सीमा पार / अत्यावश्यक (${CRIT} दिन या कम शेष), <span style="color:#B45309;font-weight:bold;">नारंगी</span> = ${CRIT} दिन या कम शेष, <span style="color:#1B5E20;font-weight:bold;">हरा</span> = सीमा के भीतर।</p>
+  ${section(60,1)}
+  ${section(90,2)}
+  <p style="margin-top:18px;font-size:9pt;color:#555;">नोट : यह रिपोर्ट पोर्टल के उपलब्ध डेटा से स्वतः तैयार की गई है। पालना हेतु संबंधित थानाधिकारी/अनुसंधान अधिकारी को निर्देशित करें।</p>
+</div></body></html>`;
+
+  const blob = new Blob(['\ufeff', html], {type:'application/msword'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const slug = circle==='ALL' ? 'zila' : (({'डीडवाना':'didwana','कुचामन सिटी':'kuchaman-city','लाडनूं':'ladnun','मकराना':'makrana','अन्य / साइबर':'other-cyber'})[circle] || 'vritt');
+  a.download = `60-90-pending-${slug}-${dateStr.replace(/\./g,'')}.doc`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(a.href), 60000);
+  toast('✅ Word रिपोर्ट डाउनलोड हो रही है');
+}
+try{ initDispWordCircle(); }catch(e){}
+</script>
+<script>
+// ============================================================
+// दैनिक निगरानी पैनल — "कल जिस बिंदु पर निर्देश दिए, आज किस थाने ने कार्य किया / नहीं किया"
+//  • 60/90 दिवस : पंजीकरण तिथि + निस्तारण अवधि (dd) से आधार-दिनांक की स्थिति पुनर्निर्मित
+//  • SLL (आबकारी/जुआ/आर्म्स/NDPS) : FIR दिनांक के आधार पर आधार-दिनांक तक बनाम आज तक
+//  • पेंडेंसी : Generic Data से आधार-दिनांक बनाम आज की पेंडिंग व रैंक
+// ============================================================
+(function(){
+  var DW = {charts:{}, filter:{}, last:{}};
+  var FONT = "Hind,'Noto Sans Devanagari',system-ui,sans-serif";
+  var PAGES = {
+    disp60:   {title:'60 दिवस निगरानी — कल बनाम आज',  grad:['#1E2A45','#3B4B7A']},
+    disp90:   {title:'90 दिवस निगरानी — कल बनाम आज',  grad:['#1E2A45','#3B4B7A']},
+    actWatch: {title:'आबकारी/जुआ/आर्म्स/NDPS — कल बनाम आज', grad:['#7B1E3A','#B4234F']},
+    pendency: {title:'पेंडेंसी रैंकिंग — कल बनाम आज',  grad:['#4F46E5','#312E81']}
+  };
+
+  // ---------- तिथि सहायक (दिन-संख्या में) ----------
+  function dwPad(n){ return String(n).padStart(2,'0'); }
+  function dwToday(){ var n=new Date(); return Math.floor(Date.UTC(n.getFullYear(),n.getMonth(),n.getDate())/864e5); }
+  function dwParse(s){
+    if(s==null||s==='') return null;
+    var str=String(s), m=str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if(m) return Math.floor(Date.UTC(+m[1],+m[2]-1,+m[3])/864e5);
+    m=str.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/);
+    if(m) return Math.floor(Date.UTC(+m[3],+m[2]-1,+m[1])/864e5);
+    var d=new Date(str); if(isNaN(d.getTime())) return null;
+    return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);
+  }
+  function dwFmt(day){ var d=new Date(day*864e5); return dwPad(d.getUTCDate())+'.'+dwPad(d.getUTCMonth()+1)+'.'+d.getUTCFullYear(); }
+  function dwISO(day){ var d=new Date(day*864e5); return d.getUTCFullYear()+'-'+dwPad(d.getUTCMonth()+1)+'-'+dwPad(d.getUTCDate()); }
+  function dwYearOf(day){ return new Date(day*864e5).getUTCFullYear(); }
+  function dwShiftYear(day,delta){ var d=new Date(day*864e5); return Math.floor(Date.UTC(d.getUTCFullYear()+delta,d.getUTCMonth(),d.getUTCDate())/864e5); }
+  function esc(s){ return (typeof escHtml==='function') ? escHtml(s) : String(s==null?'':s); }
+  function hi(ps){ return (typeof ENG2HI_PS!=='undefined' && ENG2HI_PS[ps]) || ps; }
+
+  var ST = { ok:{cls:'dw-ok',col:'#10B981'}, mid:{cls:'dw-mid',col:'#F59E0B'}, no:{cls:'dw-no',col:'#EF4444'}, na:{cls:'dw-na',col:'#94A3B8'} };
+  var ORDER = {no:0, mid:1, ok:2, na:3};
+  function chip(st,label){ return '<span class="dw-chip '+ST[st].cls+'">'+label+'</span>'; }
+  function bar(pct,st){ pct=Math.max(0,Math.min(100,pct||0)); return '<div class="dw-bar"><i style="width:'+pct+'%;background:'+ST[st].col+'"></i></div>'; }
+  function kpi(n,label,sub,bg,fg){ return '<div class="dw-kpi" style="background:'+bg+';color:'+fg+'"><b>'+n+'</b><span>'+label+'</span>'+(sub?'<small>'+sub+'</small>':'')+'</div>'; }
+
+  // ================= मॉडल 1: 60/90 दिवस =================
+  function modelDisp(limit,B,T){
+    var pre = limit===60?'d60':'d90';
+    var srcEl=document.getElementById(pre+'Source'), source=srcEl?srcEl.value:'generic';
+    var fEl=document.getElementById(pre+'From'), tEl=document.getElementById(pre+'To');
+    var df=((fEl&&fEl.value)||(tEl&&tEl.value)) ? {from:(fEl&&fEl.value)||null, to:(tEl&&tEl.value)||null} : null;
+    var rows=[]; try{ rows=buildRowsForSource(source,limit,df); }catch(e){ rows=[]; }
+    if(!rows.length) return {ok:false,msg:'डेटा उपलब्ध नहीं — लाइव सिंक पूर्ण होने का इंतज़ार करें या ऊपर से डेटा स्रोत बदलें।'};
+    var WARN=DEADLINE_WARN_DAYS, per={};
+    ALL_PS_EN.forEach(function(ps){ per[ps]={K:0,closed:0,rem:0,newOver:0,pB:0,pT:0}; });
+    var maxDisp=null, maxReg=null;
+    rows.forEach(function(r){
+      var b=per[r.ps]; if(!b) return;
+      var reg=dwParse(r.reg); if(reg==null) return;
+      if(maxReg===null||reg>maxReg) maxReg=reg;
+      var disp;
+      if(r.disposed){ if(r.dd==null) return; disp=reg+r.dd; if(maxDisp===null||disp>maxDisp) maxDisp=disp; } else disp=Infinity;
+      var pB=reg<=B&&disp>B, pT=reg<=T&&disp>T, ageB=B-reg, ageT=T-reg;
+      if(pB) b.pB++; if(pT) b.pT++;
+      if(pB && ageB>=limit-WARN){ b.K++; if(!pT) b.closed++; }
+      if(pT && ageT>=limit-WARN) b.rem++;
+      if(pT && ageT>limit && !(pB && ageB>limit)) b.newOver++;
+    });
+    var list=[], tot={K:0,closed:0,rem:0,newOver:0};
+    ALL_PS_EN.forEach(function(ps){
+      var b=per[ps]; if(b.pB+b.pT===0) return;
+      var st,label;
+      if(b.K===0){ st='na'; label='➖ क्रिटिकल प्रकरण नहीं'; }
+      else if(b.closed===b.K){ st='ok'; label='✅ सभी निस्तारित'; }
+      else if(b.closed>0){ st='mid'; label='🟡 आंशिक कार्य'; }
+      else { st='no'; label='❌ कोई निस्तारण नहीं'; }
+      tot.K+=b.K; tot.closed+=b.closed; tot.rem+=b.rem; tot.newOver+=b.newOver;
+      list.push({ps:ps,b:b,st:st,label:label});
+    });
+    list.sort(function(x,y){ return ORDER[x.st]-ORDER[y.st] || y.b.K-x.b.K; });
+    var cnt={ok:0,mid:0,no:0,na:0}; list.forEach(function(x){ cnt[x.st]++; });
+    var withK=list.filter(function(x){return x.b.K>0;}).sort(function(a,b){return b.b.K-a.b.K;});
+    var fresh='डेटा में अंतिम निस्तारण दिनांक: <b>'+(maxDisp!=null?dwFmt(maxDisp):'—')+'</b> | अंतिम FIR दिनांक: <b>'+(maxReg!=null?dwFmt(maxReg):'—')+'</b>';
+    if(maxDisp==null || maxDisp<T-1) fresh+=' — ⚠️ आज/कल का निस्तारण डेटा अभी सिंक न हुआ हो तो परिवर्तन डेटा अपडेट के बाद ही दिखेगा।';
+    var wa = list.filter(function(x){return x.st==='no';}).map(function(x){ return '• '+hi(x.ps)+' — '+x.b.K+' क्रिटिकल प्रकरण, निस्तारण 0'; }).join('\n');
+    return {ok:true, fresh:fresh,
+      point:'बिंदु: '+limit+' दिवस सीमा — <b>सीमा पार + '+WARN+' दिन में सीमा वाले</b> (क्रिटिकल) प्रकरणों का निस्तारण',
+      kpis:[ kpi(tot.K,'कल क्रिटिकल प्रकरण',dwFmt(B),'var(--blue-tint)','#2563EB'),
+             kpi(tot.closed,'निस्तारित (कल→आज)','',' var(--good-tint)','#059669'),
+             kpi(tot.rem,'आज भी शेष क्रिटिकल','','var(--warn-tint)','#DC2626'),
+             kpi(cnt.ok+cnt.mid,'थाने — कार्य किया','','var(--good-tint)','#059669'),
+             kpi(cnt.no,'थाने — कार्य नहीं','','var(--warn-tint)','#DC2626'),
+             kpi(tot.newOver,'नए सीमा-पार','आज जुड़े','var(--amber-tint)','#B45309') ],
+      donut:{labels:['✅ सभी निस्तारित','🟡 आंशिक','❌ कार्य नहीं','➖ क्रिटिकल नहीं'], data:[cnt.ok,cnt.mid,cnt.no,cnt.na], colors:[ST.ok.col,ST.mid.col,ST.no.col,ST.na.col]},
+      bars:[{title:'थानावार क्रिटिकल प्रकरण — कल बनाम निस्तारित बनाम आज शेष', labels:withK.map(function(x){return hi(x.ps);}),
+             datasets:[{label:'कल क्रिटिकल',data:withK.map(function(x){return x.b.K;}),backgroundColor:'#94A3B8'},
+                       {label:'निस्तारित',data:withK.map(function(x){return x.b.closed;}),backgroundColor:'#10B981'},
+                       {label:'आज शेष',data:withK.map(function(x){return x.b.rem;}),backgroundColor:'#EF4444'}]}],
+      head:['थाना','कल क्रिटिकल','निस्तारित','आज शेष','नए सीमा-पार','प्रगति','स्थिति'],
+      rows:list.map(function(x){ var b=x.b; var pct=b.K?Math.round(b.closed/b.K*100):0;
+        return {st:x.st, cells:['<b>'+hi(x.ps)+'</b><br><small style="color:var(--soft)">'+dispCircleOf(x.ps)+'</small>', b.K, '<b style="color:#059669">'+b.closed+'</b>', '<b style="color:'+(b.rem?'#DC2626':'#059669')+'">'+b.rem+'</b>', b.newOver, bar(pct,x.st)+'<small>'+pct+'%</small>', chip(x.st,x.label)]}; }),
+      wa:'📌 *'+limit+' दिवस निगरानी* ('+dwFmt(B)+' → '+dwFmt(T)+')\nकल के निर्देश पर कार्य नहीं करने वाले थाने:\n'+(wa||'— सभी थानों ने कार्य किया ✅')};
+  }
+
+  // ================= मॉडल 2: आबकारी/जुआ/आर्म्स/NDPS =================
+  function modelAct(B,T){
+    if(typeof RAW==='undefined'||!RAW||!RAW.length) return {ok:false,msg:'SAS Export डेटा उपलब्ध नहीं — लाइव सिंक होने का इंतज़ार करें।'};
+    var curY=dwYearOf(T), TP=dwShiftYear(T,-1), BP=dwShiftYear(B,-1);
+    var data={}, maxD=null;
+    RAW.forEach(function(r){
+      var ps=r[0], d=dwParse(r[1]); if(!ps||d==null) return;
+      var cat=awMatchCat(r[4]); if(!cat) return;
+      var y=dwYearOf(d);
+      var o=data[ps]=data[ps]||{cats:{}}; var c=o.cats[cat]=o.cats[cat]||{cB:0,cT:0,pB:0,pT:0};
+      if(y===curY){ if(d<=T) c.cT++; if(d<=B) c.cB++; if(maxD===null||d>maxD) maxD=d; }
+      else if(y===curY-1){ if(d<=TP) c.pT++; if(d<=BP) c.pB++; }
+    });
+    var list=[], g={cB:0,cT:0,pB:0,pT:0}, catTot={};
+    AW_CATS.forEach(function(c){ catTot[c]={cT:0,pT:0,nw:0}; });
+    Object.keys(data).forEach(function(ps){
+      var s={cB:0,cT:0,pB:0,pT:0}, nwBy={};
+      AW_CATS.forEach(function(c){
+        var x=data[ps].cats[c]||{cB:0,cT:0,pB:0,pT:0};
+        s.cB+=x.cB; s.cT+=x.cT; s.pB+=x.pB; s.pT+=x.pT; nwBy[c]=x.cT-x.cB;
+        catTot[c].cT+=x.cT; catTot[c].pT+=x.pT; catTot[c].nw+=(x.cT-x.cB);
+      });
+      var nw=s.cT-s.cB, gapB=s.pB-s.cB, gapT=s.pT-s.cT, flagged=gapB>0, st,label;
+      if(flagged && nw===0){ st='no'; label='❌ कार्य नहीं'; }
+      else if(flagged && gapT<=0){ st='ok'; label='✅ गत वर्ष के बराबर/आगे'; }
+      else if(flagged){ st='mid'; label='🟡 कार्य हुआ, कमी शेष'; }
+      else if(nw>0){ st='ok'; label='🟢 आगे, कार्यवाही जारी'; }
+      else { st='na'; label='🟢 आगे (नया नहीं)'; }
+      g.cB+=s.cB; g.cT+=s.cT; g.pB+=s.pB; g.pT+=s.pT;
+      list.push({ps:ps,s:s,nw:nw,gapT:gapT,flagged:flagged,st:st,label:label,nwBy:nwBy});
+    });
+    if(!list.length) return {ok:false,msg:'इन श्रेणियों (आबकारी/जुआ/आर्म्स/NDPS) में इस वर्ष/गत वर्ष का कोई डेटा नहीं मिला।'};
+    list.sort(function(x,y){ return ORDER[x.st]-ORDER[y.st] || y.gapT-x.gapT; });
+    var cnt={ok:0,mid:0,no:0,na:0}, flaggedN=0, nwTot=0; list.forEach(function(x){ cnt[x.st]++; if(x.flagged) flaggedN++; nwTot+=x.nw; });
+    var byGap=list.slice().sort(function(a,b){return b.gapT-a.gapT;});
+    var nwList=list.filter(function(x){return x.nw>0;});
+    var fresh='डेटा में अंतिम FIR दिनांक (इस वर्ष): <b>'+(maxD!=null?dwFmt(maxD):'—')+'</b>';
+    if(maxD==null || maxD<T-1) fresh+=' — ⚠️ आज/कल की FIR अभी सिंक न हुई हो तो "नए प्रकरण" कम दिख सकते हैं।';
+    var wa = list.filter(function(x){return x.st==='no';}).map(function(x){ return '• '+x.ps+' — गत वर्ष से '+x.gapT+' प्रकरण कम, कल से कोई नया नहीं'; }).join('\n');
+    var kp=[ kpi(flaggedN,'कल गत वर्ष से पीछे थाने',dwFmt(B),'var(--blue-tint)','#2563EB'),
+             kpi(list.filter(function(x){return x.flagged&&x.nw>0;}).length,'उनमें से कार्य किया','','var(--good-tint)','#059669'),
+             kpi(cnt.no,'कार्य नहीं किया','','var(--warn-tint)','#DC2626'),
+             kpi(nwTot,'नए प्रकरण (कल→आज)','','var(--amber-tint)','#B45309'),
+             kpi(g.cT+' / '+g.pT,'जिला: इस वर्ष / गत वर्ष','उसी तिथि तक','var(--gold-tint)','#4F46E5') ];
+    AW_CATS.forEach(function(c){ var t=catTot[c]; var arrow=t.cT>t.pT?'🟢':(t.cT<t.pT?'🔴':'➖');
+      kp.push(kpi(t.cT+' / '+t.pT,AW_CATS_HI[c],arrow+' नए आज तक: +'+t.nw,'var(--card)','var(--ink)')); });
+    var bars=[{title:'थानावार — इस वर्ष बनाम गत वर्ष (उसी तिथि तक)', labels:byGap.map(function(x){return x.ps;}),
+               datasets:[{label:'इस वर्ष',data:byGap.map(function(x){return x.s.cT;}),backgroundColor:'#4F46E5'},
+                         {label:'गत वर्ष',data:byGap.map(function(x){return x.s.pT;}),backgroundColor:'#CBD5E1'}]}];
+    if(nwList.length){
+      var cols={'Excise Act':'#F59E0B','Gambling Ordinance':'#8B5CF6','Arms Act':'#EF4444','NDPS Act':'#10B981'};
+      bars.push({title:'कल→आज दर्ज नए प्रकरण (श्रेणी अनुसार)', stacked:true, labels:nwList.map(function(x){return x.ps;}),
+        datasets:AW_CATS.map(function(c){ return {label:AW_CATS_HI[c],data:nwList.map(function(x){return x.nwBy[c];}),backgroundColor:cols[c]}; })});
+    }
+    return {ok:true, fresh:fresh,
+      point:'बिंदु: <b>गत वर्ष की तुलना में कम प्रकरण वाले थानों</b> में आबकारी/जुआ/आर्म्स/NDPS की अधिक कार्यवाही',
+      kpis:kp,
+      donut:{labels:['✅/🟢 आगे या बराबर','🟡 कार्य हुआ, कमी शेष','❌ कार्य नहीं','➖ नया नहीं'], data:[cnt.ok,cnt.mid,cnt.no,cnt.na], colors:[ST.ok.col,ST.mid.col,ST.no.col,ST.na.col]},
+      bars:bars,
+      head:['थाना','इस वर्ष (कल तक)','इस वर्ष (आज तक)','नए (कल→आज)','गत वर्ष','कमी (−) / बढ़त (+)','स्थिति'],
+      rows:list.map(function(x){ var diff=x.s.cT-x.s.pT;
+        var br=AW_CATS.filter(function(c){return x.nwBy[c]>0;}).map(function(c){return AW_CATS_HI[c].split(' ')[0]+':'+x.nwBy[c];}).join(' ');
+        return {st:x.st, cells:['<b>'+esc(x.ps)+'</b>', x.s.cB, '<b>'+x.s.cT+'</b>', '<b style="color:'+(x.nw?'#059669':'#DC2626')+'">+'+x.nw+'</b>'+(br?'<br><small style="color:var(--soft)">'+esc(br)+'</small>':''), x.s.pT, '<b style="color:'+(diff<0?'#DC2626':'#059669')+'">'+(diff>0?'+':'')+diff+'</b>', chip(x.st,x.label)]}; }),
+      wa:'📌 *आबकारी/जुआ/आर्म्स/NDPS निगरानी* ('+dwFmt(B)+' → '+dwFmt(T)+')\nकल के निर्देश पर कार्य नहीं करने वाले थाने:\n'+(wa||'— सभी पिछड़े थानों में कार्यवाही हुई ✅')};
+  }
+
+  // ================= मॉडल 3: पेंडेंसी रैंकिंग =================
+  function modelPend(B,T){
+    if(typeof GEN==='undefined'||!GEN||!GEN.length) return {ok:false,msg:'कल से तुलना हेतु Generic Data (Generic(13)) चाहिए — अभी वह उपलब्ध नहीं है।'};
+    var yEl=document.getElementById('pendYear'); var target=parseInt(yEl&&yEl.value,10)||dwYearOf(T);
+    var per={}; ALL_PS_EN.forEach(function(ps){ per[ps]={pB:0,pT:0,reg:0}; });
+    GEN.forEach(function(r){
+      var b=per[r[0]]; if(!b) return;
+      var reg=dwParse(r[3]); if(reg==null) return;
+      var code=r[5], disp;
+      if(code===0||code===3) disp=Infinity; else if(r[6]!=null) disp=reg+r[6]; else return;
+      if(reg<=B&&disp>B) b.pB++;
+      if(reg<=T&&disp>T) b.pT++;
+      if(dwYearOf(reg)===target && reg<=T) b.reg++;
+    });
+    var list=[];
+    ALL_PS_EN.forEach(function(ps){ var b=per[ps]; if(b.pB+b.pT===0) return;
+      var pctB=b.reg?b.pB/b.reg*100:0, pctT=b.reg?b.pT/b.reg*100:0;
+      list.push({ps:ps,b:b,pctB:pctB,pctT:pctT,d:b.pT-b.pB}); });
+    function rank(key){ var r=list.filter(function(x){return x.b.reg>0;}).sort(function(a,b){return a[key]-b[key];}); r.forEach(function(x,i){ x[key==='pctB'?'rkB':'rkT']=i+1; }); }
+    rank('pctB'); rank('pctT');
+    var tot={pB:0,pT:0,reg:0};
+    list.forEach(function(x){
+      tot.pB+=x.b.pB; tot.pT+=x.b.pT; tot.reg+=x.b.reg;
+      if(x.d<0){ x.st='ok'; x.label='✅ पेंडेंसी घटी ('+x.d+')'; }
+      else if(x.d===0){ x.st='no'; x.label='❌ कोई कमी नहीं'; }
+      else { x.st='no'; x.label='🔺 पेंडेंसी बढ़ी (+'+x.d+')'; x.up=true; }
+    });
+    list.sort(function(a,b){ return ORDER[a.st]-ORDER[b.st] || b.d-a.d; });
+    var cnt={dec:0,same:0,up:0}; list.forEach(function(x){ if(x.d<0) cnt.dec++; else if(x.d===0) cnt.same++; else cnt.up++; });
+    var byPct=list.filter(function(x){return x.b.reg>0;}).sort(function(a,b){return a.pctT-b.pctT;});
+    var byD=list.slice().sort(function(a,b){return a.d-b.d;});
+    var fresh='तुलना Generic Data पर आधारित (आधार वर्ष: <b>'+target+'</b>) — पेंडिंग = जांच में लंबित + 173(8)/193(9)। ⚠️ आज का निस्तारण डेटा सिंक होने के बाद ही घटत दिखेगी।';
+    var wa=list.filter(function(x){return x.d>=0;}).map(function(x){ return '• '+hi(x.ps)+' — पेंडिंग '+x.b.pT+' ('+(x.d>0?'+'+x.d+' बढ़ी':'कल जितनी')+')'; }).join('\n');
+    return {ok:true, fresh:fresh,
+      point:'बिंदु: <b>पेंडिंग प्रकरणों में कमी</b> (पेंडेंसी % = कुल पेंडिंग ÷ आधार वर्ष में दर्ज प्रकरण)',
+      kpis:[ kpi(tot.pB,'जिला पेंडिंग — कल',dwFmt(B),'var(--blue-tint)','#2563EB'),
+             kpi(tot.pT,'जिला पेंडिंग — आज','','var(--gold-tint)','#4F46E5'),
+             kpi((tot.pT-tot.pB>0?'+':'')+(tot.pT-tot.pB),'कुल अंतर','','var(--card)',(tot.pT-tot.pB<=0)?'#059669':'#DC2626'),
+             kpi(cnt.dec,'पेंडेंसी घटाने वाले थाने','','var(--good-tint)','#059669'),
+             kpi(cnt.same,'कोई कमी नहीं','','var(--warn-tint)','#DC2626'),
+             kpi(cnt.up,'पेंडेंसी बढ़ाने वाले','','var(--amber-tint)','#B45309') ],
+      donut:{labels:['✅ घटी','❌ कोई कमी नहीं','🔺 बढ़ी'], data:[cnt.dec,cnt.same,cnt.up], colors:[ST.ok.col,ST.na.col,ST.no.col]},
+      bars:[{title:'पेंडेंसी % — कल बनाम आज (कम = बेहतर)', labels:byPct.map(function(x){return hi(x.ps);}),
+             datasets:[{label:'कल %',data:byPct.map(function(x){return +x.pctB.toFixed(2);}),backgroundColor:'#CBD5E1'},
+                       {label:'आज %',data:byPct.map(function(x){return +x.pctT.toFixed(2);}),backgroundColor:'#4F46E5'}]},
+            {title:'पेंडिंग प्रकरणों में बदलाव (हरा = घटे, लाल = बढ़े)', labels:byD.map(function(x){return hi(x.ps);}),
+             datasets:[{label:'अंतर',data:byD.map(function(x){return x.d;}),backgroundColor:byD.map(function(x){return x.d<0?'#10B981':(x.d>0?'#EF4444':'#94A3B8');})}], single:true}],
+      head:['थाना','कल पेंडिंग','आज पेंडिंग','अंतर','कल %','आज %','रैंक (कल→आज)','स्थिति'],
+      rows:list.map(function(x){
+        var mv=(x.rkB&&x.rkT)?(x.rkT<x.rkB?'<b style="color:#059669">▲'+(x.rkB-x.rkT)+'</b>':(x.rkT>x.rkB?'<b style="color:#DC2626">▼'+(x.rkT-x.rkB)+'</b>':'➖')):'';
+        return {st:x.st, cells:['<b>'+hi(x.ps)+'</b><br><small style="color:var(--soft)">'+dispCircleOf(x.ps)+'</small>', x.b.pB, '<b>'+x.b.pT+'</b>',
+          '<b style="color:'+(x.d<0?'#059669':(x.d>0?'#DC2626':'var(--soft)'))+'">'+(x.d>0?'+':'')+x.d+'</b>', x.pctB.toFixed(2), '<b>'+x.pctT.toFixed(2)+'</b>',
+          (x.rkB||'-')+' → '+(x.rkT||'-')+' '+mv, chip(x.st,x.label)]}; }),
+      wa:'📌 *पेंडेंसी निगरानी* ('+dwFmt(B)+' → '+dwFmt(T)+')\nकल के निर्देश पर पेंडेंसी नहीं घटाने वाले थाने:\n'+(wa||'— सभी थानों में पेंडेंसी घटी ✅')};
+  }
+
+  // ---------- चार्ट ----------
+  function themeCols(){ var cs=getComputedStyle(document.documentElement); return {ink:cs.getPropertyValue('--ink').trim()||'#101828', line:cs.getPropertyValue('--line').trim()||'#E5E8EF', card:cs.getPropertyValue('--card').trim()||'#fff'}; }
+  function mkChart(id,cfg){
+    var c=document.getElementById(id); if(!c||typeof Chart==='undefined') return;
+    if(DW.charts[id]){ try{ DW.charts[id].destroy(); }catch(e){} }
+    try{ DW.charts[id]=new Chart(c,cfg); }catch(e){ console.warn('dw chart',e); }
+  }
+  function drawDonut(id,d){
+    var t=themeCols(), font={family:FONT,size:11};
+    mkChart(id,{type:'doughnut',data:{labels:d.labels,datasets:[{data:d.data,backgroundColor:d.colors,borderColor:t.card,borderWidth:3}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'bottom',labels:{color:t.ink,font:font,boxWidth:12}},tooltip:{titleFont:font,bodyFont:font}}}});
+  }
+  function drawBar(id,b){
+    var t=themeCols(), font={family:FONT,size:11};
+    mkChart(id,{type:'bar',data:{labels:b.labels,datasets:b.datasets.map(function(d){ return Object.assign({borderRadius:4,maxBarThickness:18},d); })},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:!b.single,position:'bottom',labels:{color:t.ink,font:font,boxWidth:12}},tooltip:{titleFont:font,bodyFont:font}},
+        scales:{x:{stacked:!!b.stacked,beginAtZero:true,ticks:{color:t.ink,font:font,precision:0},grid:{color:t.line}},
+                y:{stacked:!!b.stacked,ticks:{color:t.ink,font:font},grid:{display:false}}}}});
+  }
+
+  // ---------- पैनल रेंडर ----------
+  var CSS = '.dw-card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh-md);margin:14px 0 20px;overflow:hidden}'
+   +'.dw-head{color:#fff;padding:14px 16px}.dw-head h3{font-size:16px;font-weight:800;margin:0}.dw-head p{font-size:12px;opacity:.92;margin:3px 0 0}'
+   +'.dw-ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;padding:12px 16px;border-bottom:1px solid var(--line)}'
+   +'.dw-ctl label{font-size:11.5px;font-weight:700;color:var(--soft);display:block;margin-bottom:4px}'
+   +'.dw-ctl input[type=date]{padding:7px 10px;border-radius:10px;border:1.5px solid var(--line);font-size:13px}'
+   +'.dw-q{padding:7px 12px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}'
+   +'.dw-q.on{background:var(--navy);color:#fff;border-color:var(--navy)}'
+   +'.dw-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;padding:14px 16px}'
+   +'.dw-kpi{border-radius:14px;padding:12px 8px;text-align:center;border:1px solid var(--line)}'
+   +'.dw-kpi b{display:block;font-size:23px;line-height:1.15}.dw-kpi span{font-size:11.5px;font-weight:700}.dw-kpi small{display:block;font-size:10.5px;opacity:.85;margin-top:2px}'
+   +'.dw-charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;padding:0 16px 10px}'
+   +'.dw-chartbox{border:1px solid var(--line);border-radius:14px;padding:10px 10px 6px}.dw-chartbox h4{font-size:12.5px;font-weight:800;color:var(--ink);margin:0 0 6px}'
+   +'.dw-chartwrap{position:relative;width:100%}'
+   +'.dw-tblwrap{overflow-x:auto;padding:4px 16px 12px}'
+   +'table.dw-tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:600px}'
+   +'.dw-tbl th{background:var(--navy);color:#fff;padding:9px 8px;font-size:11.5px;text-align:center}'
+   +'.dw-tbl th:first-child{border-top-left-radius:10px}.dw-tbl th:last-child{border-top-right-radius:10px}'
+   +'.dw-tbl td{padding:8px;border-bottom:1px solid var(--line);text-align:center;color:var(--ink);background:var(--card);vertical-align:middle}'
+   +'.dw-tbl td:first-child{text-align:left;white-space:nowrap}'
+   +'.dw-chip{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:800;white-space:nowrap}'
+   +'.dw-ok{background:var(--good-tint);color:#059669}.dw-no{background:var(--warn-tint);color:#DC2626}.dw-mid{background:var(--amber-tint);color:#B45309}.dw-na{background:var(--blue-tint);color:#2563EB}'
+   +'.dw-bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;min-width:70px;margin-bottom:2px}.dw-bar i{display:block;height:100%;border-radius:99px}'
+   +'.dw-note{font-size:11.5px;color:var(--soft);padding:0 16px 14px;line-height:1.6}'
+   +'.dw-msg{padding:16px;font-size:13px;color:var(--soft)}'
+   +'@media print{.dw-ctl{display:none}}';
+  function ensureCss(){ if(document.getElementById('dw-css')) return; var s=document.createElement('style'); s.id='dw-css'; s.textContent=CSS; document.head.appendChild(s); }
+
+  function applyFilter(pid){
+    var f=DW.filter[pid]||'all', host=document.getElementById('dw-host-'+pid); if(!host) return;
+    host.querySelectorAll('tr[data-st]').forEach(function(tr){
+      var st=tr.getAttribute('data-st'); var show = f==='all' || (f==='no' && st==='no') || (f==='ok' && (st==='ok'||st==='mid'));
+      tr.style.display = show ? '' : 'none';
+    });
+    host.querySelectorAll('.dw-q[data-f]').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-f')===f); });
+  }
+
+  function render(pid){
+    var host=document.getElementById('dw-host-'+pid); if(!host) return;
+    var pg=document.getElementById(pid); if(pg && !pg.classList.contains('on')) return; // छिपे पेज पर चार्ट का आकार 0 रहता है
+    ensureCss();
+    var T=dwToday(), inp=document.getElementById('dwBase-'+pid);
+    var B = inp && inp.value ? dwParse(inp.value) : (T-1);
+    if(B==null || B>=T) B=T-1;
+    var meta=PAGES[pid], m;
+    try{
+      if(pid==='disp60') m=modelDisp(60,B,T); else if(pid==='disp90') m=modelDisp(90,B,T);
+      else if(pid==='actWatch') m=modelAct(B,T); else m=modelPend(B,T);
+    }catch(e){ console.warn('dw model',e); m={ok:false,msg:'तुलना तैयार करते समय त्रुटि: '+esc(e.message)}; }
+    DW.last[pid]=Date.now();
+    var ctl='<div class="dw-ctl"><div><label>आधार दिनांक (जिस दिन निर्देश दिए)</label><input type="date" id="dwBase-'+pid+'" value="'+dwISO(B)+'" max="'+dwISO(T-1)+'" onchange="dwRender(\''+pid+'\')"></div>'
+      +'<button class="dw-q" onclick="dwQuick(\''+pid+'\',1)">कल</button><button class="dw-q" onclick="dwQuick(\''+pid+'\',3)">3 दिन पूर्व</button><button class="dw-q" onclick="dwQuick(\''+pid+'\',7)">7 दिन पूर्व</button>'
+      +'<button class="dw-q" onclick="dwRender(\''+pid+'\')">🔄 तुलना करें</button>'
+      +'<div style="margin-left:auto;font-size:12px;color:var(--soft);font-weight:700">आज : '+dwFmt(T)+'</div></div>';
+    var head='<div class="dw-head" style="background:linear-gradient(135deg,'+meta.grad[0]+','+meta.grad[1]+')"><h3>📅 '+meta.title+'</h3><p>कल जिस बिंदु पर निर्देश दिए थे — आज किस थाने ने कार्य किया और किसने नहीं</p></div>';
+    if(!m.ok){ host.innerHTML='<div class="dw-card">'+head+ctl+'<div class="dw-msg">'+m.msg+'</div></div>'; return; }
+    var chartsHtml='<div class="dw-charts"><div class="dw-chartbox"><h4>थानों की स्थिति</h4><div class="dw-chartwrap" style="height:240px"><canvas id="dwc-'+pid+'-d"></canvas></div></div>';
+    m.bars.forEach(function(b,i){ var h=Math.max(220,b.labels.length*(b.datasets.length>1&&!b.stacked?34:26)+80);
+      chartsHtml+='<div class="dw-chartbox" style="grid-column:span 1"><h4>'+b.title+'</h4><div class="dw-chartwrap" style="height:'+h+'px"><canvas id="dwc-'+pid+'-b'+i+'"></canvas></div></div>'; });
+    chartsHtml+='</div>';
+    var tbl='<div class="dw-tblwrap"><table class="dw-tbl"><thead><tr>'+m.head.map(function(h){return '<th>'+h+'</th>';}).join('')+'</tr></thead><tbody>'
+      +m.rows.map(function(r){ return '<tr data-st="'+r.st+'">'+r.cells.map(function(c,i){ return '<td'+(i===0?' style="box-shadow:inset 4px 0 0 '+ST[r.st].col+'"':'')+'>'+c+'</td>'; }).join('')+'</tr>'; }).join('')+'</tbody></table></div>';
+    var filt='<div class="dw-ctl" style="border-top:1px solid var(--line);border-bottom:none;padding-bottom:4px"><b style="font-size:13px;color:var(--ink)">📋 थानावार सारणी</b>'
+      +'<button class="dw-q" data-f="all" onclick="dwFilter(\''+pid+'\',\'all\')">सभी</button><button class="dw-q" data-f="no" onclick="dwFilter(\''+pid+'\',\'no\')">❌ कार्य नहीं</button><button class="dw-q" data-f="ok" onclick="dwFilter(\''+pid+'\',\'ok\')">✅ कार्य किया</button>'
+      +'<button class="dw-q" style="margin-left:auto" onclick="dwWhatsapp(\''+pid+'\')">💬 WhatsApp सारांश</button></div>';
+    host.innerHTML='<div class="dw-card">'+head+ctl+'<div class="dw-note" style="padding-top:10px">'+m.point+'</div><div class="dw-kpis">'+m.kpis.join('')+'</div>'+chartsHtml+filt+tbl+'<div class="dw-note">'+m.fresh+'</div></div>';
+    DW.wa=DW.wa||{}; DW.wa[pid]=m.wa;
+    drawDonut('dwc-'+pid+'-d',m.donut);
+    m.bars.forEach(function(b,i){ drawBar('dwc-'+pid+'-b'+i,b); });
+    applyFilter(pid);
+  }
+
+  window.dwRender=render;
+  window.dwQuick=function(pid,n){ var inp=document.getElementById('dwBase-'+pid); if(inp) inp.value=dwISO(dwToday()-n); render(pid); };
+  window.dwFilter=function(pid,f){ DW.filter[pid]=f; applyFilter(pid); };
+  window.dwWhatsapp=function(pid){ var t=(DW.wa&&DW.wa[pid])||''; if(!t){ if(typeof toast==='function') toast('⚠️ पहले तुलना तैयार होने दें'); return; } window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank'); };
+  window.dwModels={disp:modelDisp,act:modelAct,pend:modelPend};
+
+  // ---------- मौजूदा रेंडर-फ़ंक्शन के बाद स्वतः चलाएँ (पेज खुलने, डेटा सिंक, स्रोत बदलने पर) ----------
+  function after(fn,args){
+    if(fn==='renderDisposalPage') render((args&&args[0])===60?'disp60':'disp90');
+    else if(fn==='renderActWatch') render('actWatch');
+    else render('pendency');
+  }
+  ['renderDisposalPage','renderActWatch','renderPendencyPage'].forEach(function(fn){
+    var orig=window[fn]; if(typeof orig!=='function') return;
+    window[fn]=function(){ var r=orig.apply(this,arguments); try{ after(fn,arguments); }catch(e){ console.warn('dw',e); } return r; };
+  });
+  var _go=window.go;
+  if(typeof _go==='function'){
+    window.go=function(id){
+      var r=_go.apply(this,arguments);
+      if(PAGES[id] && (!DW.last[id] || Date.now()-DW.last[id]>400)){ try{ render(id); }catch(e){ console.warn('dw',e); } }
+      return r;
+    };
+  }
+})();
+</script>
+<script>
+// ============================================================
+// गहन विश्लेषण मॉड्यूल (चार्ट + हीट-मैप सारणी)
+//  • पेंडेंसी  : 1 वर्ष से अधिक पेंडिंग — आयु-वर्ग × थाना × श्रेणी, गत माह की तुलना, निस्तारण में लगा समय
+//  • 60/90 दिन : SAS Export — महिला अत्याचार / SC-ST / POCSO / बलात्कार का समय-सीमा अनुपालन %
+//  • डैशबोर्ड  : अपराध-वर्ग मिश्रण, मासिक रुझान, थाना × वर्ग हीट-मैप, वार-वितरण, वृद्धि/कमी
+// ============================================================
+(function(){
+  var AN={charts:{}, last:{}};
+  var FONT="Hind,'Noto Sans Devanagari',system-ui,sans-serif";
+  var GROUPS=[['बलात्कार','#B91C1C'],['POCSO','#DC2626'],['SC/ST एक्ट','#EA580C'],['महिला अत्याचार','#DB2777'],['हत्या/हत्या-प्रयास','#7C2D12'],
+              ['संपत्ति अपराध','#F59E0B'],['अपहरण','#7C3AED'],['बलवा','#0EA5E9'],['आबकारी','#16A34A'],['जुआ','#65A30D'],['आर्म्स एक्ट','#0F766E'],
+              ['NDPS','#2563EB'],['अन्य SLL','#64748B'],['अन्य BNS/IPC','#94A3B8']];
+  var GCOL={}; GROUPS.forEach(function(g){ GCOL[g[0]]=g[1]; });
+  var AGE_LBL=['1–2 वर्ष','2–3 वर्ष','3–5 वर्ष','5 वर्ष से अधिक'], AGE_COL=['#FBBF24','#F97316','#EF4444','#7F1D1D'];
+  var TIME_LBL=['1 माह तक','1–2 माह','2–3 माह','3–6 माह','6–12 माह','12 माह से अधिक'], TIME_COL=['#10B981','#34D399','#FBBF24','#F59E0B','#F97316','#EF4444'];
+
+  // ---------- सहायक ----------
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function today(){ var n=new Date(); return Math.floor(Date.UTC(n.getFullYear(),n.getMonth(),n.getDate())/864e5); }
+  function parse(s){
+    if(s==null||s==='') return null; var str=String(s), m=str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if(m) return Math.floor(Date.UTC(+m[1],+m[2]-1,+m[3])/864e5);
+    m=str.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/); if(m) return Math.floor(Date.UTC(+m[3],+m[2]-1,+m[1])/864e5);
+    var d=new Date(str); if(isNaN(d.getTime())) return null; return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);
+  }
+  function iso(day){ var d=new Date(day*864e5); return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)+'-'+pad(d.getUTCDate()); }
+  function fmt(day){ var d=new Date(day*864e5); return pad(d.getUTCDate())+'.'+pad(d.getUTCMonth()+1)+'.'+d.getUTCFullYear(); }
+  function yearOf(day){ return new Date(day*864e5).getUTCFullYear(); }
+  function shiftYear(day,k){ var d=new Date(day*864e5); return Math.floor(Date.UTC(d.getUTCFullYear()+k,d.getUTCMonth(),d.getUTCDate())/864e5); }
+  function esc(s){ return (typeof escHtml==='function')?escHtml(s):String(s==null?'':s); }
+  function hi(ps){ return (typeof ENG2HI_PS!=='undefined'&&ENG2HI_PS[ps])||ps; }
+  function has(v){ if(v==null) return false; var s=String(v).trim(); return s!==''&&s!=='-'&&s!=='0'; }
+  function pctTxt(a,b){ return b?(a/b*100).toFixed(1):'0.0'; }
+  function median(a){ if(!a.length) return null; a=a.slice().sort(function(x,y){return x-y;}); var m=a.length>>1; return a.length%2?a[m]:(a[m-1]+a[m])/2; }
+
+  // ---------- श्रेणी-समूह ----------
+  function groupOfRec(r){
+    if(has(r.rape)) return 'बलात्कार'; if(has(r.pocso)) return 'POCSO'; if(has(r.scst)) return 'SC/ST एक्ट'; if(has(r.wa)) return 'महिला अत्याचार';
+    var c=r.ipc;
+    if(has(c)){ if(/rape/i.test(c)) return 'बलात्कार'; if(/murder/i.test(c)) return 'हत्या/हत्या-प्रयास';
+      if(/burglary|theft|robbery|dacoity|snatching/i.test(c)) return 'संपत्ति अपराध'; if(/kidnap/i.test(c)) return 'अपहरण'; if(/riot/i.test(c)) return 'बलवा'; return 'अन्य BNS/IPC'; }
+    var s=r.sll;
+    if(has(s)){ if(/excise/i.test(s)) return 'आबकारी'; if(/gambl/i.test(s)) return 'जुआ'; if(/arms/i.test(s)) return 'आर्म्स एक्ट'; if(/ndps/i.test(s)) return 'NDPS'; return 'अन्य SLL'; }
+    return 'अन्य BNS/IPC';
+  }
+  function groupOfSection(sec){
+    var s=String(sec||'');
+    if(/pocso/i.test(s)) return 'POCSO'; if(/sc\s*\/?\s*st|atrocit/i.test(s)) return 'SC/ST एक्ट';
+    if(/ndps/i.test(s)) return 'NDPS'; if(/excise/i.test(s)) return 'आबकारी'; if(/gambl|rpgo/i.test(s)) return 'जुआ'; if(/arms/i.test(s)) return 'आर्म्स एक्ट';
+    if(/(?:BNS|IPC)\D{0,3}(?:103|302|109|307)\b/i.test(s)) return 'हत्या/हत्या-प्रयास';
+    if(/(?:BNS|IPC)\D{0,3}(?:303|305|309|310|379|380|392|394)\b/i.test(s)) return 'संपत्ति अपराध';
+    if(/(?:BNS|IPC)\D{0,3}(?:64|65|66|376)\b/i.test(s)) return 'बलात्कार';
+    return 'अन्य BNS/IPC';
+  }
+  var GMAP=null, GMAP_N=-1;
+  function gmap(){
+    if(typeof dbRecords==='undefined'||!dbRecords) return {};
+    if(GMAP && GMAP_N===dbRecords.length) return GMAP;
+    GMAP={}; dbRecords.forEach(function(r){ GMAP[r.ps+'|'+String(r.fir||'').trim()]=groupOfRec(r); }); GMAP_N=dbRecords.length; return GMAP;
+  }
+  function groupOfPend(r){ var g=gmap()[r.ps+'|'+String(r.fir||'').trim()]; return g||groupOfSection(r.section); }
+
+  // ---------- थीम / चार्ट ----------
+  function themeCols(){ var cs=getComputedStyle(document.documentElement); return {ink:cs.getPropertyValue('--ink').trim()||'#101828', line:cs.getPropertyValue('--line').trim()||'#E5E8EF', card:cs.getPropertyValue('--card').trim()||'#fff'}; }
+  function mk(id,cfg){ var c=document.getElementById(id); if(!c||typeof Chart==='undefined') return; if(AN.charts[id]){ try{AN.charts[id].destroy();}catch(e){} } try{ AN.charts[id]=new Chart(c,cfg); }catch(e){ console.warn('an chart',e); } }
+  function cfgBar(labels,ds,o){ o=o||{}; var t=themeCols(), f={family:FONT,size:11};
+    return {type:'bar',data:{labels:labels,datasets:ds.map(function(d){ return Object.assign({borderRadius:4,maxBarThickness:o.thick||18},d); })},
+      options:{indexAxis:o.vert?'x':'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:ds.length>1,position:'bottom',labels:{color:t.ink,font:f,boxWidth:12}},tooltip:{titleFont:f,bodyFont:f}},
+        scales:{x:{stacked:!!o.stacked,beginAtZero:true,max:o.max,ticks:{color:t.ink,font:f,precision:0},grid:{color:t.line}},y:{stacked:!!o.stacked,beginAtZero:true,max:o.vert?o.max:undefined,ticks:{color:t.ink,font:f,precision:0},grid:{color:o.vert?t.line:'transparent'}}}}}; }
+  function cfgLine(labels,ds,o){ o=o||{}; var t=themeCols(), f={family:FONT,size:11};
+    return {type:'line',data:{labels:labels,datasets:ds.map(function(d){ return Object.assign({tension:.3,pointRadius:3,borderWidth:2.5,fill:false},d); })},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:t.ink,font:f,boxWidth:12}},tooltip:{titleFont:f,bodyFont:f}},
+        scales:{x:{ticks:{color:t.ink,font:f},grid:{display:false}},y:{beginAtZero:true,max:o.max,ticks:{color:t.ink,font:f,precision:0},grid:{color:t.line}}}}}; }
+  function cfgDonut(labels,data,colors){ var t=themeCols(), f={family:FONT,size:11};
+    return {type:'doughnut',data:{labels:labels,datasets:[{data:data,backgroundColor:colors,borderColor:t.card,borderWidth:3}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:t.ink,font:f,boxWidth:12}},tooltip:{titleFont:f,bodyFont:f}}}}; }
+
+  // ---------- UI ब्लॉक ----------
+  var CSS='.an-card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh-md);margin:14px 0 20px;overflow:hidden}'
+   +'.an-head{color:#fff;padding:14px 16px}.an-head h3{font-size:16px;font-weight:800;margin:0}.an-head p{font-size:12px;opacity:.92;margin:3px 0 0}'
+   +'.an-ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;padding:12px 16px;border-bottom:1px solid var(--line)}'
+   +'.an-ctl label{font-size:11.5px;font-weight:700;color:var(--soft);display:block;margin-bottom:4px}'
+   +'.an-ctl input,.an-ctl select{padding:7px 10px;border-radius:10px;border:1.5px solid var(--line);font-size:13px;font-family:inherit}'
+   +'.an-btn{padding:8px 14px;border-radius:999px;border:0;background:var(--navy);color:#fff;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit}'
+   +'.an-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:10px;padding:14px 16px}'
+   +'.an-kpi{border-radius:14px;padding:12px 8px;text-align:center;border:1px solid var(--line)}'
+   +'.an-kpi b{display:block;font-size:22px;line-height:1.15}.an-kpi span{font-size:11.5px;font-weight:700}.an-kpi small{display:block;font-size:10.5px;opacity:.85;margin-top:2px}'
+   +'.an-charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;padding:0 16px 12px}'
+   +'.an-box{border:1px solid var(--line);border-radius:14px;padding:10px 10px 6px}.an-box h4{font-size:12.5px;font-weight:800;color:var(--ink);margin:0 0 6px}.an-wrap{position:relative;width:100%}'
+   +'.an-sub{font-size:13px;font-weight:800;color:var(--ink);padding:6px 16px 2px}.an-note{font-size:11.5px;color:var(--soft);padding:0 16px 12px;line-height:1.6}.an-msg{padding:16px;font-size:13px;color:var(--soft)}'
+   +'.an-tw{overflow-x:auto;padding:4px 16px 12px}table.an-tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:560px}'
+   +'.an-tbl th{background:var(--navy);color:#fff;padding:9px 8px;font-size:11.5px;text-align:center}.an-tbl td{padding:8px;border-bottom:1px solid var(--line);text-align:center;color:var(--ink);background:var(--card)}'
+   +'.an-tbl td:first-child{text-align:left;white-space:nowrap;font-weight:700}'
+   +'.an-chip{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:800;white-space:nowrap}'
+   +'.an-ok{background:var(--good-tint);color:#059669}.an-no{background:var(--warn-tint);color:#DC2626}.an-mid{background:var(--amber-tint);color:#B45309}'
+   +'.an-heat{overflow-x:auto;padding:4px 16px 14px}.an-heat table{border-collapse:separate;border-spacing:4px}'
+   +'.an-heat th.vc{height:auto;vertical-align:bottom;padding:0 0 6px}.an-heat th.vc div{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;font-size:11.5px;font-weight:700;color:var(--ink);max-height:160px;margin:0 auto}'
+   +'.an-heat th.r{text-align:left;position:sticky;left:0;background:var(--card);font-size:12px;font-weight:800;white-space:nowrap;padding:0 10px 0 2px;z-index:1;color:var(--ink)}'
+   +'.an-heat td{padding:0;text-align:center}.an-heat td b{display:flex;align-items:center;justify-content:center;min-width:46px;height:40px;border-radius:10px;font-size:13px;font-weight:800;flex-direction:column;line-height:1.1}'
+   +'.an-heat td b small{font-size:9.5px;font-weight:600;opacity:.9}.an-heat td i{display:block;color:var(--soft);opacity:.5;font-style:normal}'
+   +'.an-gwrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;padding:14px 16px}'
+   +'.an-g{border:1px solid var(--line);border-radius:16px;padding:12px;text-align:center}.an-g h5{font-size:12.5px;font-weight:800;margin:0 0 8px;color:var(--ink)}'
+   +'.an-gauge{--p:0;--c:#10B981;width:92px;height:92px;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;background:conic-gradient(var(--c) calc(var(--p)*1%),var(--line) 0);position:relative}'
+   +'.an-gauge::before{content:"";position:absolute;inset:9px;border-radius:50%;background:var(--card)}.an-gauge span{position:relative;font-size:17px;font-weight:800;color:var(--ink)}'
+   +'.an-g small{display:block;font-size:11px;color:var(--soft);margin-top:8px;line-height:1.5}';
+  function ensureCss(){ if(document.getElementById('an-css')) return; var s=document.createElement('style'); s.id='an-css'; s.textContent=CSS; document.head.appendChild(s); }
+  function kpi(n,label,sub,bg,fg){ return '<div class="an-kpi" style="background:'+bg+';color:'+fg+'"><b>'+n+'</b><span>'+label+'</span>'+(sub?'<small>'+sub+'</small>':'')+'</div>'; }
+  function sect(title,sub,grad,body){ return '<div class="an-card"><div class="an-head" style="background:linear-gradient(135deg,'+grad[0]+','+grad[1]+')"><h3>'+title+'</h3><p>'+sub+'</p></div>'+body+'</div>'; }
+  function boxes(list,Q){ // list:[{id,title,h,cfg}]
+    var h='<div class="an-charts">';
+    list.forEach(function(b){ h+='<div class="an-box"><h4>'+b.title+'</h4><div class="an-wrap" style="height:'+(b.h||260)+'px"><canvas id="'+b.id+'"></canvas></div></div>'; Q.push([b.id,b.cfg]); });
+    return h+'</div>';
+  }
+  function chip(cls,t){ return '<span class="an-chip '+cls+'">'+t+'</span>'; }
+  function gauge(p,col){ return '<div class="an-gauge" style="--p:'+Math.max(0,Math.min(100,p))+';--c:'+col+'"><span>'+Math.round(p)+'%</span></div>'; }
+  function pctCol(p){ return 'hsl('+Math.round(Math.max(0,Math.min(100,p))*1.2)+',68%,42%)'; }
+
+  // हीट-मैप सारणी (स्क्रीनशॉट जैसी: गहरा रंग = अधिक संख्या)
+  function heat(o){
+    var max=0; o.vals.forEach(function(r){ r.forEach(function(v){ var n=(v&&typeof v==='object')?v.n:v; if(n>max) max=n; }); });
+    var h='<div class="an-heat"><table><thead><tr><th class="r"></th>'+o.cols.map(function(c){ return '<th class="vc"><div>'+c+'</div></th>'; }).join('')+(o.rowTot?'<th class="vc"><div>कुल</div></th>':'')+'</tr></thead><tbody>';
+    o.rows.forEach(function(rw,i){
+      var tot=0;
+      h+='<tr><th class="r">'+rw+'</th>'+o.vals[i].map(function(v){
+        if(o.pal==='pct'){ if(v==null||v.n===0) return '<td><i>·</i></td>'; return '<td><b style="background:'+pctCol(v.p)+';color:#fff">'+Math.round(v.p)+'%<small>'+v.n+'</small></b></td>'; }
+        tot+=v||0; if(!v) return '<td><i>·</i></td>';
+        var a=0.12+0.88*Math.pow(v/(max||1),0.6);
+        return '<td><b style="background:rgba(79,70,229,'+a.toFixed(2)+');color:'+(a>0.5?'#fff':'var(--ink)')+'">'+v+'</b></td>';
+      }).join('')+(o.rowTot?'<td><b style="background:var(--line);color:var(--ink)">'+tot+'</b></td>':'')+'</tr>';
+    });
+    return h+'</tbody></table></div>';
+  }
+  function sortedKeys(obj,fn){ return Object.keys(obj).sort(function(a,b){ return fn(obj[b])-fn(obj[a]); }); }
+  function paint(host,html,Q){ host.innerHTML=html; Q.forEach(function(q){ mk(q[0],q[1]); }); }
+  function visible(pid){ var pg=document.getElementById(pid); return !pg || pg.classList.contains('on'); }
+
+  // ==========================================================
+  // 1) पेंडेंसी — 1 वर्ष से अधिक
+  // ==========================================================
+  function ageBucket(a){ if(a<=365) return -1; if(a<=730) return 0; if(a<=1095) return 1; if(a<=1825) return 2; return 3; }
+  function dispRows(){
+    var out=[];
+    if(typeof GEN!=='undefined'&&GEN&&GEN.length){
+      GEN.forEach(function(r){ var reg=parse(r[3]); if(reg==null) return; var c=r[5], d;
+        if(c===0||c===3) d=Infinity; else if(r[6]!=null) d=reg+r[6]; else return; out.push({ps:r[0],reg:reg,disp:d}); });
+      return {rows:out,label:'Generic Data'};
+    }
+    if(typeof dbRecords!=='undefined'&&dbRecords&&dbRecords.length){
+      dbRecords.forEach(function(r){ var reg=parse(r.date); if(reg==null) return; var d;
+        if(r.disposal==='Chargesheet'||r.disposal==='F.R.'){ var cs=parse(r.csDate); d=(cs==null)?Infinity:cs; } // चालान-दिनांक नहीं = पेंडिंग
+        else if(sasCatOf(r.disposal)) d=Infinity; else return;
+        out.push({ps:r.ps,reg:reg,disp:d}); });
+      return {rows:out,label:'SAS Export'};
+    }
+    return null;
+  }
+
+  function renderPend(){
+    var host=document.getElementById('dw2-host-pendency'); if(!host||!visible('pendency')) return; ensureCss();
+    var T=today(), Q=[], html='';
+    var srcEl=document.getElementById('pendSource'), source=srcEl?srcEl.value:'generic', srcTxt=(srcEl&&srcEl.selectedOptions&&srcEl.selectedOptions[0])?srcEl.selectedOptions[0].textContent:source;
+    var rows=[]; try{ rows=buildPendencyRows(source).filter(function(r){return r.pendingLike;}); }catch(e){ rows=[]; }
+    // ----- भाग-1 : आयु-वार -----
+    var thana={}, cat={}, tc={}, allP=rows.length, tot=[0,0,0,0];
+    rows.forEach(function(r){ var reg=parse(r.reg); if(reg==null) return; var b=ageBucket(T-reg); if(b<0) return;
+      var g=groupOfPend(r), t=thana[r.ps]=thana[r.ps]||[0,0,0,0], c=cat[g]=cat[g]||[0,0,0,0], x=tc[r.ps]=tc[r.ps]||{};
+      t[b]++; c[b]++; x[g]=(x[g]||0)+1; tot[b]++; });
+    var n1=tot[0]+tot[1]+tot[2]+tot[3];
+    if(!rows.length||!n1){
+      html+=sect('🔬 1 वर्ष से अधिक पेंडिंग — गहन विश्लेषण','आयु-वर्ग × थाना × अपराध-श्रेणी',['#4F46E5','#312E81'],'<div class="an-msg">'+(rows.length?'चयनित स्रोत में 1 वर्ष से अधिक पुराना कोई पेंडिंग प्रकरण नहीं मिला।':'डेटा उपलब्ध नहीं — लाइव सिंक पूर्ण होने का इंतज़ार करें या ऊपर से डेटा स्रोत बदलें।')+'</div>');
+    } else {
+      var tKeys=sortedKeys(thana,function(a){return a[0]+a[1]+a[2]+a[3];}), cKeys=sortedKeys(cat,function(a){return a[0]+a[1]+a[2]+a[3];});
+      var kp='<div class="an-kpis">'+kpi(n1,'1 वर्ष+ पेंडिंग (कुल)',pctTxt(n1,allP)+'% कुल पेंडिंग का','var(--blue-tint)','#2563EB');
+      var kb=['var(--amber-tint)','var(--amber-tint)','var(--warn-tint)','var(--warn-tint)'], kc=['#B45309','#C2410C','#DC2626','#7F1D1D'];
+      AGE_LBL.forEach(function(l,i){ kp+=kpi(tot[i],l,pctTxt(tot[i],n1)+'%',kb[i],kc[i]); }); kp+='</div>';
+      html+='<div class="an-sub" style="display:none"></div>';
+      var body=kp+boxes([
+        {id:'anP-d',title:'आयु-वर्ग अनुसार वितरण',h:250,cfg:cfgDonut(AGE_LBL,tot,AGE_COL)},
+        {id:'anP-t',title:'थानावार 1 वर्ष+ पेंडिंग (आयु-वर्ग सहित)',h:Math.max(240,tKeys.length*28+80),cfg:cfgBar(tKeys.map(hi),AGE_LBL.map(function(l,i){return {label:l,data:tKeys.map(function(k){return thana[k][i];}),backgroundColor:AGE_COL[i]};}),{stacked:true})},
+        {id:'anP-c',title:'श्रेणीवार 1 वर्ष+ पेंडिंग (आयु-वर्ग सहित)',h:Math.max(240,cKeys.length*28+80),cfg:cfgBar(cKeys,AGE_LBL.map(function(l,i){return {label:l,data:cKeys.map(function(k){return cat[k][i];}),backgroundColor:AGE_COL[i]};}),{stacked:true})}
+      ],Q);
+      body+='<div class="an-sub">🗺️ थाना × आयु-वर्ग (हीट-मैप)</div>'+heat({rows:tKeys.map(hi),cols:AGE_LBL,vals:tKeys.map(function(k){return thana[k];}),rowTot:true});
+      body+='<div class="an-sub">🏷️ श्रेणी × आयु-वर्ग (हीट-मैप)</div>'+heat({rows:cKeys,cols:AGE_LBL,vals:cKeys.map(function(k){return cat[k];}),rowTot:true});
+      var gcols=cKeys.slice(0,12);
+      body+='<div class="an-sub">🏘️ थाना × अपराध-श्रेणी (दाएँ खिसकाकर देखें)</div>'+heat({rows:tKeys.map(hi),cols:gcols,vals:tKeys.map(function(k){return gcols.map(function(g){return (tc[k]&&tc[k][g])||0;});}),rowTot:true});
+      body+='<div class="an-note">डेटा स्रोत: '+esc(srcTxt)+' | आयु = आज − FIR पंजीकरण दिनांक | श्रेणी SAS Export से (FIR मिलान), न मिलने पर धारा-पाठ के आधार पर (अनुमानित) | आयु-वर्ग 3–5 और 5+ अलग-अलग हैं।</div>';
+      html+=sect('🔬 1 वर्ष से अधिक पेंडिंग — गहन विश्लेषण','आयु-वर्ग × थाना × अपराध-श्रेणी | आज: '+fmt(T),['#4F46E5','#312E81'],body);
+    }
+    // ----- भाग-2 : गत माह की तुलना + भाग-3 : निस्तारण में लगा समय -----
+    var D=dispRows();
+    if(!D){ html+=sect('📆 गत माह की तुलना / निस्तारण-समय','',['#64748B','#475569'],'<div class="an-msg">तुलना हेतु Generic Data या SAS Export चाहिए — अभी उपलब्ध नहीं।</div>'); }
+    else {
+      var Dd=T-30, per={}, f={pD:0,pT:0,newReg:0,disp30:0}, openAt=function(r,at){ return r.reg<=at&&r.disp>at; }, dt=[], tb={}, last12=T-365;
+      D.rows.forEach(function(r){
+        var o=per[r.ps]=per[r.ps]||{A:0,J:0,X:0,N:0};
+        var oD=openAt(r,Dd)&&(Dd-r.reg)>365, oT=openAt(r,T)&&(T-r.reg)>365;
+        if(oD) o.A++; if(oT) o.N++; if(oT&&!oD) o.J++; if(oD&&!oT) o.X++;
+        if(openAt(r,Dd)) f.pD++; if(openAt(r,T)) f.pT++;
+        if(r.reg>Dd&&r.reg<=T&&r.disp>T) f.newReg++; if(r.disp>Dd&&r.disp<=T) f.disp30++;
+        if(r.disp!==Infinity&&r.disp>=last12&&r.disp<=T){ var mo=(r.disp-r.reg)/30.44, bi=mo<=1?0:mo<=2?1:mo<=3?2:mo<=6?3:mo<=12?4:5;
+          (tb[r.ps]=tb[r.ps]||{b:[0,0,0,0,0,0],m:[]}).b[bi]++; tb[r.ps].m.push(mo); dt.push(bi); }
+      });
+      var pk=Object.keys(per).filter(function(k){ var o=per[k]; return o.A+o.N+o.J+o.X>0; }).sort(function(a,b){return per[b].N-per[a].N;});
+      var sA=0,sJ=0,sX=0,sN=0; pk.forEach(function(k){ sA+=per[k].A; sJ+=per[k].J; sX+=per[k].X; sN+=per[k].N; });
+      var kp2='<div class="an-kpis">'+kpi(sA,'1 वर्ष+ पेंडिंग — गत माह',fmt(Dd),'var(--blue-tint)','#2563EB')+kpi('+'+sJ,'जुड़े (नए 1 वर्ष+)','पिछले 30 दिन में 1 वर्ष पार','var(--warn-tint)','#DC2626')
+        +kpi('−'+sX,'निस्तारित','पिछले 30 दिन में','var(--good-tint)','#059669')+kpi(sN,'1 वर्ष+ पेंडिंग — आज',fmt(T),'var(--gold-tint)','#4F46E5')
+        +kpi((sN-sA>0?'+':'')+(sN-sA),'शुद्ध अंतर','','var(--card)',sN-sA<=0?'#059669':'#DC2626')
+        +kpi(f.pD+' → '+f.pT,'कुल पेंडिंग (सभी आयु)','गत माह → आज','var(--card)','var(--ink)')+kpi('+'+f.newReg,'30 दिन में दर्ज नए (पेंडिंग)','','var(--amber-tint)','#B45309')+kpi(f.disp30,'30 दिन में कुल निस्तारित','सभी आयु','var(--good-tint)','#059669')+'</div>';
+      var Q2=[];
+      var b2=kp2+boxes([
+        {id:'anM-a',title:'थानावार 1 वर्ष+ पेंडिंग — गत माह बनाम आज',h:Math.max(240,pk.length*34+80),cfg:cfgBar(pk.map(hi),[{label:'गत माह',data:pk.map(function(k){return per[k].A;}),backgroundColor:'#CBD5E1'},{label:'आज',data:pk.map(function(k){return per[k].N;}),backgroundColor:'#4F46E5'}])},
+        {id:'anM-b',title:'जुड़े बनाम निस्तारित (1 वर्ष+, 30 दिन)',h:Math.max(240,pk.length*34+80),cfg:cfgBar(pk.map(hi),[{label:'जुड़े',data:pk.map(function(k){return per[k].J;}),backgroundColor:'#EF4444'},{label:'निस्तारित',data:pk.map(function(k){return per[k].X;}),backgroundColor:'#10B981'}])}
+      ],Q2);
+      b2+='<div class="an-sub">📋 थानावार तुलना (1 वर्ष+ पेंडिंग)</div><div class="an-tw"><table class="an-tbl"><thead><tr><th>थाना</th><th>गत माह</th><th>जुड़े</th><th>निस्तारित</th><th>आज</th><th>शुद्ध अंतर</th></tr></thead><tbody>'
+        +pk.map(function(k){ var o=per[k], d=o.N-o.A; return '<tr><td>'+hi(k)+'</td><td>'+o.A+'</td><td style="color:#DC2626;font-weight:800">+'+o.J+'</td><td style="color:#059669;font-weight:800">−'+o.X+'</td><td><b>'+o.N+'</b></td><td>'+chip(d<0?'an-ok':(d>0?'an-no':'an-mid'),(d>0?'+':'')+d)+'</td></tr>'; }).join('')+'</tbody></table></div>'
+        +'<div class="an-note">डेटा स्रोत: '+D.label+' | "जुड़े" = पिछले 30 दिन में 1 वर्ष की आयु पार करने वाले पेंडिंग प्रकरण | गत माह की स्थिति पंजीकरण व निस्तारण दिनांक से पुनर्निर्मित।</div>';
+      html+=sect('📆 गत माह की तुलना — 1 वर्ष+ पेंडिंग','कितने जुड़े, कितने निस्तारित','#0F766E,#134E4A'.split(','),b2);
+      Q2.forEach(function(q){ Q.push(q); });
+      // निस्तारण-समय
+      var tk=Object.keys(tb).sort(function(a,b){ return tb[b].m.length-tb[a].m.length; });
+      var cnt=[0,0,0,0,0,0]; dt.forEach(function(i){ cnt[i]++; });
+      if(!dt.length){ html+=sect('⏳ निस्तारण में लगा समय','गत 12 माह में निस्तारित प्रकरण',['#B45309','#7C2D12'],'<div class="an-msg">गत 12 माह में निस्तारण-दिनांक सहित कोई प्रकरण नहीं मिला।</div>'); }
+      else {
+        var Q3=[], md=median(dt.length?[].concat.apply([],tk.map(function(k){return tb[k].m;})):[]);
+        var b3='<div class="an-kpis">'+kpi(dt.length,'निस्तारित (गत 12 माह)','','var(--good-tint)','#059669')+kpi((md||0).toFixed(1)+' माह','औसत मध्यिका निस्तारण-समय','सभी थाने','var(--blue-tint)','#2563EB')
+          +kpi(pctTxt(cnt[0]+cnt[1],dt.length)+'%','2 माह के भीतर निस्तारित','','var(--good-tint)','#059669')+kpi(pctTxt(cnt[5],dt.length)+'%','12 माह से अधिक में निस्तारित','','var(--warn-tint)','#DC2626')+'</div>';
+        b3+=boxes([
+          {id:'anT-h',title:'निस्तारण में लगे माह — वितरण',h:260,cfg:cfgBar(TIME_LBL,[{label:'प्रकरण',data:cnt,backgroundColor:TIME_COL}],{vert:true,thick:34})},
+          {id:'anT-m',title:'थानावार मध्यिका निस्तारण-समय (माह, कम = बेहतर)',h:Math.max(240,tk.length*28+80),cfg:cfgBar(tk.map(hi),[{label:'मध्यिका माह',data:tk.map(function(k){return +(median(tb[k].m)||0).toFixed(1);}),backgroundColor:tk.map(function(k){var m=median(tb[k].m)||0; return m<=2?'#10B981':(m<=4?'#F59E0B':'#EF4444');})}])}
+        ],Q3);
+        b3+='<div class="an-sub">🗺️ थाना × निस्तारण-अवधि (हीट-मैप)</div>'+heat({rows:tk.map(hi),cols:TIME_LBL,vals:tk.map(function(k){return tb[k].b;}),rowTot:true});
+        b3+='<div class="an-note">डेटा स्रोत: '+D.label+' | केवल वे प्रकरण जो पिछले 12 माह में निस्तारित हुए (चालान/FR/193(9) आदि, निस्तारण दिनांक सहित) | समय = पंजीकरण से निस्तारण तक।</div>';
+        html+=sect('⏳ निस्तारण में लगा समय','गत 12 माह में निस्तारित प्रकरण — कितने माह में',['#B45309','#7C2D12'],b3);
+        Q3.forEach(function(q){ Q.push(q); });
+      }
+    }
+    paint(host,html,Q);
+  }
+
+  // ==========================================================
+  // 2) 60/90 दिन अनुपालन — SAS (महिला अत्याचार / SC-ST / POCSO / बलात्कार)
+  // ==========================================================
+  var HEADS=[['wa','महिला अत्याचार','#DB2777'],['scst','SC/ST एक्ट','#EA580C'],['pocso','POCSO','#DC2626'],['rape','बलात्कार','#B91C1C']];
+  function renderComp(pid){
+    var host=document.getElementById('dw2-host-'+pid); if(!host||!visible(pid)) return; ensureCss();
+    var T=today(), defMode=pid==='disp90'?'90':'60';
+    var mEl=document.getElementById('anMode-'+pid), fEl=document.getElementById('anFrom-'+pid), tEl=document.getElementById('anTo-'+pid);
+    var mode=(mEl&&mEl.value)?mEl.value:defMode, from=fEl&&fEl.value?parse(fEl.value):parse(yearOf(T)+'-01-01'), to=tEl&&tEl.value?parse(tEl.value):T;
+    var ctl='<div class="an-ctl"><div><label>समय-सीमा</label><select id="anMode-'+pid+'" onchange="anRender(\''+pid+'\')"><option value="60"'+(mode==='60'?' selected':'')+'>60 दिन (सभी प्रकरण)</option><option value="90"'+(mode==='90'?' selected':'')+'>90 दिन (सभी प्रकरण)</option><option value="sec"'+(mode==='sec'?' selected':'')+'>धारा अनुसार (60/90)</option></select></div>'
+      +'<div><label>दर्ज — से</label><input type="date" id="anFrom-'+pid+'" value="'+iso(from)+'" onchange="anRender(\''+pid+'\')"></div>'
+      +'<div><label>दर्ज — तक</label><input type="date" id="anTo-'+pid+'" value="'+iso(to)+'" onchange="anRender(\''+pid+'\')"></div>'
+      +'<button class="an-btn" onclick="anRender(\''+pid+'\')">🔄 अद्यतन</button></div>';
+    var head='SAS Export — महिला अत्याचार / SC-ST / POCSO / बलात्कार : समय-सीमा अनुपालन';
+    if(typeof dbRecords==='undefined'||!dbRecords||!dbRecords.length){ host.innerHTML=sect('📈 '+head,'अनुपालन % व थानावार विश्लेषण',['#BE185D','#7C2D12'],ctl+'<div class="an-msg">SAS Export डेटा उपलब्ध नहीं — लाइव सिंक पूर्ण होने का इंतज़ार करें।</div>'); return; }
+    function newAgg(){ return {tot:0,disp:0,on:0,late:0,nod:0,po:0,pw:0}; }
+    var A={}, byPS={}, byMon={}; HEADS.forEach(function(h){ A[h[0]]=newAgg(); byPS[h[0]]={}; byMon[h[0]]={}; });
+    dbRecords.forEach(function(r){
+      var reg=parse(r.date); if(reg==null||reg<from||reg>to) return;
+      var lim = mode==='sec' ? classifyLimitFromText(r.sections) : parseInt(mode,10);
+      HEADS.forEach(function(h){
+        if(!has(r[h[0]])) return;
+        var a=[A[h[0]], (byPS[h[0]][r.ps]=byPS[h[0]][r.ps]||newAgg()), (byMon[h[0]][new Date(reg*864e5).getUTCMonth()]=byMon[h[0]][new Date(reg*864e5).getUTCMonth()]||newAgg())];
+        var cs=parse(r.csDate), disposed=(r.disposal==='Chargesheet'||r.disposal==='F.R.') && cs!=null; // चालान-दिनांक नहीं = पेंडिंग
+        a.forEach(function(x){
+          x.tot++;
+          if(disposed){ x.disp++; if(cs-reg<=lim) x.on++; else x.late++; }
+          else { if(T-reg>lim) x.po++; else x.pw++; }  // आयु = आज − दर्ज दिनांक
+        });
+      });
+    });
+    function comp(x){ var due=x.on+x.late+x.po; return due?x.on/due*100:null; }
+    var any=HEADS.some(function(h){ return A[h[0]].tot>0; });
+    if(!any){ host.innerHTML=sect('📈 '+head,'अनुपालन % व थानावार विश्लेषण',['#BE185D','#7C2D12'],ctl+'<div class="an-msg">चयनित अवधि में इन श्रेणियों का कोई प्रकरण नहीं मिला।</div>'); return; }
+    var Q=[], gw='<div class="an-gwrap">';
+    HEADS.forEach(function(h){ var x=A[h[0]], c=comp(x);
+      gw+='<div class="an-g"><h5>'+h[1]+'</h5>'+(c==null?'<div class="an-gauge" style="--p:0"><span>—</span></div>':gauge(c,pctCol(c)))
+        +'<small>दर्ज '+x.tot+' | निस्तारित '+x.disp+'<br>समय पर <b style="color:#059669">'+x.on+'</b> • विलंब <b style="color:#DC2626">'+x.late+'</b><br>पेंडिंग सीमा-पार <b style="color:#B45309">'+x.po+'</b></small></div>'; });
+    gw+='</div>';
+    var hl=HEADS.map(function(h){return h[1];});
+    var body=gw+boxes([
+      {id:'anC-s-'+pid,title:'श्रेणीवार स्थिति — समय पर / विलंब / पेंडिंग',h:260,cfg:cfgBar(hl,[
+        {label:'समय पर निस्तारित',data:HEADS.map(function(h){return A[h[0]].on;}),backgroundColor:'#10B981'},
+        {label:'विलंब से निस्तारित',data:HEADS.map(function(h){return A[h[0]].late;}),backgroundColor:'#F59E0B'},
+        {label:'पेंडिंग — सीमा पार',data:HEADS.map(function(h){return A[h[0]].po;}),backgroundColor:'#EF4444'},
+        {label:'पेंडिंग — सीमा के भीतर',data:HEADS.map(function(h){return A[h[0]].pw;}),backgroundColor:'#94A3B8'}],{stacked:true})},
+      {id:'anC-m-'+pid,title:'दर्ज माह अनुसार अनुपालन % (रुझान)',h:260,cfg:cfgLine(MONTHS.map(function(m){return m.slice(0,3);}),HEADS.map(function(h){
+        return {label:h[1],borderColor:h[2],backgroundColor:h[2],spanGaps:true,data:MONTHS.map(function(_,mi){ var x=byMon[h[0]][mi]; var c=x?comp(x):null; return c==null?null:+c.toFixed(1); })}; }),{max:100})}
+    ],Q);
+    // थाना × श्रेणी अनुपालन हीट-मैप
+    var psSet={}; HEADS.forEach(function(h){ Object.keys(byPS[h[0]]).forEach(function(p){ psSet[p]=1; }); });
+    var pk=Object.keys(psSet).sort(function(a,b){ function s(p){ return HEADS.reduce(function(n,h){ return n+((byPS[h[0]][p]||{}).tot||0); },0); } return s(b)-s(a); });
+    body+='<div class="an-sub">🗺️ थाना × श्रेणी — अनुपालन % (हरा = अच्छा, लाल = कमज़ोर; छोटे अंक = देय प्रकरण)</div>'
+      +heat({pal:'pct',rows:pk.map(hi),cols:hl,vals:pk.map(function(p){ return HEADS.map(function(h){ var x=byPS[h[0]][p]; if(!x) return null; var due=x.on+x.late+x.po; return due?{p:x.on/due*100,n:due}:null; }); })});
+    // सारांश सारणी
+    body+='<div class="an-sub">📋 श्रेणीवार सारांश</div><div class="an-tw"><table class="an-tbl"><thead><tr><th>श्रेणी</th><th>कुल दर्ज</th><th>निस्तारित</th><th>समय पर</th><th>विलंब</th><th>पेंडिंग सीमा-पार</th><th>पेंडिंग सीमा-भीतर</th><th>अनुपालन %</th></tr></thead><tbody>'
+      +HEADS.map(function(h){ var x=A[h[0]], c=comp(x); return '<tr><td>'+h[1]+'</td><td>'+x.tot+'</td><td>'+x.disp+'</td><td style="color:#059669;font-weight:800">'+x.on+'</td><td style="color:#B45309;font-weight:800">'+x.late+'</td><td style="color:#DC2626;font-weight:800">'+x.po+'</td><td>'+x.pw+'</td><td>'+(c==null?'—':chip(c>=75?'an-ok':(c>=50?'an-mid':'an-no'),c.toFixed(1)+'%'))+'</td></tr>'; }).join('')+'</tbody></table></div>';
+    body+='<div class="an-note"><b>अनुपालन % = समय पर निस्तारित ÷ (समय पर + विलंब से निस्तारित + पेंडिंग सीमा-पार)</b> — यानी वे प्रकरण जिनकी समय-सीमा पूर्ण हो चुकी। निस्तारित = चालान/FR <b>चालान-दिनांक सहित</b> (SAS Export); चालान-दिनांक न होने पर प्रकरण पेंडिंग माना गया है और उसकी समय-सीमा आज की तारीख से गिनी गई है (सीमा-पार या सीमा-भीतर)। एक प्रकरण एक से अधिक श्रेणी में भी हो सकता है।</div>';
+    var h0=HEADS[0]; // (रंग-संदर्भ)
+    host.innerHTML=''; paint(host,sect('📈 '+head,'अनुपालन % व थानावार विश्लेषण | अवधि: '+fmt(from)+' से '+fmt(to),['#BE185D','#7C2D12'],ctl+body),Q);
+  }
+
+  // ==========================================================
+  // 3) डैशबोर्ड — अतिरिक्त अपराध विश्लेषण
+  // ==========================================================
+  var DOW=['रवि','सोम','मंगल','बुध','गुरु','शुक्र','शनि'];
+  function renderDash(){
+    var host=document.getElementById('dw2-host-dashboard'); if(!host||!visible('dashboard')) return; ensureCss();
+    if(typeof dbRecords==='undefined'||!dbRecords||!dbRecords.length){ host.innerHTML=''; return; }
+    var T=today(), cy=yearOf(T), py=cy-1, TP=shiftYear(T,-1), Q=[];
+    var gC={}, gP={}, psC={}, psP={}, mC=new Array(12).fill(0), mP=new Array(12).fill(0), dow=new Array(7).fill(0), tg={}, st={}, tot={c:0,p:0};
+    dbRecords.forEach(function(r){
+      var d=parse(r.date); if(d==null) return; var y=yearOf(d), g=groupOfRec(r), mo=new Date(d*864e5).getUTCMonth();
+      if(y===cy&&d<=T){ tot.c++; gC[g]=(gC[g]||0)+1; psC[r.ps]=(psC[r.ps]||0)+1; mC[mo]++; dow[new Date(d*864e5).getUTCDay()]++;
+        (tg[r.ps]=tg[r.ps]||{})[g]=((tg[r.ps]||{})[g]||0)+1;
+        var hasCs=parse(r.csDate)!=null, s=(r.disposal==='Chargesheet'&&hasCs)?0:(r.disposal==='F.R.'&&hasCs)?1:((sasCatOf(r.disposal)||r.disposal==='Chargesheet'||r.disposal==='F.R.')?2:3); (st[g]=st[g]||[0,0,0,0])[s]++; }
+      if(y===py){ mP[mo]++; if(d<=TP){ tot.p++; gP[g]=(gP[g]||0)+1; psP[r.ps]=(psP[r.ps]||0)+1; } }
+    });
+    if(!tot.c){ host.innerHTML=''; return; }
+    function chg(c,p,goodUp){ var d=c-p, pc=p?Math.round(d/p*100):null; var up=d>0, col=d===0?'var(--soft)':((up===!!goodUp)?'#059669':'#DC2626');
+      return '<span style="color:'+col+';font-weight:800">'+(d>0?'▲ +':(d<0?'▼ ':'➖ '))+(d!==0?d:'')+(pc!=null&&d!==0?' ('+pc+'%)':'')+'</span>'; }
+    var sll=['आबकारी','जुआ','आर्म्स एक्ट','NDPS','अन्य SLL'], sc=0, sp=0; sll.forEach(function(k){ sc+=gC[k]||0; sp+=gP[k]||0; });
+    var cards=[['कुल FIR (आज तक)',tot.c,tot.p,false,'var(--blue-tint)','#2563EB'],['बलात्कार',gC['बलात्कार']||0,gP['बलात्कार']||0,false,'var(--warn-tint)','#B91C1C'],['POCSO',gC['POCSO']||0,gP['POCSO']||0,false,'var(--warn-tint)','#DC2626'],
+      ['SC/ST एक्ट',gC['SC/ST एक्ट']||0,gP['SC/ST एक्ट']||0,false,'var(--amber-tint)','#C2410C'],['महिला अत्याचार',gC['महिला अत्याचार']||0,gP['महिला अत्याचार']||0,false,'var(--amber-tint)','#BE185D'],
+      ['संपत्ति अपराध',gC['संपत्ति अपराध']||0,gP['संपत्ति अपराध']||0,false,'var(--card)','var(--ink)'],['हत्या/प्रयास',gC['हत्या/हत्या-प्रयास']||0,gP['हत्या/हत्या-प्रयास']||0,false,'var(--card)','var(--ink)'],
+      ['SLL कार्यवाही (कुल)',sc,sp,true,'var(--good-tint)','#059669']];
+    var body='<div class="an-kpis">'+cards.map(function(c){ return '<div class="an-kpi" style="background:'+c[4]+';color:'+c[5]+'"><b>'+c[1]+'</b><span>'+c[0]+'</span><small style="opacity:1">गत वर्ष: '+c[2]+'<br>'+chg(c[1],c[2],c[3])+'</small></div>'; }).join('')+'</div>';
+    var gk=GROUPS.map(function(g){return g[0];}).filter(function(k){return gC[k];});
+    var pkeys=Object.keys(psC).sort(function(a,b){return psC[b]-psC[a];});
+    var stl=['चालान','FR','जांच/पेंडिंग','अन्य'], stc=['#10B981','#3B82F6','#EF4444','#94A3B8'];
+    body+=boxes([
+      {id:'anD-m',title:'मासिक FIR रुझान — '+cy+' बनाम '+py,h:270,cfg:cfgLine(MONTHS.map(function(m){return m.slice(0,3);}),[{label:String(cy),data:mC.map(function(v,i){return i<=new Date(T*864e5).getUTCMonth()?v:null;}),borderColor:'#4F46E5',backgroundColor:'#4F46E5'},{label:String(py),data:mP,borderColor:'#CBD5E1',backgroundColor:'#CBD5E1',borderDash:[5,4]}])},
+      {id:'anD-g',title:'अपराध-श्रेणी मिश्रण ('+cy+', आज तक)',h:270,cfg:cfgDonut(gk,gk.map(function(k){return gC[k];}),gk.map(function(k){return GCOL[k];}))},
+      {id:'anD-w',title:'FIR पंजीकरण — वार अनुसार',h:240,cfg:cfgBar(DOW,[{label:'FIR',data:dow,backgroundColor:'#6366F1'}],{vert:true,thick:30})},
+      {id:'anD-s',title:'श्रेणी अनुसार निस्तारण स्थिति (% )',h:Math.max(260,gk.length*26+90),cfg:cfgBar(gk,stl.map(function(l,i){ return {label:l,data:gk.map(function(k){ var a=st[k]; var s=a[0]+a[1]+a[2]+a[3]; return s?+(a[i]/s*100).toFixed(1):0; }),backgroundColor:stc[i]}; }),{stacked:true,max:100})}
+    ],Q);
+    body+='<div class="an-sub">🗺️ थाना × अपराध-श्रेणी — '+cy+' (दाएँ खिसकाकर देखें)</div>'+heat({rows:pkeys.map(hi),cols:gk,vals:pkeys.map(function(p){return gk.map(function(g){return (tg[p]&&tg[p][g])||0;});}),rowTot:true});
+    var diffs=pkeys.map(function(p){ return {p:p,c:psC[p]||0,pv:psP[p]||0}; }).sort(function(a,b){ return (b.c-b.pv)-(a.c-a.pv); });
+    body+='<div class="an-sub">📊 थानावार FIR — इस वर्ष बनाम गत वर्ष (उसी तिथि तक)</div><div class="an-tw"><table class="an-tbl"><thead><tr><th>थाना</th><th>इस वर्ष</th><th>गत वर्ष</th><th>अंतर</th><th>%</th></tr></thead><tbody>'
+      +diffs.map(function(x){ var d=x.c-x.pv, pc=x.pv?Math.round(d/x.pv*100):null; return '<tr><td>'+hi(x.p)+'</td><td><b>'+x.c+'</b></td><td>'+x.pv+'</td><td>'+chip(d>0?'an-no':(d<0?'an-ok':'an-mid'),(d>0?'+':'')+d)+'</td><td>'+(pc==null?'—':pc+'%')+'</td></tr>'; }).join('')+'</tbody></table></div>'
+      +'<div class="an-note">स्रोत: SAS Export | इस वर्ष = 1 जनवरी से आज तक, गत वर्ष = उसी तिथि तक | अपराध-वृद्धि लाल, कमी हरी (SLL कार्यवाही में वृद्धि हरी)।</div>';
+    paint(host,sect('🔬 अपराध-आंकड़ों का अतिरिक्त विश्लेषण','चालू वर्ष ('+cy+') आज तक बनाम गत वर्ष | अपराध-श्रेणी × थाना × रुझान',['#0F172A','#4F46E5'],body),Q);
+  }
+
+  window.anRender=function(pid){ if(pid==='pendency') renderPend(); else if(pid==='dashboard') renderDash(); else renderComp(pid); };
+  window.anModels={groupOfRec:groupOfRec,groupOfSection:groupOfSection};
+  function all(pid){ try{ window.anRender(pid); }catch(e){ console.warn('an',pid,e); } }
+  // ---------- हुक ----------
+  ['renderPendencyPage','renderDisposalPage','renderAll'].forEach(function(fn){
+    var orig=window[fn]; if(typeof orig!=='function') return;
+    window[fn]=function(){ var r=orig.apply(this,arguments);
+      if(fn==='renderPendencyPage') all('pendency'); else if(fn==='renderAll') all('dashboard'); else all((arguments[0]===60)?'disp60':'disp90');
+      return r; };
+  });
+  var _go=window.go;
+  if(typeof _go==='function'){
+    window.go=function(id){ var r=_go.apply(this,arguments);
+      if(['pendency','disp60','disp90','dashboard'].indexOf(id)>=0 && (!AN.last[id]||Date.now()-AN.last[id]>400)){ AN.last[id]=Date.now(); all(id); }
+      return r; };
+  }
+})();
+</script>
+<script>
+// ============================================================
+// मॉनिटरिंग शेयर लिंक — चुने हुए मॉनिटरिंग हेड ही दिखें (?mon=dashboard,disp,actWatch,pendency,univsearch)
+// ============================================================
+(function(){
+  var HEADS=[
+    {k:'dashboard',  label:'📊 अपराध सांख्यिकी डैशबोर्ड',                 pages:['dashboard']},
+    {k:'disp',       label:'⏱️ 60/90 दिवस में निस्तारण योग्य',             pages:['disp60','disp90']},
+    {k:'actWatch',   label:'⚖️ आबकारी/जुआ/आर्म्स/NDPS निगरानी',            pages:['actWatch']},
+    {k:'pendency',   label:'📉 पेंडेंसी रैंकिंग',                           pages:['pendency']},
+    {k:'univsearch', label:'🔎 यूनिवर्सल सर्च',                             pages:['univsearch']}
+  ];
+  function baseUrl(){ return location.href.split('#')[0].split('?')[0]; }
+
+  // ---------- 1) Settings में लिंक बनाने वाला हिस्सा ----------
+  function selectedKeys(){
+    return HEADS.filter(function(h){ var c=document.getElementById('monHead_'+h.k); return c && c.checked; }).map(function(h){ return h.k; });
+  }
+  function buildUrl(){
+    var ks=selectedKeys();
+    return ks.length ? baseUrl()+'?mon='+ks.join(',') : '';
+  }
+  function refreshUrl(){
+    var el=document.getElementById('monShareUrl'); if(el) el.value=buildUrl();
+  }
+  function renderHeads(){
+    var box=document.getElementById('monShareHeads'); if(!box) return;
+    box.innerHTML=HEADS.map(function(h){
+      return '<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid #d6d9e0;border-radius:10px;background:#fff;cursor:pointer;font-size:14px;font-weight:600;color:var(--navy)">'
+        +'<input type="checkbox" id="monHead_'+h.k+'" style="width:18px;height:18px;flex:0 0 auto"> <span>'+h.label+'</span></label>';
+    }).join('');
+    HEADS.forEach(function(h){ document.getElementById('monHead_'+h.k).addEventListener('change',refreshUrl); });
+    refreshUrl();
+  }
+  window.monShareSelectAll=function(v){
+    HEADS.forEach(function(h){ var c=document.getElementById('monHead_'+h.k); if(c) c.checked=!!v; });
+    refreshUrl();
+  };
+  function needUrl(){
+    var u=buildUrl();
+    if(!u){ if(typeof toast==='function') toast('⚠️ पहले कम से कम एक मॉनिटरिंग हेड चुनें'); }
+    return u;
+  }
+  window.monShareCopy=function(){
+    var u=needUrl(); if(!u) return;
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(u).then(function(){ toast('✅ लिंक कॉपी हो गया'); }).catch(function(){ prompt('इस लिंक को कॉपी करें:',u); });
+    } else { prompt('इस लिंक को कॉपी करें:',u); }
+  };
+  window.monShareWhatsapp=function(){
+    var u=needUrl(); if(!u) return;
+    var names=HEADS.filter(function(h){ return selectedKeys().indexOf(h.k)>=0; }).map(function(h){ return '• '+h.label; }).join('\n');
+    var msg='📊 *जिला डीडवाना-कुचामन पुलिस — मॉनिटरिंग पोर्टल*\n\nइस लिंक से निम्न पेज देखे जा सकेंगे:\n'+names+'\n\n🔗 '+u;
+    window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+  };
+  window.monShareOpen=function(){
+    var u=needUrl(); if(!u) return;
+    window.open(u,'_blank');
+  };
+  renderHeads();
+
+  // ---------- 2) ?mon=... से खुलने पर — केवल चुने पेज ----------
+  var params; try{ params=new URLSearchParams(location.search); }catch(e){ return; }
+  if(!params.has('mon')) return;
+
+  var keys=(params.get('mon')||'').split(',').map(function(s){ return s.trim(); });
+  var allowed=[];
+  HEADS.forEach(function(h){ if(keys.indexOf(h.k)>=0) allowed=allowed.concat(h.pages); });
+
+  // लिंक में एक भी मान्य हेड न हो तो कुछ भी न खुले (लॉक बायपास हो चुका है, इसलिए पूरा बंद)
+  if(!allowed.length){
+    var blk=document.createElement('div');
+    blk.style.cssText='position:fixed;inset:0;z-index:100000;background:#141D30;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:16px;font-family:inherit';
+    blk.innerHTML='<div>🔒 यह लिंक मान्य नहीं है।<br><small style="opacity:.8">कृपया भेजने वाले से नई लिंक माँगें।</small></div>';
+    document.body.appendChild(blk);
+    return;
+  }
+
+  document.body.classList.add('mon-restricted');
+  var css='body.mon-restricted nav button[data-pg],body.mon-restricted nav button.cp-dynamic{display:none !important}';
+  allowed.forEach(function(id){ css+='body.mon-restricted nav button[data-pg="'+id+'"]{display:block !important}'; });
+  var st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
+
+  var _go=window.go;
+  window.go=function(id){
+    if(allowed.indexOf(id)<0){ if(typeof toast==='function') toast('🔒 इस लिंक से यह पेज उपलब्ध नहीं है'); return; }
+    return _go.apply(this,arguments);
+  };
+  window.adminGo=function(pg){ return window.go(pg); };
+  // पहले से लगे किसी भी अन्य पेज/पैरामीटर को हटाकर पहले चुने हुए पेज पर खोलें
+  window.go(allowed[0]);
 })();
 </script>
 </body>
