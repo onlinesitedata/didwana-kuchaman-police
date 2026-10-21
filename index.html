@@ -1219,7 +1219,7 @@ footer .ofc-f b{color:#fff;display:block;margin-bottom:4px}
   function hasDirectEntryBypass(){
     try{
       var params=new URLSearchParams(location.search);
-      return !params.has('lk') && (params.has('entry') || params.has('openpg') || params.has('mon'));
+      return !params.has('lk') && (params.has('entry') || params.has('openpg') || params.has('pgs') || params.has('mon'));
     }catch(e){ return false; }
   }
   window.siteLockTogglePw=function(){
@@ -1281,7 +1281,7 @@ footer .ofc-f b{color:#fff;display:block;margin-bottom:4px}
   <button data-pg="pendency" onclick="go('pendency')">📉 पेंडेंसी रैंकिंग</button>
   <button data-pg="mcrBook" onclick="adminGo('mcrBook')">📗 MCR Book (मासिक अपराध प्रतिवेदन)</button>
   <button data-pg="univsearch" onclick="go('univsearch')">🔎 यूनिवर्सल सर्च</button>
-  <button onclick="closeNav();dkShareOpen({pg:'',lock:true})">🔗 लिंक शेयर (लॉक/पासवर्ड सहित)</button>
+  <button id="dkShareNavBtn" onclick="closeNav();dkShareOpen({pg:'',lock:true,restrict:true})">🔗 लिंक शेयर (लॉक/पासवर्ड सहित)</button>
   <button onclick="toggleDarkMode()" id="darkModeToggleBtn">🌙 डार्क मोड</button>
   <button onclick="triggerPwaInstall()" id="pwaInstallBtn" style="display:none;">📲 होम स्क्रीन पर इंस्टॉल करें</button>
 </nav>
@@ -1862,6 +1862,7 @@ footer .ofc-f b{color:#fff;display:block;margin-bottom:4px}
       <button class="btn-fill amber" onclick="exportContainerToExcel('disp60','60 दिवस निस्तारण विश्लेषण — जिला डीडवाना-कुचामन','60-din-nistaran-vishleshan.xls')">⬇️ Excel (Conditional Formatting)</button>
       <button class="btn-fill green" onclick="downloadDisposalPendingList(60)">📥 पेंडिंग सूची (समस्त + 60 दिन / 45-60 दिन) डाउनलोड</button>
       <button class="btn-fill maroon" onclick="exportOnePagePortraitPDF('disp60','60 दिवस निस्तारण विश्लेषण — जिला डीडवाना-कुचामन','60-din-nistaran-vishleshan.pdf')">📄 PDF डाउनलोड (थानों हेतु)</button>
+      <button class="btn-fill" style="background:linear-gradient(135deg,#FF9933,#B45309);color:#fff" onclick="dispAttractivePDF(60)">🎨 आकर्षक PDF (अधिकारियों हेतु)</button>
       <button class="btn-ghost" onclick="window.print()">🖨️ पेज प्रिंट करें</button>
     </div>
     <div class="pcard" style="--ca:#1D4ED8;margin:4px 0 14px;">
@@ -1927,6 +1928,7 @@ footer .ofc-f b{color:#fff;display:block;margin-bottom:4px}
       <button class="btn-fill amber" onclick="exportContainerToExcel('disp90','90 दिवस निस्तारण विश्लेषण — जिला डीडवाना-कुचामन','90-din-nistaran-vishleshan.xls')">⬇️ Excel (Conditional Formatting)</button>
       <button class="btn-fill green" onclick="downloadDisposalPendingList(90)">📥 पेंडिंग सूची (समस्त + 90 दिन / 75-90 दिन) डाउनलोड</button>
       <button class="btn-fill maroon" onclick="exportOnePagePortraitPDF('disp90','90 दिवस निस्तारण विश्लेषण — जिला डीडवाना-कुचामन','90-din-nistaran-vishleshan.pdf')">📄 PDF डाउनलोड (थानों हेतु)</button>
+      <button class="btn-fill" style="background:linear-gradient(135deg,#FF9933,#B45309);color:#fff" onclick="dispAttractivePDF(90)">🎨 आकर्षक PDF (अधिकारियों हेतु)</button>
       <button class="btn-ghost" onclick="window.print()">🖨️ पेज प्रिंट करें</button>
     </div>
     <div class="pcard" style="--ca:#1D4ED8;margin:4px 0 14px;">
@@ -9440,8 +9442,14 @@ function downloadPendencyAgeList(){
   const rows = buildPendencyRows(source).filter(r=>r.pendingLike);
   const withAge = rows.map(r=>({...r, ageDays: ageInDaysFromToday(r.reg)})).filter(r=>r.ageDays!=null);
 
-  const y5 = withAge.filter(r=>r.ageDays > 5*365);
-  const y1 = withAge.filter(r=>r.ageDays > 365);
+  let cbAge=null; // 1/5 वर्ष+ सूची = अपराध शाखा (प्रारूप-3) वाली परिभाषा, Current Status (FDC) से
+  if(typeof FDC!=='undefined' && FDC && FDC.rows && FDC.rows.length){
+    cbAge=[];
+    FDC.rows.forEach(r=>{ if(!r[3] || !apradhCstMatches('pending',FDC.cst[r[10]])) return; const dd=new Date(r[3]); if(isNaN(dd.getTime())) return;
+      cbAge.push({ps:FDC.ps[r[1]], fir:r[2], reg:r[3], section:FDC.act1[r[4]]||'', cat:'ui', ageDays:Math.round((new Date()-dd)/86400000)}); });
+  }
+  const y5 = (cbAge||withAge).filter(r=>r.ageDays > 5*365);
+  const y1 = (cbAge||withAge).filter(r=>r.ageDays > 365);
   const m6 = withAge.filter(r=>r.ageDays > 182);
 
   const header = ['क्र.सं','थाना','FIR नंबर','पंजीकरण दिनांक','धारा / Act','लंबित दिन','लंबित वर्ष (अनुमानित)','स्थिति श्रेणी'];
@@ -9450,8 +9458,8 @@ function downloadPendencyAgeList(){
 
   const summaryAOA = [
     ['श्रेणी','संख्या'],
-    ['5 वर्ष से अधिक लंबित', y5.length],
-    ['1 वर्ष से अधिक लंबित', y1.length],
+    ['5 वर्ष से अधिक लंबित'+(cbAge?' (अपराध शाखा प्रारूप-3 अनुरूप — Current Status)':''), y5.length],
+    ['1 वर्ष से अधिक लंबित'+(cbAge?' (अपराध शाखा प्रारूप-3 अनुरूप — Current Status)':''), y1.length],
     ['6 माह से अधिक लंबित', m6.length],
     ['कुल पेंडिंग (चयनित स्रोत, आयु उपलब्ध)', withAge.length],
     ['डेटा स्रोत', document.getElementById('pendSource').selectedOptions[0].textContent]
@@ -14323,12 +14331,12 @@ try{ initDispWordCircle(); }catch(e){}
       if(reg==null){ if(cat!=null) badReg++; return; }
       var d;
       if(cat!=null) d=Infinity; else { d=dispVal; if(d==null||d<reg) return; }
-      out.push({ps:p,fir:fir,reg:reg,regS:regStr,disp:d,sec:sec||''});
+      out.push({ps:p,fir:fir,reg:reg,regS:regStr,disp:d,sec:sec||'',cat:cat});
     }
     if((source==='generic'||dedupe) && typeof GEN!=='undefined' && GEN)
       GEN.forEach(function(r){ var reg=parse(r[3]); push(r[0],r[2],r[3],genCatOf(r[5]),(r[6]!=null&&reg!=null)?reg+r[6]:null,r[9]); });
     if((source==='fdc'||dedupe) && typeof FDC!=='undefined' && FDC && FDC.rows)
-      FDC.rows.forEach(function(r){ push(FDC.ps[r[1]],r[2],r[3],fdcCatOf(FDC.cst[r[10]]),r[8]?parse(r[8]):null,FDC.act1[r[4]]); });
+      FDC.rows.forEach(function(r){ var cs0=FDC.cst[r[10]]; push(FDC.ps[r[1]],r[2],r[3],(fdcCatOf(cs0)||((cs0===''||cs0==='REFUSED INVESTIGATION')?'ui':null)),r[8]?parse(r[8]):null,FDC.act1[r[4]]); });
     if((source==='sas'||dedupe) && typeof RAW!=='undefined' && RAW)
       RAW.forEach(function(r){ push(r[0],r[2],r[1],sasCatOfRaw(r),r[11]?parse(r[11]):null,r[10]); });
     return {rows:out,skipped:skipped,srcRows:srcRows,dups:dups,badReg:badReg};
@@ -14411,22 +14419,23 @@ try{ initDispWordCircle(); }catch(e){}
   // ==========================================================
   // 1) पेंडेंसी — 1 वर्ष से अधिक  (पेंडेंसी पेज के चयनित स्रोत व उसी परिभाषा से; सभी भाग एक ही डेटा-समुच्चय पर)
   // ==========================================================
+  function ageOf(r,T){ var dd=new Date(r.regS); return isNaN(dd.getTime())?T-r.reg:Math.round((new Date()-dd)/86400000); } /* अपराध शाखा (buildApradhListFromFDC) जैसा ही आयु-सूत्र */
   function ageBucket(a){ if(a<=365) return -1; if(a<=730) return 0; if(a<=1095) return 1; if(a<=1825) return 2; return 3; }
 
   function renderPend(){
     var host=document.getElementById('dw2-host-pendency'); if(!host||!visible('pendency')) return; ensureCss();
     var T=today(), Q=[], html='';
-    var srcEl=document.getElementById('pendSource'), source=(srcEl&&srcEl.value)||'generic';
-    var srcTxt=(srcEl&&srcEl.selectedOptions&&srcEl.selectedOptions[0])?srcEl.selectedOptions[0].textContent:source;
-    var U=universe(source), rows=U.rows, pend=rows.filter(function(r){ return r.disp===Infinity; });
+    var srcEl=document.getElementById('pendSource'), source=(srcEl&&srcEl.value)||'generic'; var cbFDC=(typeof FDC!=='undefined'&&FDC&&FDC.rows&&FDC.rows.length); if(cbFDC) source='fdc';
+    var srcTxt=(srcEl&&srcEl.selectedOptions&&srcEl.selectedOptions[0])?srcEl.selectedOptions[0].textContent:source; if(cbFDC) srcTxt='Current Status (FDC) — अपराध शाखा प्रारूप-3 के अनुरूप';
+    var U=universe(source), rows=U.rows, pend=rows.filter(function(r){ return r.disp===Infinity; }); var pendUI=pend.filter(function(r){ return r.cat==='ui'; }).length;
     var gm=gmap();
     var thana={}, cat={}, tc={}, tot=[0,0,0,0], plist=[];
     pend.forEach(function(r){
-      var b=ageBucket(T-r.reg); if(b<0) return;
+      if(r.cat!=='ui') return; var ag=ageOf(r,T), b=ageBucket(ag); if(b<0) return;
       var g=gm[r.ps+'|'+normFir(r.fir,r.reg)]||groupOfSection(r.sec);
       var t=thana[r.ps]=thana[r.ps]||[0,0,0,0], c=cat[g]=cat[g]||[0,0,0,0], x=tc[r.ps]=tc[r.ps]||{};
       t[b]++; c[b]++; x[g]=(x[g]||0)+1; tot[b]++;
-      plist.push({ps:r.ps,fir:r.fir,regS:r.regS,age:T-r.reg,bucket:AGE_LBL[b],g:g,sec:r.sec});
+      plist.push({ps:r.ps,fir:r.fir,regS:r.regS,age:ag,bucket:AGE_LBL[b],g:g,sec:r.sec});
     });
     AN.pendList=plist; AN.pendT=T;
     var n1=tot[0]+tot[1]+tot[2]+tot[3];
@@ -14436,13 +14445,13 @@ try{ initDispWordCircle(); }catch(e){}
       html+=sect('🔬 1 वर्ष से अधिक पेंडिंग — गहन विश्लेषण','आयु-वर्ग × थाना × अपराध-श्रेणी',['#4F46E5','#312E81'],'<div class="an-msg">चयनित स्रोत में 1 वर्ष से अधिक पुराना कोई पेंडिंग प्रकरण नहीं मिला (कुल पेंडिंग '+pend.length+').</div>');
     } else {
       var tKeys=sortedKeys(thana,function(a){return a[0]+a[1]+a[2]+a[3];}), cKeys=sortedKeys(cat,function(a){return a[0]+a[1]+a[2]+a[3];});
-      var kp='<div class="an-kpis">'+kpi(n1,'1 वर्ष+ पेंडिंग (कुल)',pctTxt(n1,pend.length)+'% कुल पेंडिंग ('+pend.length+') का','var(--blue-tint)','#2563EB');
+      var kp='<div class="an-kpis">'+kpi(n1,'1 वर्ष+ पेंडिंग (कुल)',pctTxt(n1,pendUI)+'% जांच में लंबित ('+pendUI+') का','var(--blue-tint)','#2563EB');
       var kb=['var(--amber-tint)','var(--amber-tint)','var(--warn-tint)','var(--warn-tint)'], kc=['#B45309','#C2410C','#DC2626','#7F1D1D'];
       AGE_LBL.forEach(function(l,i){ kp+=kpi(tot[i],l,pctTxt(tot[i],n1)+'%',kb[i],kc[i]); }); kp+='</div>';
       var chk='<div class="an-chk"><button type="button" class="an-btn" onclick="anPendList()">📥 1 वर्ष+ प्रकरणों की सूची (Excel)</button>'
         +'<div class="an-note" style="padding:8px 0 0">गणना-जाँच: स्रोत पंक्तियाँ <b>'+U.srcRows+'</b> → पेंडिंग <b>'+pend.length+'</b>'
         +(U.badReg?' (पंजीकरण-दिनांक रिक्त/अमान्य पेंडिंग: '+U.badReg+')':'')+(U.skipped?' (थाना-नाम मेल न खाने से बाहर: '+U.skipped+')':'')+(U.dups?' (डुप्लीकेट हटाए: '+U.dups+')':'')
-        +' → 1 वर्ष+ <b>'+n1+'</b> | आयु = आज − दर्ज दिनांक &gt; 365 दिन। सूची से FIR-वार मिलान किया जा सकता है।</div></div>';
+        +' → 1 वर्ष+ <b>'+n1+'</b> | आयु = आज − दर्ज दिनांक &gt; 365 दिन। <b>अपराध शाखा (प्रारूप-3) के अनुरूप:</b> स्थिति UNDER INVESTIGATION / रिक्त / REFUSED INVESTIGATION; 173(8)-193(9) व री-ओपन अलग प्रारूप में होने से शामिल नहीं। सूची से FIR-वार मिलान किया जा सकता है।</div></div>';
       var body=chk+kp+boxes([
         {id:'anP-d',title:'आयु-वर्ग अनुसार वितरण',h:250,cfg:cfgDonut(AGE_LBL,tot,AGE_COL)},
         {id:'anP-t',title:'थानावार 1 वर्ष+ पेंडिंग (आयु-वर्ग सहित)',h:Math.max(240,tKeys.length*28+80),cfg:cfgBar(tKeys.map(hi),AGE_LBL.map(function(l,i){return {label:l,data:tKeys.map(function(k){return thana[k][i];}),backgroundColor:AGE_COL[i]};}),{stacked:true})},
@@ -14462,7 +14471,7 @@ try{ initDispWordCircle(); }catch(e){}
       var Dd=T-30, per={}, f={pD:0,pT:0,newReg:0,disp30:0}, openAt=function(r,at){ return r.reg<=at&&r.disp>at; }, dt=[], tb={}, last12=T-365;
       rows.forEach(function(r){
         var o=per[r.ps]=per[r.ps]||{A:0,J:0,X:0,N:0};
-        var oD=openAt(r,Dd)&&(Dd-r.reg)>365, oT=openAt(r,T)&&(T-r.reg)>365;
+        var okc=!(r.cat==='173193'||r.cat==='reopen'), oD=okc&&openAt(r,Dd)&&(Dd-r.reg)>365, oT=okc&&openAt(r,T)&&ageOf(r,T)>365;
         if(oD) o.A++; if(oT) o.N++; if(oT&&!oD) o.J++; if(oD&&!oT) o.X++;
         if(openAt(r,Dd)) f.pD++; if(openAt(r,T)) f.pT++;
         if(r.reg>Dd&&r.reg<=T&&r.disp>T) f.newReg++; if(r.disp!==Infinity&&r.disp>Dd&&r.disp<=T) f.disp30++;
@@ -15076,8 +15085,9 @@ try{ initDispWordCircle(); }catch(e){}
     ];
   }
   window.caInit=function(){
+    if(typeof dbRecords!=='undefined'&&!dbRecords.length&&typeof RAW!=='undefined'&&RAW&&RAW.length){ try{buildRecords()}catch(e){} }
     ROWS=(typeof dbRecords!=='undefined'?dbRecords:[]).filter(function(r){return r.year});
-    if(!ROWS.length){$('caSub').textContent='डेटा उपलब्ध नहीं — पहले डेटा लोड/सिंक करें';return}
+    if(!ROWS.length){$('caSub').textContent='⏳ डेटा लोड हो रहा है…';$('caKpi').innerHTML='<div class="ca-ins" style="grid-column:1/-1">⏳ डेटा अभी लोड हो रहा है — आते ही यह पेज अपने-आप भर जाएगा। <button class="btn-fill sm" onclick="loadLiveData()">🔄 अभी सिंक करें</button></div>';return}
     var ys=[...new Set(ROWS.map(function(r){return r.year}))].sort(function(a,b){return b-a});
     var cy=$('caYear'), prev=cy.value;
     cy.innerHTML=ys.map(function(y){return '<option>'+y+'</option>'}).join('');
@@ -15103,7 +15113,7 @@ try{ initDispWordCircle(); }catch(e){}
   function stat(a){
     var cs=a.filter(function(r){return r.disposal==='Chargesheet'}).length,
         fr=a.filter(function(r){return r.disposal==='F.R.'}).length,
-        pd=a.filter(function(r){return r.disposal==='Pending'}).length;
+        pd=a.filter(function(r){return !r.disposal||r.disposal==='Pending'}).length;
     return {n:a.length,cs:cs,fr:fr,pd:pd,pp:a.length?pd/a.length*100:0};
   }
   function chart(id,cfg){
@@ -15159,10 +15169,12 @@ try{ initDispWordCircle(); }catch(e){}
   function $(i){return document.getElementById(i)}
   function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
   function build(){
-    var pg=$('dkShPg').value, lock=$('dkShLock').checked, pw=$('dkShPw').value.trim(), days=+$('dkShDays').value;
+    var pgl=Array.from(document.querySelectorAll('#dkShPgs .dkPgc:checked')).map(function(c){return c.value}), rst=$('dkShRst').checked, lock=$('dkShLock').checked, pw=$('dkShPw').value.trim(), days=+$('dkShDays').value;
     var base=location.href.split('#')[0].split('?')[0], q=[];
-    if(pg) q.push('openpg='+encodeURIComponent(pg));
-    var ar=$('dkShArea')?$('dkShArea').value:''; if(ar) q.push('area='+ar);
+    var ar=$('dkShArea')?$('dkShArea').value:'';
+    if(ar && rst && pgl.length && pgl.indexOf('areaAnalysis')<0) pgl.unshift('areaAnalysis');
+    if(pgl.length){ if(rst) q.push('pgs='+pgl.map(encodeURIComponent).join(',')); else q.push('openpg='+encodeURIComponent(pgl[0])); }
+    if(ar) q.push('area='+ar);
     if(lock){
       if(!pw){ $('dkShOut').value=''; $('dkShMsg').textContent='⚠️ पासवर्ड लिखें या 🎲 से बनाएँ'; return null; }
       var s=Math.random().toString(16).slice(2,10);
@@ -15175,14 +15187,13 @@ try{ initDispWordCircle(); }catch(e){}
   }
   function ui(){
     if($('dkShModal')) return;
-    var opts='<option value="">🏠 पूरी साइट (होम)</option>';
-    document.querySelectorAll('nav button[data-pg]').forEach(function(b){ if(b.dataset.pg!=='home') opts+='<option value="'+esc(b.dataset.pg)+'">'+esc(b.textContent.trim())+'</option>'; });
+    var opts=''; document.querySelectorAll('nav button[data-pg]').forEach(function(b){ opts+='<label style="display:flex;gap:6px;align-items:flex-start;font-size:12.5px;padding:3px 0"><input type="checkbox" class="dkPgc" value="'+esc(b.dataset.pg)+'"><span>'+esc(b.textContent.trim())+'</span></label>'; });
     var ao='<option value="">— कोई नहीं (समस्त जिला) —</option>'; Object.keys(window.DK_AREAS||{}).forEach(function(k){ao+='<option value="'+k+'">'+esc(window.DK_AREAS[k].l)+'</option>'});
     var m=document.createElement('div'); m.id='dkShModal';
     m.style.cssText='display:none;position:fixed;inset:0;z-index:100000;background:rgba(5,19,48,.8);align-items:center;justify-content:center;padding:16px';
     m.innerHTML='<div style="background:var(--card,#fff);color:var(--ink,#111);border-radius:14px;max-width:440px;width:100%;max-height:92vh;overflow:auto;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.45)">'+
     '<div style="font-weight:700;font-size:16px;margin-bottom:10px">🔗 लिंक शेयर करें</div>'+
-    '<label style="font-size:12px">कौन-सा पेज खुले</label><select id="dkShPg" style="width:100%;padding:9px;margin:3px 0 10px;border-radius:8px;border:1px solid var(--line,#ccc)">'+opts+'</select>'+
+    '<label style="font-size:12px">कौन-से पेज खुलें (एक या अधिक चुनें; कुछ न चुनें तो पूरी साइट)</label><div id="dkShPgs" style="max-height:150px;overflow:auto;border:1px solid var(--line,#ccc);border-radius:8px;padding:6px 10px;margin:3px 0 4px">'+opts+'</div><div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:12px;margin-bottom:10px"><a href="#" id="dkShClr" style="color:#4F46E5">सब हटाएँ</a><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="dkShRst"> 🔐 बाकी मेनू छिपाएँ (केवल चुने पेज खुलें)</label></div>'+
     '<label style="font-size:12px">डिफ़ॉल्ट क्षेत्र (अपर SP / वृत्ताधिकारी हेतु)</label><select id="dkShArea" style="width:100%;padding:9px;margin:3px 0 10px;border-radius:8px;border:1px solid var(--line,#ccc)">'+ao+'</select>'+
     '<label style="display:flex;gap:8px;align-items:center;font-weight:600;margin-bottom:8px"><input type="checkbox" id="dkShLock"> 🔒 इस लिंक पर पासवर्ड/लॉक लगाएँ</label>'+
     '<div id="dkShLockBox"><div style="display:flex;gap:6px"><input id="dkShPw" type="text" placeholder="लिंक का पासवर्ड" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--line,#ccc)"><button type="button" id="dkShGen" style="padding:0 12px;border-radius:8px;background:var(--navy,#1E2A45);color:#fff">🎲</button></div>'+
@@ -15192,8 +15203,9 @@ try{ initDispWordCircle(); }catch(e){}
     '<div id="dkShMsg" style="color:#B71C1C;font-size:12px;min-height:16px"></div>'+
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><button id="dkShCopy" style="flex:1;padding:10px;border-radius:8px;background:#138808;color:#fff;font-weight:700">📋 कॉपी</button><button id="dkShWa" style="flex:1;padding:10px;border-radius:8px;background:#25D366;color:#fff;font-weight:700">WhatsApp</button><button id="dkShAll" style="width:100%;padding:10px;border-radius:8px;background:#4F46E5;color:#fff;font-weight:700">👥 सभी अपर SP + वृत्ताधिकारी (7) की लिंक एक साथ</button><button id="dkShX" style="padding:10px 14px;border-radius:8px;background:#64748B;color:#fff">बंद</button></div></div>';
     document.body.appendChild(m);
-    ['dkShPg','dkShLock','dkShDays'].forEach(function(i){$(i).addEventListener('change',function(){ $('dkShLockBox').style.display=$('dkShLock').checked?'block':'none'; build(); })});
+    ['dkShPgs','dkShRst','dkShLock','dkShDays'].forEach(function(i){$(i).addEventListener('change',function(){ $('dkShLockBox').style.display=$('dkShLock').checked?'block':'none'; build(); })});
     $('dkShPw').addEventListener('input',build);
+    $('dkShClr').onclick=function(e){ e.preventDefault(); document.querySelectorAll('#dkShPgs .dkPgc').forEach(function(c){c.checked=false}); build(); };
     $('dkShGen').onclick=function(){ var c='abcdefghjkmnpqrstuvwxyz23456789',s=''; for(var i=0;i<7;i++) s+=c[Math.floor(Math.random()*c.length)]; $('dkShPw').value=s; build(); };
     $('dkShX').onclick=function(){ m.style.display='none'; };
     $('dkShArea').addEventListener('change',function(){ if(this.value&&!$('dkShLock').checked){ $('dkShLock').checked=true; $('dkShLockBox').style.display='block'; if(!$('dkShPw').value) $('dkShGen').click(); } build(); });
@@ -15206,9 +15218,9 @@ try{ initDispWordCircle(); }catch(e){}
   }
   window.dkShareOpen=function(o){
     o=o||{}; ui();
-    var cur=o.pg; if(cur===undefined||cur===null){ var a=document.querySelector('.pg.on'); cur=a?a.id:''; }
-    if(cur==='home') cur='';
-    var sel=$('dkShPg'); sel.value=cur; if(sel.value!==cur) sel.value='';
+    var cur=(o.pg===undefined||o.pg===null)?((document.querySelector('.pg.on')||{}).id||''):o.pg;
+    document.querySelectorAll('#dkShPgs .dkPgc').forEach(function(c){ c.checked=(!!cur&&c.value===cur); });
+    $('dkShRst').checked=!!o.restrict;
     $('dkShLock').checked=!!o.lock; $('dkShLockBox').style.display=o.lock?'block':'none';
     if(o.lock && !$('dkShPw').value) $('dkShGen').click(); else build();
     $('dkShModal').style.display='flex';
@@ -15235,6 +15247,7 @@ try{ initDispWordCircle(); }catch(e){}
     co_makrana:{l:'वृत्ताधिकारी, मकराना',c:['मकराना सर्किल']}
   };
   window.DK_AREAS=AREAS;
+  window.dkLbl={co:function(c){return coL(c)},sho:function(t){return shoL(t)},cOf:function(t){return cOf(t)}};
   /* अधिकारियों के नाम यहाँ स्थायी रूप से भरे जा सकते हैं (या पेज के "अधिकारी सूची" भाग से इस डिवाइस पर) */
   var OFF={asp:{asp_didwana:'',asp_kuchaman:'',asp_parbatsar:''},co:{},sho:{}};
   CIRCLES.forEach(function(c){OFF.co[c.name]='';c.thanas.forEach(function(t){OFF.sho[t]=''})});
@@ -15246,12 +15259,12 @@ try{ initDispWordCircle(); }catch(e){}
   function cOf(t){for(var i=0;i<CIRCLES.length;i++) if(CIRCLES[i].thanas.indexOf(t)>=0) return CIRCLES[i].name; return ''}
   function thanasOf(k){var o=[];AREAS[k].c.forEach(function(cn){CIRCLES.forEach(function(c){if(c.name===cn) o=o.concat(c.thanas)})});return o}
   function lastM(){var d=new Date();d.setDate(1);d.setMonth(d.getMonth()-1);return {y:d.getFullYear(),m:d.getMonth()+1}}
-  function recs(){return typeof dbRecords!=='undefined'?dbRecords:[]}
+  function recs(){ if(typeof dbRecords!=='undefined'&&!dbRecords.length&&typeof RAW!=='undefined'&&RAW&&RAW.length){ try{buildRecords()}catch(e){} } return typeof dbRecords!=='undefined'?dbRecords:[]; }
   function ytd(){var L=lastM();return recs().filter(function(r){return r.year===L.y&&r.month&&r.month<=L.m})}
   function refY(){return new Date().getFullYear()-1}
   function allR(){return recs().filter(function(r){return r.year})}
   /* पेंडेंसी % = कुल लंबित (सभी वर्ष, वर्तमान स्थिति) ÷ गत वर्ष में दर्ज कुल FIR — पोर्टल के पेंडेंसी पैनल जैसा ही नियम */
-  function st(a){var R=refY(),pd=a.filter(function(r){return r.disposal==='Pending'}).length,den=a.filter(function(r){return r.year===R}).length;return {n:den,pd:pd,pp:den?pd/den*100:null}}
+  function st(a){var R=refY(),pd=a.filter(function(r){return !r.disposal||r.disposal==='Pending'}).length,den=a.filter(function(r){return r.year===R}).length;return {n:den,pd:pd,pp:den?pd/den*100:null}}
   function pp(x){return x===null||x===undefined?'—':x.toFixed(1)+'%'}
   function heads(){
     var D=typeof PPT_CHART_DEFS!=='undefined'?PPT_CHART_DEFS:[], v=(D[0]||{}).cats||[], p=(D[1]||{}).cats||[];
@@ -15269,7 +15282,7 @@ try{ initDispWordCircle(); }catch(e){}
 
   window.dkAreaRender=function(){
     var sel=$('arSel'), key=sel.value||'all', body=$('arBody'), Y=allR(), L=lastM(), HS=heads();
-    if(!Y.length){ body.innerHTML='<div class="ca-ins">डेटा उपलब्ध नहीं — पहले डेटा लोड/सिंक करें।</div>'; $('arSub').textContent='डेटा लोड हो रहा है...'; return; }
+    if(!Y.length){ body.innerHTML='<div class="ca-ins">⏳ डेटा अभी लोड हो रहा है — आते ही यह पेज अपने-आप भर जाएगा। <button class="btn-fill sm" onclick="loadLiveData()">🔄 अभी सिंक करें</button></div>'; $('arSub').textContent='⏳ डेटा लोड हो रहा है…'; return; }
     var all=key==='all', th=all?THANAS.slice():thanasOf(key);
     var A=Y.filter(function(r){return th.indexOf(r.ps)>=0}), O=all?[]:Y.filter(function(r){return th.indexOf(r.ps)<0&&THANAS.indexOf(r.ps)>=0});
     var per='वर्ष '+refY()+' की FIR आधार';
@@ -15359,7 +15372,82 @@ try{ initDispWordCircle(); }catch(e){}
   var ref=document.querySelector('nav button[data-pg="crimeAnalysis"]'); ref.parentNode.insertBefore(nb,ref.nextSibling);
   var ap=null; try{ap=new URLSearchParams(location.search).get('area')}catch(e){}
   if(ap&&AREAS[ap]){ window.DK_AREA=ap; $('arSel').value=ap; try{ dbState.psSet=new Set(thanasOf(ap)); }catch(e){} go('areaAnalysis'); }
-  var lastN=-1; setInterval(function(){ var n=recs().length; if(n!==lastN){ lastN=n; if($('areaAnalysis').classList.contains('on')) dkAreaRender(); } },2000);
+  var lastN=-1; setInterval(function(){ var n=recs().length; if(n!==lastN){ lastN=n; if($('areaAnalysis').classList.contains('on')) dkAreaRender(); if($('crimeAnalysis').classList.contains('on')&&typeof caInit==='function') caInit(); } },1500);
+})();
+</script>
+<script>
+/* ===== 60/90 दिवस — आकर्षक PDF (पुराना PDF बटन जस-का-तस) ===== */
+(function(){
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function num(s){var v=parseFloat(String(s).replace(/[^\d.\-]/g,''));return isNaN(v)?null:v}
+  function hd(t){var th=t.querySelector('th');return th?th.textContent.trim():''}
+  function note(n,tb){
+    try{
+      var L=window.dkLbl||{co:function(c){return c},sho:function(t){return t},cOf:function(){return ''}};
+      var kc=tb.filter(function(t){return hd(t)==='सर्किल'})[0], ks=tb.filter(function(t){return hd(t)==='थाना'})[0], kd=tb.filter(function(t){return hd(t)==='इकाई'})[0];
+      function rows(t,skipYog){return Array.from(t.querySelectorAll('tbody tr')).map(function(r){return Array.from(r.cells).map(function(c){return c.textContent.trim()})}).filter(function(c){return c.length>=8&&(!skipYog||c[0].indexOf('योग')<0)&&num(c[7])!==null})}
+      var dist=kd?rows(kd,false)[0]:null, C=kc?rows(kc,true):[], S=ks?rows(ks,true):[];
+      C.sort(function(a,b){return num(a[7])-num(b[7])}); S.sort(function(a,b){return num(a[7])-num(b[7])});
+      var x='टिप्पणी: जिले की '+n+'-दिवस अनुपालना '+(dist?dist[7]:'—')+' रही।';
+      if(C.length>1) x+=' सर्वोत्तम वृत्त '+C[C.length-1][0]+' ('+C[C.length-1][7]+'); न्यूनतम वृत्त '+C[0][0]+' ('+C[0][7]+') — '+L.co(C[0][0].indexOf('सर्किल')<0?C[0][0]+' सर्किल':C[0][0])+'।';
+      if(S.length>1) x+=' सबसे पिछड़ा थाना '+S[0][0]+' ('+S[0][7]+') — '+L.sho(S[0][0])+'; श्रेष्ठ थाना '+S[S.length-1][0]+' ('+S[S.length-1][7]+')।';
+      return x+' संबंधित वृत्ताधिकारी व थानाधिकारी निर्धारित समय-सीमा में निस्तारण सुनिश्चित करें।';
+    }catch(e){return ''}
+  }
+  window.dispAttractivePDF=function(n){
+    var host=document.getElementById('d'+n+'Table'), tb=host?Array.from(host.querySelectorAll('table')):[];
+    if(!tb.length){ toast('कोई सारणी उपलब्ध नहीं — पहले परिणाम लोड करें'); return; }
+    var kd=tb.filter(function(t){return hd(t)==='इकाई'})[0], k='';
+    if(kd){ var r=kd.querySelector('tbody tr'), c=r?Array.from(r.cells).map(function(x){return x.textContent.trim()}):[];
+      var K=[['निस्तारण योग्य',c[1],'#1D4ED8,#3B82F6'],['निस्तारित',c[2],'#138808,#34A853'],['Disposal %',c[6],'#B45309,#F59E0B'],['Compliance %',c[7],'#7B1FA2,#AB47BC']];
+      k='<div class="kp">'+K.map(function(x){return '<div style="background:linear-gradient(135deg,'+x[2]+')"><b>'+esc(x[1]||'—')+'</b>'+x[0]+'</div>'}).join('')+'</div>'; }
+    var secs=tb.filter(function(t){return t!==kd}).map(function(t){
+      var w=t.closest('div'), pv=w&&w.previousElementSibling, h2=pv&&pv.querySelector?pv.querySelector('h2'):null, ttl=h2?h2.textContent.trim():hd(t)+'-वार सारणी';
+      var cl=t.cloneNode(true); cl.removeAttribute('class'); cl.className='at';
+      return '<div class="sec">'+esc(ttl)+'</div>'+cl.outerHTML; }).join('');
+    var nt=note(n,tb);
+    var dt=new Date().toLocaleDateString('hi-IN',{day:'numeric',month:'long',year:'numeric'});
+    var title=n+' दिवस निस्तारण अनुपालना — जिला डीडवाना-कुचामन';
+    var html='<div class="tri"></div><div class="hd"><h1>🏛️ '+title+'</h1><p>राजस्थान पुलिस · जिला पुलिस अधीक्षक कार्यालय, डीडवाना-कुचामन · सांख्यिकी शाखा | दिनांक: '+dt+' | 🔒 केवल पुलिस उपयोग हेतु</p></div>'+k+secs+
+      (typeof COLOR_LEGEND_HTML!=='undefined'?COLOR_LEGEND_HTML:'')+(nt?'<div class="nt">📝 '+esc(nt)+'</div>':'')+
+      '<div class="ft">यह रिपोर्ट मनोज कुमार सारण, सांख्यिकी शाखा, कार्यालय पुलिस अधीक्षक, जिला डीडवाना-कुचामन द्वारा तैयार की गई। अनुपालना % = '+n+' दिन में निस्तारित ÷ (निस्तारित + बाद निस्तारित + '+n+' दिन से अधिक Pending) × 100।</div>';
+    if(typeof resolvePrintVarsHTML==='function') html=resolvePrintVarsHTML(html);
+    var w=window.open('','_blank'); if(!w){ toast('⚠️ पॉप-अप ब्लॉक हो गया — कृपया इस साइट के लिए पॉप-अप की अनुमति दें'); return; }
+    w.document.write('<html><head><meta charset="utf-8"><title>'+title+'</title><style>'+
+      "body{margin:0;font-family:Hind,'Noto Sans Devanagari',Arial,sans-serif;color:#101828;-webkit-print-color-adjust:exact;print-color-adjust:exact}"+
+      '.tri{height:7px;background:linear-gradient(90deg,#FF9933 0 33%,#fff 33% 66%,#138808 66%)}'+
+      '.hd{background:linear-gradient(135deg,#1E2A45,#2F4A8A);color:#fff;padding:14px 20px;border-radius:0 0 16px 16px}.hd h1{font-size:19px;margin:0}.hd p{margin:5px 0 0;font-size:10.5px;opacity:.92}'+
+      '.kp{display:flex;gap:10px;margin:14px 12px}.kp div{flex:1;border-radius:12px;padding:10px 6px;color:#fff;text-align:center;font-size:11px}.kp b{display:block;font-size:21px;margin-bottom:2px}'+
+      '.sec{margin:16px 12px 6px;font-weight:700;font-size:14px;color:#1E2A45;border-left:5px solid #FF9933;padding-left:8px}'+
+      'table.at{width:calc(100% - 24px);margin:0 12px;border-collapse:separate;border-spacing:0;font-size:10.5px;border:1px solid #C7CDD9;border-radius:10px;overflow:hidden}'+
+      '.at th{background:linear-gradient(180deg,#1E2A45,#2B3C66);color:#fff;padding:6px 4px;font-size:9.5px;line-height:1.3}'+
+      '.at td{padding:5px 4px;text-align:center;border-bottom:1px solid #E5E9F2;white-space:nowrap}.at td:first-child{text-align:left;font-weight:600;white-space:normal}'+
+      '.at tbody tr:nth-child(even) td{background:#F7F9FC}.at thead{display:table-header-group}.at tr{page-break-inside:avoid}'+
+      '.nt{margin:14px 12px 6px;padding:10px 12px;border:1.5px solid #B45309;background:#FFFBEB;border-radius:10px;font-size:11.5px;line-height:1.65}'+
+      '.ft{margin:8px 12px 10px;font-size:9.5px;color:#64748B;text-align:center}'+
+      '@page{size:A4 portrait;margin:9mm}</style></head><body>'+html+'</body></html>');
+    w.document.close(); toast('🖨️ प्रिंट विंडो खुल रही है — डेस्टिनेशन में "Save as PDF" चुनें'); setTimeout(function(){ w.focus(); w.print(); },500);
+  };
+})();
+</script>
+<script>
+/* ===== ?pgs=a,b,c — लिंक से केवल चुने हुए (एक या अधिक) पेज ===== */
+(function(){
+  var params; try{ params=new URLSearchParams(location.search); }catch(e){ return; }
+  if(!params.has('pgs')) return;
+  var ids=(params.get('pgs')||'').split(',').map(function(s){return s.trim()}).filter(function(id){ var e=id&&document.getElementById(id); return e&&e.classList.contains('pg'); });
+  if(!ids.length){
+    var blk=document.createElement('div'); blk.style.cssText='position:fixed;inset:0;z-index:100000;background:#141D30;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:16px';
+    blk.innerHTML='<div>🔒 यह लिंक मान्य नहीं है।<br><small style="opacity:.8">कृपया भेजने वाले से नई लिंक माँगें।</small></div>'; document.body.appendChild(blk); return;
+  }
+  document.body.classList.add('pgs-restricted');
+  var css='body.pgs-restricted nav button[data-pg],body.pgs-restricted nav button.cp-dynamic,body.pgs-restricted #dkShareNavBtn{display:none !important}';
+  ids.forEach(function(id){ css+='body.pgs-restricted nav button[data-pg="'+id+'"]{display:block !important}'; });
+  var st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
+  var _go=window.go;
+  window.go=function(id){ if(ids.indexOf(id)<0){ if(typeof toast==='function') toast('🔒 इस लिंक से यह पेज उपलब्ध नहीं है'); return; } return _go.apply(this,arguments); };
+  window.adminGo=function(pg){ return window.go(pg); };
+  window.go(ids[0]);
 })();
 </script>
 </body>
