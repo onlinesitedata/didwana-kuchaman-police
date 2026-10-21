@@ -724,6 +724,7 @@ nav button.on:hover{background:var(--gold)}
 .data-tbl td.auto-td{background:var(--good-tint);font-weight:600;color:var(--good)}
 .data-tbl tr:hover td:not(.desc-td){background:var(--gold-tint)}
 .data-tbl tr.yog-row td{background:var(--amber-tint);font-weight:700;color:var(--navy)}
+.data-tbl tr.dist-row td{background:var(--blue-tint,#DCEBFF);border-top:2px solid var(--navy)}
 
 /* row-based form (for apradh data entry — list of cases) */
 .cases-form{}
@@ -1852,10 +1853,6 @@ footer .ofc-f b{color:#fff;display:block;margin-bottom:4px}
       <div id="d60SourceNote"></div>
     </div>
 
-    <div id="dw-host-disp60"></div>
-    <div id="dw2-host-disp60"></div>
-    <div class="sh"><span class="tag" style="background:linear-gradient(135deg,var(--amber),var(--amber2))">💡 इनसाइट्स</span><h2>स्मार्ट इनसाइट्स</h2></div>
-    <div id="d60Insights" style="margin-bottom:10px;"></div>
 
     <div class="sh"><span class="tag" style="background:linear-gradient(135deg,var(--navy),var(--navy2))">📊 सारणी</span><h2>जिला → सर्किल → थाना सारणी</h2></div>
     <div class="pcard-actions" style="margin-bottom:10px;">
@@ -1878,6 +1875,11 @@ footer .ofc-f b{color:#fff;display:block;margin-bottom:4px}
     <div class="sh" style="margin:22px 0 10px;"><span class="tag" style="background:linear-gradient(135deg,#4A148C,#2A0A4F)">IO रैंकिंग</span><h2 style="font-size:16px;">अनुसंधान अधिकारी टॉप/बॉटम 15 (60 दिन)</h2></div>
     <div id="d60IORank"></div>
     <div class="note" style="margin-top:14px;">पद्धति: अनुपालना दर % = 60 दिन में निस्तारित ÷ (60 दिन में निस्तारित + 60 दिन बाद निस्तारित + 60 दिन से अधिक Pending) × 100 — यह वही आधिकारिक फॉर्मूला है जो राजस्थान पुलिस मुख्यालय की मासिक पेंडेंसी रिपोर्ट में उपयोग होता है। ध्यान रहें: पेंडेंसी की गणना में लंबित प्रकरण किसी भी दर्ज वर्ष के हो सकते हैं (केवल चालू वर्ष के दर्ज प्रकरणों तक सीमित नहीं)।</div>
+
+    <div class="sh"><span class="tag" style="background:linear-gradient(135deg,var(--amber),var(--amber2))">💡 इनसाइट्स</span><h2>स्मार्ट इनसाइट्स</h2></div>
+    <div id="d60Insights" style="margin-bottom:10px;"></div>
+    <div id="dw-host-disp60"></div>
+    <div id="dw2-host-disp60"></div>
   </div>
 </div>
 
@@ -1918,10 +1920,6 @@ footer .ofc-f b{color:#fff;display:block;margin-bottom:4px}
       <div id="d90SourceNote"></div>
     </div>
 
-    <div id="dw-host-disp90"></div>
-    <div id="dw2-host-disp90"></div>
-    <div class="sh"><span class="tag" style="background:linear-gradient(135deg,var(--amber),var(--amber2))">💡 इनसाइट्स</span><h2>स्मार्ट इनसाइट्स</h2></div>
-    <div id="d90Insights" style="margin-bottom:10px;"></div>
 
     <div class="sh"><span class="tag" style="background:linear-gradient(135deg,var(--navy),var(--navy2))">📊 सारणी</span><h2>जिला → सर्किल → थाना सारणी</h2></div>
     <div class="pcard-actions" style="margin-bottom:10px;">
@@ -1944,6 +1942,11 @@ footer .ofc-f b{color:#fff;display:block;margin-bottom:4px}
     <div class="sh" style="margin:22px 0 10px;"><span class="tag" style="background:linear-gradient(135deg,#4A148C,#2A0A4F)">IO रैंकिंग</span><h2 style="font-size:16px;">अनुसंधान अधिकारी टॉप/बॉटम 15 (90 दिन)</h2></div>
     <div id="d90IORank"></div>
     <div class="note" style="margin-top:14px;">पद्धति: अनुपालना दर % = 90 दिन में निस्तारित ÷ (90 दिन में निस्तारित + 90 दिन बाद निस्तारित + 90 दिन से अधिक Pending) × 100। इस श्रेणी में गंभीर धाराओं (POCSO, बलात्कार, हत्या, SC/ST एक्ट आदि) के प्रकरण आते हैं।</div>
+
+    <div class="sh"><span class="tag" style="background:linear-gradient(135deg,var(--amber),var(--amber2))">💡 इनसाइट्स</span><h2>स्मार्ट इनसाइट्स</h2></div>
+    <div id="d90Insights" style="margin-bottom:10px;"></div>
+    <div id="dw-host-disp90"></div>
+    <div id="dw2-host-disp90"></div>
   </div>
 </div>
 
@@ -1982,6 +1985,7 @@ footer .ofc-f b{color:#fff;display:block;margin-bottom:4px}
       <button class="btn-fill amber" onclick="exportContainerToExcel('pendency','पेंडेंसी रैंकिंग — जिला डीडवाना-कुचामन','pendency-ranking.xls')">⬇️ Excel (Conditional Formatting)</button>
       <button class="btn-fill green" onclick="downloadPendencyAgeList()">📥 आयु-वार पेंडिंग FIR सूची (5 वर्ष/1 वर्ष/6 माह) डाउनलोड</button>
       <button class="btn-fill maroon" onclick="exportOnePagePortraitPDF('pendency','पेंडेंसी रैंकिंग — जिला डीडवाना-कुचामन','pendency-ranking.pdf')">📄 PDF डाउनलोड (थानों हेतु)</button>
+      <button class="btn-fill" style="background:linear-gradient(135deg,#FF9933,#B45309);color:#fff" onclick="pendAttractivePDF()">🎨 आकर्षक PDF (अधिकारियों हेतु)</button>
       <button class="btn-ghost" onclick="window.print()">🖨️ पेज प्रिंट करें</button>
     </div>
     <div id="pendTable"></div>
@@ -7802,11 +7806,28 @@ function trkRank(r){
 function trkBar(pct,color){ return '<div class="trk-bar"><i style="width:'+Math.max(0,Math.min(100,pct||0))+'%;background:'+color+'"></i></div>'; }
 function trkPodium(list,valFn,label){
   const cls=['trk-g1','trk-g2','trk-g3'], med=['🥇','🥈','🥉'];
-  return '<div class="trk-pod">'+list.slice(0,3).map((s,i)=>`<div class="trk-card ${cls[i]}"><div class="m">${med[i]}</div><b>${s.hi}</b><small>${s.circle}</small><div class="v">${valFn(s)}</div><small>${label}</small></div>`).join('')+'</div>';
+  return '<div class="trk-pod">'+list.slice(0,3).map((s,i)=>`<div class="trk-card ${cls[i]}"><div class="m">${med[i]}</div><b>${s.hi}</b><div class="v">${valFn(s)}</div><small>${label}</small></div>`).join('')+'</div>';
 }
 function trkHead(title){
   return `<div class="sh" style="margin:22px 0 10px;"><span class="tag" style="background:linear-gradient(135deg,var(--amber),var(--amber2))">🏆 रैंकिंग</span><h2 style="font-size:16px;">${title}</h2></div>`;
 }
+// ---------- सारणियों के सबसे नीचे "जिला योग" पंक्ति (सर्किल-वार / थाना-वार रैंकिंग / थाना-वार सारणी) ----------
+function distRowDisp(agg,L,kind){
+  const d=agg.district, st='font-weight:700;';
+  const nums=`<td style="${st}">${d.c1}</td><td style="${st}">${d.c2}</td><td style="${st}">${d.c3}</td><td style="${st}">${d.c4}</td><td style="${st}">${d.c5}</td><td style="${st}">${pctFmt(d.disposalPct)}</td><td style="${st}">${pctFmt(d.compPct)}</td>`;
+  const rk=`<td style="${st}">1 / 1 <span style="font-size:10.5px;font-weight:400;color:var(--soft);">(जिला)</span></td>`;
+  const nm=`<b>जिला योग — डीडवाना-कुचामन</b>`;
+  if(kind==='trk') return `<tr class="yog-row dist-row" style="background:#DCEBFF;">${rk}<td class="nm">${nm}</td>${nums}</tr>`;
+  return `<tr class="yog-row dist-row" style="background:#DCEBFF;"><td class="desc-td" style="${st}">जिला योग — डीडवाना-कुचामन</td>${nums}${rk}</tr>`;
+}
+function distRowPend(agg,targetYear,kind){
+  const d=agg.district, st='font-weight:700;';
+  const nums=`<td style="${st}">${d.pend}</td><td style="${st}">${d.ui}</td><td style="${st}">${d.c173193}</td><td style="${st}">${d.reopen}</td><td style="${st}">${d.regTarget}</td><td${pctCellStyle(pendencyAbsColor(d.pct))}><b>${d.pct.toFixed(2)} %</b></td>`;
+  const rk=`<td style="${st}">1 / 1 <span style="font-size:10.5px;font-weight:400;color:var(--soft);">(जिला)</span></td>`;
+  if(kind==='trk') return `<tr class="yog-row dist-row" style="background:#DCEBFF;">${rk}<td class="nm"><b>जिला योग — डीडवाना-कुचामन</b></td>${nums}</tr>`;
+  return `<tr class="yog-row dist-row" style="background:#DCEBFF;"><td class="desc-td" style="${st}">जिला योग — डीडवाना-कुचामन</td>${nums}${rk}</tr>`;
+}
+
 function thanaRankDispHTML(agg,L){
   trkCss();
   const valid=agg.stations.filter(s=>s.c1>0 && typeof s.rank==='number').slice().sort((a,b)=>a.rank-b.rank);
@@ -7819,10 +7840,11 @@ function thanaRankDispHTML(agg,L){
   h+=`<div style="overflow-x:auto;"><table class="data-tbl trk-tbl"><thead><tr><th>Rank</th><th class="desc-th">थाना</th><th>${L} दिन योग्य</th><th>निस्तारित</th><th>बाद निस्तारित</th><th>Pending&lt;${L}</th><th>Pending&gt;${L}</th><th>Disposal %</th><th>Compliance %</th></tr></thead><tbody>`;
   valid.forEach((s,i)=>{
     const cls=i<3?'trk-top':((valid.length>6&&i>=valid.length-3)?'trk-low':'');
-    h+=`<tr class="${cls}"><td>${trkRank(s.rank)}</td><td class="nm"><b>${s.hi}</b><span class="trk-ch">${s.circle}</span></td><td>${s.c1}</td><td>${s.c2}</td><td>${s.c3}</td><td>${s.c4}</td><td>${s.c5}</td>`
+    h+=`<tr class="${cls}"><td>${trkRank(s.rank)}</td><td class="nm"><b>${s.hi}</b></td><td>${s.c1}</td><td>${s.c2}</td><td>${s.c3}</td><td>${s.c4}</td><td>${s.c5}</td>`
       +`<td${pctCellStyle(dispColor(s.disposalPct))}><b>${pctFmt(s.disposalPct)}</b>${trkBar(s.disposalPct,barCol(s.disposalPct))}</td>`
       +`<td${pctCellStyle(compColor(s.compPct))}><b>${pctFmt(s.compPct)}</b>${trkBar(s.compPct,barCol(s.compPct))}</td></tr>`;
   });
+  h+=distRowDisp(agg,L,'trk');
   h+=`</tbody></table></div>`;
   h+=`<div class="trk-note">हरी पट्टी = श्रेष्ठ 3 थाने, लाल पट्टी = सुधार हेतु अंतिम 3 थाने। रैंक का आधार Compliance % (= ${L} दिन में निस्तारित ÷ (निस्तारित + ${L} दिन बाद निस्तारित + ${L} दिन से अधिक पेंडिंग))।${none.length?' डेटा न होने से रैंक से बाहर: '+none.map(s=>s.hi).join(', ')+'।':''}</div>`;
   return h;
@@ -7838,9 +7860,10 @@ function thanaRankPendHTML(agg,targetYear){
   h+=`<div style="overflow-x:auto;"><table class="data-tbl trk-tbl"><thead><tr><th>Rank</th><th class="desc-th">थाना</th><th>कुल पेंडिंग (सभी वर्ष)</th><th>जांच में लंबित</th><th>173(8)/193(9)</th><th>पुनः जांच</th><th>वर्ष ${targetYear} दर्ज</th><th>पेंडेंसी %</th></tr></thead><tbody>`;
   valid.forEach((s,i)=>{
     const cls=i<3?'trk-top':((valid.length>6&&i>=valid.length-3)?'trk-low':'');
-    h+=`<tr class="${cls}"><td>${trkRank(s.rank)}</td><td class="nm"><b>${s.hi}</b><span class="trk-ch">${s.circle}</span></td><td><b>${s.pend}</b></td><td>${s.ui}</td><td>${s.c173193}</td><td>${s.reopen}</td><td>${s.regTarget}</td>`
+    h+=`<tr class="${cls}"><td>${trkRank(s.rank)}</td><td class="nm"><b>${s.hi}</b></td><td><b>${s.pend}</b></td><td>${s.ui}</td><td>${s.c173193}</td><td>${s.reopen}</td><td>${s.regTarget}</td>`
       +`<td${pctCellStyle(pendencyAbsColor(s.pct))}><b>${s.pct.toFixed(2)} %</b>${trkBar(s.pct,barCol(s.pct))}</td></tr>`;
   });
+  h+=distRowPend(agg,targetYear,'trk');
   h+=`</tbody></table></div>`;
   h+=`<div class="trk-note">हरी पट्टी = सबसे कम पेंडेंसी वाले 3 थाने, लाल पट्टी = सुधार हेतु अंतिम 3 थाने। पेंडेंसी % = कुल पेंडिंग ÷ वर्ष ${targetYear} में दर्ज प्रकरण (100% से अधिक संभव, क्योंकि पुराने वर्षों के प्रकरण भी लंबित हैं)।${none.length?' वर्ष '+targetYear+' में कोई दर्ज प्रकरण न होने से रैंक से बाहर: '+none.map(s=>s.hi).join(', ')+'।':''}</div>`;
   return h;
@@ -7877,6 +7900,7 @@ function disposalTableHTML(agg, limit){
   agg.circles.forEach(c=>{
     h += `<tr><td class="desc-td">${c.circle}</td><td>${c.c1}</td><td>${c.c2}</td><td>${c.c3}</td><td>${c.c4}</td><td>${c.c5}</td><td${pctCellStyle(circleDispColor(c.disposalPct))}>${pctFmt(c.disposalPct)}</td><td${pctCellStyle(circleCompColor(c.compPct))}><b>${pctFmt(c.compPct)}</b></td><td>${rankBadge(c.rank)}</td></tr>`;
   });
+  h += distRowDisp(agg, L, 'tbl');
   h += `</tbody></table></div>${COLOR_LEGEND_HTML}`;
 
   h += thanaRankDispHTML(agg, L);
@@ -7898,6 +7922,7 @@ function disposalTableHTML(agg, limit){
     const cc = agg.circles.find(c=>c.circle===circleName);
     h += `<tr class="yog-row" style="background:#e8f4ea;"><td class="desc-td" style="font-weight:700;">${circleName} — सर्किल योग</td><td style="font-weight:700;">${cc.c1}</td><td style="font-weight:700;">${cc.c2}</td><td style="font-weight:700;">${cc.c3}</td><td style="font-weight:700;">${cc.c4}</td><td style="font-weight:700;">${cc.c5}</td><td style="font-weight:700;">${pctFmt(cc.disposalPct)}</td><td style="font-weight:700;">${pctFmt(cc.compPct)}</td><td style="font-weight:700;">${rankBadge(cc.rank)}</td></tr>`;
   });
+  h += distRowDisp(agg, L, 'tbl');
   h += `</tbody></table></div>${COLOR_LEGEND_HTML}`;
   return h;
 }
@@ -9358,6 +9383,7 @@ function pendencyTableHTML(agg, targetYear){
   agg.circles.forEach(c=>{
     h += `<tr><td class="desc-td">${c.circle}</td><td>${c.pend}</td>${catTd(c)}<td>${c.regTarget}</td><td${pctCellStyle(pendencyAbsColor(c.pct))}><b>${c.pct.toFixed(2)} %</b></td><td>${rankBadge(c.rank)}</td></tr>`;
   });
+  h += distRowPend(agg, targetYear, 'tbl');
   h += `</tbody></table></div>${PENDENCY_COLOR_LEGEND_HTML}`;
 
   h += thanaRankPendHTML(agg, targetYear);
@@ -9378,6 +9404,7 @@ function pendencyTableHTML(agg, targetYear){
     const cc = agg.circles.find(c=>c.circle===circleName);
     h += `<tr class="yog-row" style="background:#e8f4ea;"><td class="desc-td" style="font-weight:700;">${circleName} — सर्किल योग</td><td style="font-weight:700;">${cc.pend}</td><td style="font-weight:700;">${cc.ui}</td><td style="font-weight:700;">${cc.c173193}</td><td style="font-weight:700;">${cc.reopen}</td><td style="font-weight:700;">${cc.regTarget}</td><td style="font-weight:700;">${cc.pct.toFixed(2)} %</td><td style="font-weight:700;">${rankBadge(cc.rank)}</td></tr>`;
   });
+  h += distRowPend(agg, targetYear, 'tbl');
   h += `</tbody></table></div>${PENDENCY_COLOR_LEGEND_HTML}`;
   const over100 = agg.stations.filter(s=>s.regTarget>0 && s.pct>100);
   if(over100.length){
@@ -14781,8 +14808,8 @@ try{ initDispWordCircle(); }catch(e){}
   var st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
   var MAP={
     pendency:[['📊 सारणी','pendTop'],['💡 इनसाइट्स','pendInsights'],['📅 कल बनाम आज','dw-host-pendency'],['🔬 गहन विश्लेषण','dw2-host-pendency']],
-    disp60:[['📅 कल बनाम आज','dw-host-disp60'],['📈 अनुपालन विश्लेषण','dw2-host-disp60'],['💡 इनसाइट्स','d60Insights'],['📊 सारणी','d60Table']],
-    disp90:[['📅 कल बनाम आज','dw-host-disp90'],['📈 अनुपालन विश्लेषण','dw2-host-disp90'],['💡 इनसाइट्स','d90Insights'],['📊 सारणी','d90Table']]
+    disp60:[['📊 सारणी','d60Table'],['💡 इनसाइट्स','d60Insights'],['📅 कल बनाम आज','dw-host-disp60'],['📈 अनुपालन विश्लेषण','dw2-host-disp60']],
+    disp90:[['📊 सारणी','d90Table'],['💡 इनसाइट्स','d90Insights'],['📅 कल बनाम आज','dw-host-disp90'],['📈 अनुपालन विश्लेषण','dw2-host-disp90']]
   };
   Object.keys(MAP).forEach(function(pid){
     var bar=document.querySelector('#'+pid+' .wrap .ctx-bar'); if(!bar) return;
@@ -15301,7 +15328,24 @@ try{ initDispWordCircle(); }catch(e){}
   function recs(){ if(typeof dbRecords!=='undefined'&&!dbRecords.length&&typeof RAW!=='undefined'&&RAW&&RAW.length){ try{buildRecords()}catch(e){} } return typeof dbRecords!=='undefined'?dbRecords:[]; }
   function ytd(){var L=lastM();return recs().filter(function(r){return r.year===L.y&&r.month&&r.month<=L.m})}
   function refY(){return new Date().getFullYear()-1}
-  function allR(){return recs().filter(function(r){return r.year})}
+  /* SAS Export (dbRecords) लोड न हो तो पेंडेंसी पेज वाले स्रोत (Current Status → Generic) से वही गणना — ताकि पेज खाली न रहे */
+  var FB={sig:'',rows:[]};
+  function fbRows(){
+    try{
+      if(typeof buildPendencyRows!=='function'||typeof ENG2HI_PS==='undefined') return [];
+      var src=null;
+      if(typeof FDC!=='undefined'&&FDC&&FDC.rows&&FDC.rows.length) src='fdc';
+      else if(typeof GEN!=='undefined'&&GEN&&GEN.length) src='generic';
+      if(!src) return [];
+      var sig=src+':'+(src==='fdc'?FDC.rows.length:GEN.length);
+      if(FB.sig===sig) return FB.rows;
+      FB.rows=buildPendencyRows(src).map(function(r){return {ps:ENG2HI_PS[r.ps]||r.ps,year:r.regYear||null,month:null,disposal:r.pendingLike?'Pending':'Disposed'}}).filter(function(r){return r.year});
+      FB.sig=sig; return FB.rows;
+    }catch(e){ return []; }
+  }
+  function samR(){return recs().filter(function(r){return r.year})}
+  function usingFb(){ return !samR().length && fbRows().length>0; }
+  function allR(){var a=samR(); return a.length?a:fbRows();}
   /* पेंडेंसी % = कुल लंबित (सभी वर्ष, वर्तमान स्थिति) ÷ गत वर्ष में दर्ज कुल FIR — पोर्टल के पेंडेंसी पैनल जैसा ही नियम */
   function st(a){var R=refY(),pd=a.filter(function(r){return !r.disposal||r.disposal==='Pending'}).length,den=a.filter(function(r){return r.year===R}).length;return {n:den,pd:pd,pp:den?pd/den*100:null}}
   function pp(x){return x===null||x===undefined?'—':x.toFixed(1)+'%'}
@@ -15319,16 +15363,19 @@ try{ initDispWordCircle(); }catch(e){}
   function shade(p,n){ if(p===null||n<3) return ''; return 'background:hsla('+Math.max(0,120-Math.min(p,60)*2)+',75%,50%,.25)'; }
   function mname(m){return (typeof MONTHS!=='undefined'?MONTHS[m-1]:m)}
 
-  window.dkAreaRender=function(){
-    var sel=$('arSel'), key=sel.value||'all', body=$('arBody'), Y=allR(), L=lastM(), HS=heads();
-    if(!Y.length){ body.innerHTML='<div class="ca-ins">⏳ डेटा अभी लोड हो रहा है — आते ही यह पेज अपने-आप भर जाएगा। <button class="btn-fill sm" onclick="loadLiveData()">🔄 अभी सिंक करें</button></div>'; $('arSub').textContent='⏳ डेटा लोड हो रहा है…'; return; }
+  function dkAreaRenderCore(){
+    var sel=$('arSel'), key=sel.value||'all', body=$('arBody'), Y=allR(), L=lastM(), HS=heads(), FBM=usingFb();
+    if(FBM) HS=HS.slice(0,1);
+    if(!Y.length){ body.innerHTML='<div class="ca-ins">⏳ अभी कोई डेटा उपलब्ध नहीं — इस पेज को SAS Export (या Current Status / Generic) डेटा चाहिए। लाइव सिंक पूरा होते ही यह पेज अपने-आप भर जाएगा; या सेटिंग्स में फाइल अपलोड करें। <button class="btn-fill sm" onclick="loadLiveData()">🔄 अभी सिंक करें</button></div>'; $('arSub').textContent='⏳ डेटा लोड हो रहा है…'; return; }
     var all=key==='all', th=all?THANAS.slice():thanasOf(key);
     var A=Y.filter(function(r){return th.indexOf(r.ps)>=0}), O=all?[]:Y.filter(function(r){return th.indexOf(r.ps)<0&&THANAS.indexOf(r.ps)>=0});
     var per='वर्ष '+refY()+' की FIR आधार';
     $('arSub').textContent=(all?'समस्त जिला':AREAS[key].l)+' | पेंडेंसी = कुल लंबित (सभी वर्ष) ÷ वर्ष '+refY()+' में दर्ज FIR';
+    var fbBox=FBM?'<div class="ca-ins" style="margin-bottom:12px">ℹ️ SAS Export डेटा अभी लोड नहीं है, इसलिए यह तुलना पेंडेंसी पेज के स्रोत (Current Status / Generic) से बनी है। हेड-वार (हिंसक/सम्पत्ति/महिला अत्याचार आदि) विश्लेषण व माह-वार नोट SAS Export लोड होने पर दिखेंगे। <button class="btn-fill sm" onclick="loadLiveData()">🔄 सिंक करें</button></div>':'';
     var sA=st(A), sO=st(O);
     var h='<div class="ca-grid"><div class="sumcard warn"><div class="num">'+sA.pd+'</div><div class="lbl">कुल लंबित (सभी वर्ष)</div></div><div class="sumcard"><div class="num">'+sA.n+'</div><div class="lbl">वर्ष '+refY()+' में दर्ज FIR</div></div><div class="sumcard orange"><div class="num">'+pp(sA.pp)+'</div><div class="lbl">इस क्षेत्र की पेंडेंसी</div></div>'+
       (all?'':'<div class="sumcard"><div class="num">'+pp(sO.pp)+'</div><div class="lbl">अन्य वृत्तों की पेंडेंसी</div></div>')+'</div>';
+    h=fbBox+h;
     h+='<div class="ca-box" style="margin-bottom:16px"><h3>📝 गत माह ('+mname(L.m)+' '+L.y+') तक के आँकड़ों पर विश्लेषण-नोट</h3><div id="arNotes" style="font-size:13.5px;line-height:1.85"></div><button class="btn-fill sm" style="margin-top:8px" onclick="dkAreaCopy()">📋 नोट कॉपी करें</button></div>';
     var rows=HS.map(function(x){var a=st(A.filter(x[1])),b=st(O.filter(x[1])),g=(a.pp===null||b.pp===null)?null:a.pp-b.pp;return {h:x[0],a:a,b:b,g:g}});
     h+='<div class="ca-box" style="margin-bottom:16px;overflow-x:auto"><h3>हेड-वार तुलना — यह क्षेत्र बनाम जिले के अन्य वृत्त</h3><table class="ca-tbl"><tr><th>हेड</th><th>लंबित / गत वर्ष FIR</th><th>पेंडेंसी %</th>'+(all?'':'<th>अन्य वृत्त पेंडेंसी %</th><th>स्थिति</th>')+'</tr>'+
@@ -15359,10 +15406,14 @@ try{ initDispWordCircle(); }catch(e){}
     var pm=L.m===1?mk(L.y-1,12):mk(L.y,L.m-1), lm=mk(L.y,L.m), sy=mk(L.y-1,L.m);
     var dl=function(a,b){return b?(a>b?'▲ ':'▼ ')+Math.abs((a-b)/b*100).toFixed(0)+'%':'—'};
     var topH=HS.slice(1).map(function(x){return [x[0],lm.filter(x[1]).length]}).sort(function(x,y){return y[1]-x[1]})[0];
-    N.push('<b>गत माह ('+mname(L.m)+' '+L.y+'):</b> '+lm.length+' FIR दर्ज — पिछले माह से '+dl(lm.length,pm.length)+', गत वर्ष इसी माह से '+dl(lm.length,sy.length)+(topH&&topH[1]?'; सर्वाधिक: '+topH[0]+' ('+topH[1]+')':'')+'।');
+    if(!FBM) N.push('<b>गत माह ('+mname(L.m)+' '+L.y+'):</b> '+lm.length+' FIR दर्ज — पिछले माह से '+dl(lm.length,pm.length)+', गत वर्ष इसी माह से '+dl(lm.length,sy.length)+(topH&&topH[1]?'; सर्वाधिक: '+topH[0]+' ('+topH[1]+')':'')+'।');
     var who=all?'सभी वृत्ताधिकारी':(key.indexOf('asp_')===0?aspL(key)+' एवं '+AREAS[key].c.map(coL).join(' / '):coL(AREAS[key].c[0]));
     N.push('<b>निर्देश-हेतु:</b> '+who+' '+(worst&&worst!==best?'द्वारा '+worst.t+' ('+shoL(worst.t)+') में लंबित प्रकरणों की विशेष समीक्षा कर निस्तारण सुनिश्चित किया जाए।':'द्वारा लंबित प्रकरणों की समीक्षा की जाए।'));
     $('arNotes').innerHTML='• '+N.join('<br>• ');
+  }
+  window.dkAreaRender=function(){
+    try{ dkAreaRenderCore(); }
+    catch(e){ try{ console.error('dkAreaRender',e); $('arBody').innerHTML='<div class="ca-ins">⚠️ यह पेज बनाते समय त्रुटि आई: <b>'+esc(e&&e.message||e)+'</b> — कृपया पेज रीफ्रेश करके पुनः प्रयास करें। <button class="btn-fill sm" onclick="loadLiveData()">🔄 डेटा सिंक करें</button></div>'; }catch(_){} }
   };
   window.dkAreaCopy=function(){ var t=$('arNotes').innerText; if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText($('arSub').textContent+'\n'+t).then(function(){ if(window.toast) toast('✅ नोट कॉपी हो गया'); }); };
   window.dkOffSave=function(){ document.querySelectorAll('#arBody input[data-g]').forEach(function(i){OFF[i.dataset.g][i.dataset.k]=i.value.trim()}); try{localStorage.setItem('dkOfficers',JSON.stringify(OFF))}catch(e){} dkAreaRender(); if(window.toast) toast('✅ अधिकारी सूची सेव हुई'); };
@@ -15411,21 +15462,25 @@ try{ initDispWordCircle(); }catch(e){}
   var ref=document.querySelector('nav button[data-pg="crimeAnalysis"]'); ref.parentNode.insertBefore(nb,ref.nextSibling);
   var ap=null; try{ap=new URLSearchParams(location.search).get('area')}catch(e){}
   if(ap&&AREAS[ap]){ window.DK_AREA=ap; $('arSel').value=ap; try{ dbState.psSet=new Set(thanasOf(ap)); }catch(e){} go('areaAnalysis'); }
-  var lastN=-1; setInterval(function(){ var n=recs().length; if(n!==lastN){ lastN=n; if($('areaAnalysis').classList.contains('on')) dkAreaRender(); if($('crimeAnalysis').classList.contains('on')&&typeof caInit==='function') caInit(); } },1500);
+  var lastN=-1; setInterval(function(){ var n=allR().length; if(n!==lastN){ lastN=n; if($('areaAnalysis').classList.contains('on')) dkAreaRender(); if($('crimeAnalysis').classList.contains('on')&&typeof caInit==='function') caInit(); } },1500);
 })();
 </script>
 <script>
-/* ===== 60/90 दिवस — आकर्षक PDF (पुराना PDF बटन जस-का-तस) ===== */
+/* ===== आकर्षक PDF (अधिकारियों हेतु) — 60/90 दिवस व पेंडेंसी रैंकिंग; हर सारणी अलग-अलग पेज पर ===== */
 (function(){
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
   function num(s){var v=parseFloat(String(s).replace(/[^\d.\-]/g,''));return isNaN(v)?null:v}
   function hd(t){var th=t.querySelector('th');return th?th.textContent.trim():''}
-  function note(n,tb){
+  function rowsOf(t,skipYog,minCells,valIdx){
+    return Array.from(t.querySelectorAll('tbody tr')).map(function(r){return Array.from(r.cells).map(function(c){return c.textContent.trim()})})
+      .filter(function(c){return c.length>=minCells&&(!skipYog||c[0].indexOf('योग')<0)&&num(c[valIdx])!==null});
+  }
+  var LB=function(){return window.dkLbl||{co:function(c){return c},sho:function(t){return t},cOf:function(){return ''}}};
+  function noteDisp(n,tb){
     try{
-      var L=window.dkLbl||{co:function(c){return c},sho:function(t){return t},cOf:function(){return ''}};
+      var L=LB();
       var kc=tb.filter(function(t){return hd(t)==='सर्किल'})[0], ks=tb.filter(function(t){return hd(t)==='थाना'})[0], kd=tb.filter(function(t){return hd(t)==='इकाई'})[0];
-      function rows(t,skipYog){return Array.from(t.querySelectorAll('tbody tr')).map(function(r){return Array.from(r.cells).map(function(c){return c.textContent.trim()})}).filter(function(c){return c.length>=8&&(!skipYog||c[0].indexOf('योग')<0)&&num(c[7])!==null})}
-      var dist=kd?rows(kd,false)[0]:null, C=kc?rows(kc,true):[], S=ks?rows(ks,true):[];
+      var dist=kd?rowsOf(kd,false,8,7)[0]:null, C=kc?rowsOf(kc,true,8,7):[], S=ks?rowsOf(ks,true,8,7):[];
       C.sort(function(a,b){return num(a[7])-num(b[7])}); S.sort(function(a,b){return num(a[7])-num(b[7])});
       var x='टिप्पणी: जिले की '+n+'-दिवस अनुपालना '+(dist?dist[7]:'—')+' रही।';
       if(C.length>1) x+=' सर्वोत्तम वृत्त '+C[C.length-1][0]+' ('+C[C.length-1][7]+'); न्यूनतम वृत्त '+C[0][0]+' ('+C[0][7]+') — '+L.co(C[0][0].indexOf('सर्किल')<0?C[0][0]+' सर्किल':C[0][0])+'।';
@@ -15433,39 +15488,88 @@ try{ initDispWordCircle(); }catch(e){}
       return x+' संबंधित वृत्ताधिकारी व थानाधिकारी निर्धारित समय-सीमा में निस्तारण सुनिश्चित करें।';
     }catch(e){return ''}
   }
-  window.dispAttractivePDF=function(n){
-    var host=document.getElementById('d'+n+'Table'), tb=host?Array.from(host.querySelectorAll('table')):[];
+  function notePend(yr,tb){
+    try{
+      var L=LB();
+      var kc=tb.filter(function(t){return hd(t)==='सर्किल'})[0], ks=tb.filter(function(t){return hd(t)==='थाना'})[0], kd=tb.filter(function(t){return hd(t)==='इकाई'})[0];
+      var dist=kd?rowsOf(kd,false,8,6)[0]:null, C=kc?rowsOf(kc,true,8,6):[], S=ks?rowsOf(ks,true,8,6):[];
+      C.sort(function(a,b){return num(a[6])-num(b[6])}); S.sort(function(a,b){return num(a[6])-num(b[6])});
+      var x='टिप्पणी: जिले की पेंडेंसी (वर्ष '+yr+' में दर्ज प्रकरणों के आधार पर) '+(dist?dist[6]:'—')+' रही।';
+      if(C.length>1) x+=' सबसे कम पेंडेंसी वाला वृत्त '+C[0][0]+' ('+C[0][6]+'); सर्वाधिक पेंडेंसी वाला वृत्त '+C[C.length-1][0]+' ('+C[C.length-1][6]+') — '+L.co(C[C.length-1][0].indexOf('सर्किल')<0?C[C.length-1][0]+' सर्किल':C[C.length-1][0])+'।';
+      if(S.length>1) x+=' सर्वाधिक पेंडेंसी वाला थाना '+S[S.length-1][0]+' ('+S[S.length-1][6]+') — '+L.sho(S[S.length-1][0])+'; श्रेष्ठ थाना '+S[0][0]+' ('+S[0][6]+')।';
+      return x+' संबंधित वृत्ताधिकारी व थानाधिकारी लंबित प्रकरणों का शीघ्र निस्तारण सुनिश्चित करें।';
+    }catch(e){return ''}
+  }
+  /* शीर्षक (h2) व (हो तो) टॉप-3 पोडियम सारणी के ऊपर के भाई-तत्वों में खोजें */
+  function secInfo(t){
+    var w=t.closest('div'), pv=w&&w.previousElementSibling, ttl='', pod='';
+    while(pv){
+      if(!pod && pv.classList && pv.classList.contains('trk-pod')) pod=pv.outerHTML;
+      var h2=pv.querySelector?pv.querySelector('h2'):null;
+      if(h2){ ttl=h2.textContent.trim(); break; }
+      pv=pv.previousElementSibling;
+    }
+    return {ttl:ttl||(hd(t)+'-वार सारणी'), pod:pod};
+  }
+  function buildPDF(cfg){
+    var host=document.getElementById(cfg.hostId), tb=host?Array.from(host.querySelectorAll('table')):[];
     if(!tb.length){ toast('कोई सारणी उपलब्ध नहीं — पहले परिणाम लोड करें'); return; }
     var kd=tb.filter(function(t){return hd(t)==='इकाई'})[0], k='';
     if(kd){ var r=kd.querySelector('tbody tr'), c=r?Array.from(r.cells).map(function(x){return x.textContent.trim()}):[];
-      var K=[['निस्तारण योग्य',c[1],'#1D4ED8,#3B82F6'],['निस्तारित',c[2],'#138808,#34A853'],['Disposal %',c[6],'#B45309,#F59E0B'],['Compliance %',c[7],'#7B1FA2,#AB47BC']];
-      k='<div class="kp">'+K.map(function(x){return '<div style="background:linear-gradient(135deg,'+x[2]+')"><b>'+esc(x[1]||'—')+'</b>'+x[0]+'</div>'}).join('')+'</div>'; }
-    var secs=tb.filter(function(t){return t!==kd}).map(function(t){
-      var w=t.closest('div'), pv=w&&w.previousElementSibling, h2=pv&&pv.querySelector?pv.querySelector('h2'):null, ttl=h2?h2.textContent.trim():hd(t)+'-वार सारणी';
-      var cl=t.cloneNode(true); cl.removeAttribute('class'); cl.className='at';
-      return '<div class="sec">'+esc(ttl)+'</div>'+cl.outerHTML; }).join('');
-    var nt=note(n,tb);
+      k='<div class="kp">'+cfg.kpi(c).map(function(x){return '<div style="background:linear-gradient(135deg,'+x[2]+')"><b>'+esc(x[1]||'—')+'</b>'+x[0]+'</div>'}).join('')+'</div>'; }
+    var secs=tb.filter(function(t){return t!==kd}).map(function(t,i){
+      var si=secInfo(t), cl=t.cloneNode(true); cl.removeAttribute('class'); cl.className='at';
+      /* पहली सारणी पहले पेज (KPI के साथ) पर, हर अगली सारणी नए पेज पर */
+      return '<div class="sec'+(i>0?' pb':'')+'">'+esc(si.ttl)+'</div>'+si.pod+cl.outerHTML; }).join('');
+    var nt=cfg.note(tb);
     var dt=new Date().toLocaleDateString('hi-IN',{day:'numeric',month:'long',year:'numeric'});
-    var title=n+' दिवस निस्तारण अनुपालना — जिला डीडवाना-कुचामन';
-    var html='<div class="tri"></div><div class="hd"><h1>🏛️ '+title+'</h1><p>राजस्थान पुलिस · जिला पुलिस अधीक्षक कार्यालय, डीडवाना-कुचामन · सांख्यिकी शाखा | दिनांक: '+dt+' | 🔒 केवल पुलिस उपयोग हेतु</p></div>'+k+secs+
-      (typeof COLOR_LEGEND_HTML!=='undefined'?COLOR_LEGEND_HTML:'')+(nt?'<div class="nt">📝 '+esc(nt)+'</div>':'')+
-      '<div class="ft">यह रिपोर्ट मनोज कुमार सारण, सांख्यिकी शाखा, कार्यालय पुलिस अधीक्षक, जिला डीडवाना-कुचामन द्वारा तैयार की गई। अनुपालना % = '+n+' दिन में निस्तारित ÷ (निस्तारित + बाद निस्तारित + '+n+' दिन से अधिक Pending) × 100।</div>';
+    var html='<div class="tri"></div><div class="hd"><h1>🏛️ '+esc(cfg.title)+'</h1><p>राजस्थान पुलिस · जिला पुलिस अधीक्षक कार्यालय, डीडवाना-कुचामन · सांख्यिकी शाखा | दिनांक: '+dt+' | 🔒 केवल पुलिस उपयोग हेतु</p></div>'+k+secs+
+      (cfg.legend||'')+(nt?'<div class="nt">📝 '+esc(nt)+'</div>':'')+
+      '<div class="ft">यह रिपोर्ट मनोज कुमार सारण, सांख्यिकी शाखा, कार्यालय पुलिस अधीक्षक, जिला डीडवाना-कुचामन द्वारा तैयार की गई। '+esc(cfg.foot)+'</div>';
     if(typeof resolvePrintVarsHTML==='function') html=resolvePrintVarsHTML(html);
     var w=window.open('','_blank'); if(!w){ toast('⚠️ पॉप-अप ब्लॉक हो गया — कृपया इस साइट के लिए पॉप-अप की अनुमति दें'); return; }
-    w.document.write('<html><head><meta charset="utf-8"><title>'+title+'</title><style>'+
+    w.document.write('<html><head><meta charset="utf-8"><title>'+esc(cfg.title)+'</title><style>'+
       "body{margin:0;font-family:Hind,'Noto Sans Devanagari',Arial,sans-serif;color:#101828;-webkit-print-color-adjust:exact;print-color-adjust:exact}"+
       '.tri{height:7px;background:linear-gradient(90deg,#FF9933 0 33%,#fff 33% 66%,#138808 66%)}'+
       '.hd{background:linear-gradient(135deg,#1E2A45,#2F4A8A);color:#fff;padding:14px 20px;border-radius:0 0 16px 16px}.hd h1{font-size:19px;margin:0}.hd p{margin:5px 0 0;font-size:10.5px;opacity:.92}'+
       '.kp{display:flex;gap:10px;margin:14px 12px}.kp div{flex:1;border-radius:12px;padding:10px 6px;color:#fff;text-align:center;font-size:11px}.kp b{display:block;font-size:21px;margin-bottom:2px}'+
       '.sec{margin:16px 12px 6px;font-weight:700;font-size:14px;color:#1E2A45;border-left:5px solid #FF9933;padding-left:8px}'+
+      '.pb{page-break-before:always;break-before:page;margin-top:6px}'+
+      '.trk-pod{display:flex;gap:8px;margin:6px 12px 10px}.trk-card{flex:1;border-radius:12px;padding:8px 10px;color:#fff;text-align:center}.trk-card .m{font-size:20px;line-height:1}.trk-card b{display:block;font-size:12.5px;margin-top:3px}.trk-card .v{font-size:18px;font-weight:800;margin-top:2px}.trk-card small{display:block;font-size:9.5px;opacity:.92}'+
+      '.trk-g1{background:linear-gradient(135deg,#F59E0B,#B45309)}.trk-g2{background:linear-gradient(135deg,#94A3B8,#475569)}.trk-g3{background:linear-gradient(135deg,#D97706,#7C2D12)}'+
       'table.at{width:calc(100% - 24px);margin:0 12px;border-collapse:separate;border-spacing:0;font-size:10.5px;border:1px solid #C7CDD9;border-radius:10px;overflow:hidden}'+
       '.at th{background:linear-gradient(180deg,#1E2A45,#2B3C66);color:#fff;padding:6px 4px;font-size:9.5px;line-height:1.3}'+
       '.at td{padding:5px 4px;text-align:center;border-bottom:1px solid #E5E9F2;white-space:nowrap}.at td:first-child{text-align:left;font-weight:600;white-space:normal}'+
-      '.at tbody tr:nth-child(even) td{background:#F7F9FC}.at thead{display:table-header-group}.at tr{page-break-inside:avoid}'+
+      '.at td.nm{text-align:left;white-space:normal;font-weight:700}.at td.nm b{display:block;font-size:11px}'+
+      '.trk-rk{display:inline-block;min-width:26px;padding:1px 6px;border-radius:999px;font-weight:800;background:#EEF1F6}.trk-rk1{background:#FFE699;color:#7A5B00}.trk-rk2{background:#E2E8F0;color:#334155}.trk-rk3{background:#FDDDB5;color:#7C2D12}'+
+      '.trk-bar{height:5px;border-radius:99px;background:rgba(0,0,0,.12);overflow:hidden;margin-top:3px}.trk-bar i{display:block;height:100%;border-radius:99px}'+
+      '.at tbody tr:nth-child(even) td{background:#F7F9FC}.at tr.yog-row td{background:#E8F4EA !important;font-weight:700}.at tr.dist-row td{background:#DCEBFF !important;border-top:2px solid #1E2A45}'+
+      '.at thead{display:table-header-group}.at tr{page-break-inside:avoid}'+
       '.nt{margin:14px 12px 6px;padding:10px 12px;border:1.5px solid #B45309;background:#FFFBEB;border-radius:10px;font-size:11.5px;line-height:1.65}'+
       '.ft{margin:8px 12px 10px;font-size:9.5px;color:#64748B;text-align:center}'+
       '@page{size:A4 portrait;margin:9mm}</style></head><body>'+html+'</body></html>');
     w.document.close(); toast('🖨️ प्रिंट विंडो खुल रही है — डेस्टिनेशन में "Save as PDF" चुनें'); setTimeout(function(){ w.focus(); w.print(); },500);
+  }
+  window.dispAttractivePDF=function(n){
+    buildPDF({
+      hostId:'d'+n+'Table',
+      title:n+' दिवस निस्तारण अनुपालना — जिला डीडवाना-कुचामन',
+      kpi:function(c){return [['निस्तारण योग्य',c[1],'#1D4ED8,#3B82F6'],['निस्तारित',c[2],'#138808,#34A853'],['Disposal %',c[6],'#B45309,#F59E0B'],['Compliance %',c[7],'#7B1FA2,#AB47BC']];},
+      note:function(tb){return noteDisp(n,tb);},
+      legend:(typeof COLOR_LEGEND_HTML!=='undefined'?COLOR_LEGEND_HTML:''),
+      foot:'अनुपालना % = '+n+' दिन में निस्तारित ÷ (निस्तारित + बाद निस्तारित + '+n+' दिन से अधिक Pending) × 100।'
+    });
+  };
+  window.pendAttractivePDF=function(){
+    var ye=document.getElementById('pendYear'), yr=ye?ye.value:'';
+    buildPDF({
+      hostId:'pendTable',
+      title:'पेंडेंसी रैंकिंग — जिला डीडवाना-कुचामन (आधार वर्ष '+yr+')',
+      kpi:function(c){return [['कुल पेंडिंग (सभी वर्ष)',c[1],'#B91C1C,#EF4444'],['वर्ष '+yr+' में दर्ज',c[5],'#1D4ED8,#3B82F6'],['पेंडेंसी %',c[6],'#B45309,#F59E0B'],['जांच में लंबित',c[2],'#7B1FA2,#AB47BC']];},
+      note:function(tb){return notePend(yr,tb);},
+      legend:(typeof PENDENCY_COLOR_LEGEND_HTML!=='undefined'?PENDENCY_COLOR_LEGEND_HTML:''),
+      foot:'पेंडेंसी % = कुल पेंडिंग प्रकरण (सभी वर्ष) ÷ वर्ष '+yr+' में दर्ज कुल प्रकरण × 100; कम पेंडेंसी = बेहतर रैंक।'
+    });
   };
 })();
 </script>
