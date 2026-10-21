@@ -14894,7 +14894,7 @@ try{ initDispWordCircle(); }catch(e){}
       var res=await fetch(getSyncUrl()+'?secret='+encodeURIComponent(getSyncSecret()),{
         method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, redirect:'follow',
         signal:ctl?ctl.signal:undefined,
-        body:JSON.stringify({secret:getSyncSecret(),key:CFG_KEY,branch:'monlink',type:'cfg',thana:'',year:'',month:'',monthName:'',payload:payload})
+        body:JSON.stringify({secret:getSyncSecret(),key:CFG_KEY,branch:'monlink',type:'cfg',thana:'ALL',year:String(new Date().getFullYear()),month:String(new Date().getMonth()+1),monthName:new Date().toLocaleString('hi-IN',{month:'long'}),payload:payload})
       });
       var text=await res.text(), j=null;
       try{ j=JSON.parse(text); }catch(e){}
