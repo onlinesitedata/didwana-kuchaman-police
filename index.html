@@ -14885,11 +14885,46 @@ try{ initDispWordCircle(); }catch(e){}
     var inp=$('monPwInput'); if(inp) inp.value=s;
     var req=$('monPwReq'); if(req) req.checked=true;
   };
-  async function saveCfg(payload){
-    var res=await syncToServer(CFG_KEY,'monlink','cfg','','','','',payload);
-    return res&&res.ok;
+  // सख़्त सेव: (1) सर्वर का JSON जवाब {ok:true} ज़रूरी — HTML/त्रुटि-पेज को "सफल" नहीं माना जाएगा
+  // (2) सेव के बाद सर्वर से वापस पढ़कर ver मिलान — तभी "सहेज लिया" दिखेगा
+  async function postCfg(payload){
+    var ctl=(typeof AbortController!=='undefined')?new AbortController():null;
+    var to=setTimeout(function(){ if(ctl) ctl.abort(); },25000);
+    try{
+      var res=await fetch(getSyncUrl()+'?secret='+encodeURIComponent(getSyncSecret()),{
+        method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, redirect:'follow',
+        signal:ctl?ctl.signal:undefined,
+        body:JSON.stringify({secret:getSyncSecret(),key:CFG_KEY,branch:'monlink',type:'cfg',thana:'',year:'',month:'',monthName:'',payload:payload})
+      });
+      var text=await res.text(), j=null;
+      try{ j=JSON.parse(text); }catch(e){}
+      if(!j){ console.error('monlink save: non-JSON reply',text.substring(0,300)); return {ok:false,error:'सर्वर ने JSON जवाब नहीं दिया (Apps Script deployment / access \"Anyone\" जाँचें): '+text.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().substring(0,90)}; }
+      if(!j.ok){ console.error('monlink save: server error',j); return {ok:false,error:'सर्वर त्रुटि: '+(j.error||'अज्ञात')}; }
+      return {ok:true};
+    }catch(e){
+      return {ok:false,error:(e&&e.name==='AbortError')?'समय समाप्त (25 सेकंड) — इंटरनेट/सर्वर धीमा है':String(e)};
+    }finally{ clearTimeout(to); }
   }
-  window.monPwSave=async function(){
+  async function readBackCfg(){
+    try{
+      var u=getSyncUrl()+'?'+new URLSearchParams({secret:getSyncSecret(),branch:'monlink',type:'cfg',year:'',month:'',_:String(Date.now())}).toString();
+      var res=await fetch(u,{redirect:'follow',cache:'no-store'}), j=JSON.parse(await res.text());
+      if(!j||!j.ok) return null;
+      var row=(j.rows||[]).filter(function(r){ return r.key===CFG_KEY; })[0];
+      return (row&&row.payload&&typeof row.payload==='object')?row.payload:null;
+    }catch(e){ return null; }
+  }
+  async function saveCfg(payload){
+    var w=await postCfg(payload);
+    if(!w.ok) return w;
+    for(var i=0;i<3;i++){
+      var back=await readBackCfg();
+      if(back && String(back.ver)===String(payload.ver)) return {ok:true};
+      await new Promise(function(r){ setTimeout(r,1200); });
+    }
+    return {ok:false,error:'सर्वर ने \"सफल\" बताया पर वापस पढ़ने पर नया पासवर्ड नहीं मिला — Apps Script का deployed version / Sheet की अनुमति जाँचें'};
+  }
+  async function monPwSaveImpl(){
     var req=$('monPwReq'), inp=$('monPwInput'); if(!req||!inp) return;
     var pw=(inp.value||'').trim(), want=req.checked, ver=Date.now(), stamp=new Date().toLocaleString('hi-IN'), payload;
     if(want){
@@ -14898,12 +14933,16 @@ try{ initDispWordCircle(); }catch(e){}
       payload={required:true,salt:salt,hash:window.dkMonPwHash(pw,salt),ver:ver,updatedAt:stamp};
     } else { payload={required:false,ver:ver,updatedAt:stamp}; }
     say('⏳ सर्वर पर सहेजा जा रहा है…');
-    var ok=await saveCfg(payload);
-    if(!ok){ say('❌ सर्वर पर सहेज नहीं पाए — इंटरनेट जाँचकर पुनः प्रयास करें'); return; }
+    var sv=await saveCfg(payload);
+    if(!sv||!sv.ok){ say('❌ सर्वर पर सहेज नहीं पाए — '+((sv&&sv.error)||'इंटरनेट जाँचकर पुनः प्रयास करें')); return; }
     lsSet('dkMonCfgCache',JSON.stringify(payload));
     if(want){ lsSet('dkMonPwLast',pw); lsSet('dkMonPwVer',String(ver)); } else { try{ localStorage.removeItem('dkMonPwLast'); localStorage.removeItem('dkMonPwVer'); }catch(e){} }
     paintState(payload,true);
     say(want?'✅ पासवर्ड सहेज लिया — सभी मॉनिटरिंग लिंक पर लागू':'✅ पासवर्ड बंद — लिंक सीधे खुलेंगी');
+  }
+  window.monPwSave=async function(){
+    if(MP.busy){ say('⏳ पिछला सेव जारी है — कृपया प्रतीक्षा करें'); return; }
+    MP.busy=true; try{ return await monPwSaveImpl(); } finally{ MP.busy=false; }
   };
   window.monPwRemove=function(){
     var req=$('monPwReq'), inp=$('monPwInput'); if(req) req.checked=false; if(inp) inp.value='';
