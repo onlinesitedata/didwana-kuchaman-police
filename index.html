@@ -1150,6 +1150,23 @@ html[data-theme="dark"] .cmp-tbl td.warn{background:var(--warn-tint);color:#F871
   .fircmp-monthgrid{grid-template-columns:repeat(6,1fr);row-gap:5px}
 }
 
+
+/* ===== मोबाइल फिट — कोई भी चार्ट/सारणी पेज को चौड़ा न करे (सभी विज़िटर हेतु) ===== */
+@media(max-width:768px){
+  html,body{max-width:100%;overflow-x:hidden}
+  .chartgrid{grid-template-columns:minmax(0,1fr) !important;gap:10px}
+  .chartcard,.chartgrid>*{min-width:0;max-width:100%}
+  .chartcard{padding:12px 10px 8px}
+  .ppt-chartcard{padding:12px 8px 10px}
+  .ppt-ttl{font-size:15px !important}
+  .ppt-chart-wrap{max-width:100%;min-width:0}
+  .ppt-tbl-wrap{max-width:100%;min-width:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .ppt-tbl-wrap table{font-size:11px}
+  .ppt-tbl-wrap th,.ppt-tbl-wrap td{padding:4px 5px}
+  .chartcard canvas{max-width:100% !important}
+  .wrap>*,.pg>*{min-width:0}
+  table{max-width:none}
+}
 /* ===== मॉनिटरिंग लिंक (?mon= / ?pgs=) — मोबाइल व्यू ===== */
 body.mon-restricted,body.pgs-restricted{overflow-x:hidden}
 body.mon-restricted .ofc-util,body.pgs-restricted .ofc-util{display:none}
@@ -3572,6 +3589,7 @@ async function pushSheetUpdate(type, aoa, mode){
     let parsed;
     try{ parsed = JSON.parse(text); }catch(e){ return {ok:false, error:'Server response: '+text.substring(0,150)}; }
     if(parsed && parsed.ok) LAST_MANUAL_SHEET_PUSH_AT = Date.now();
+    if(parsed && parsed.ok && window.dkAfterUpload){ try{ window.dkAfterUpload(type,aoa,mode); }catch(e){} }
     return parsed;
   }catch(err){
     return {ok:false, error:String(err)};
@@ -6730,6 +6748,7 @@ function ensureCanvas(id, full){
   return document.getElementById('cv-'+id);
 }
 const pptChartMonth = {}; // key -> selected "उपटू माह" (1-12), 12/उपस्थित न होने पर = पूर्ण वर्ष
+function pptDefaultMonth(){ const m=new Date().getMonth()+1; return (m>=1&&m<=12)?m:12; }
 function pptMonthOptionsHTML(sel){
   let html = `<option value="12" ${sel===12?'selected':''}>पूर्ण वर्ष (जन–दिस)</option>`;
   for(let m=1;m<=11;m++){ html += `<option value="${m}" ${sel===m?'selected':''}>जनवरी–${MONTH_NAMES_HI[m]} तक</option>`; }
@@ -6739,7 +6758,7 @@ function ensurePptCanvas(id){
   let card = document.getElementById('card-'+id);
   if(!card){
     const grid = document.getElementById('chartGrid');
-    if(!(id in pptChartMonth)) pptChartMonth[id] = 12;
+    if(!(id in pptChartMonth)) pptChartMonth[id] = pptDefaultMonth(); // बाय डिफ़ॉल्ट: सभी वर्षों की तुलना चालू माह तक (जन–चालू माह)
     card = document.createElement('div');
     card.className = 'chartcard full ppt-chartcard';
     card.id = 'card-'+id;
@@ -9491,17 +9510,24 @@ function renderPendencyPage(){
   document.getElementById('pendSourceNote').innerHTML = sourceNoteHTML(source);
   document.getElementById('pendInsights').innerHTML = pendencyInsightsHTML(agg);
   document.getElementById('pendTable').innerHTML = pendencyTableHTML(agg, targetYear);
-  const pc=document.getElementById('pendCatTable'); if(pc) pc.innerHTML = pendencyCategoryHTML(agg);
+  const pc=document.getElementById('pendCatTable');
+  if(pc){
+    // इन तीनों श्रेणियों (1 वर्ष से अधिक पेंडिंग / 173(8)-193(9) / री-ओपन) की संख्या हमेशा FIR Current Status से ली जाती है
+    const fdcOk = (typeof FDC!=='undefined') && FDC && FDC.rows && FDC.rows.length;
+    const aggC = fdcOk ? aggregatePendency(buildPendencyRowsFDC(), targetYear) : agg;
+    pc.innerHTML = pendencyCategoryHTML(aggC, !!fdcOk);
+  }
 }
 
 // श्रेणीवार अलग-अलग विवरण: (1) 1 वर्ष से अधिक पेंडिंग (2) 173(8) CrPC/193(9) BNSS (3) री-ओपन — हर एक की अलग सारणी (सर्किल → थाना)
-function pendencyCategoryHTML(agg){
+function pendencyCategoryHTML(agg, fromFdc){
   const defs=[
     {k:'uiOld',  ico:'⏳', t:'1 वर्ष से अधिक अवधि के पेंडिंग प्रकरण', sub:'जांच में लंबित — दर्ज दिनांक से 365 दिन से अधिक', c:'#B91C1C'},
     {k:'c173193',ico:'⚖️', t:'173(8) CrPC / 193(9) BNSS प्रकरण',        sub:'पूरक अनुसंधान/चालान हेतु लंबित', c:'#1D4ED8'},
-    {k:'reopen', ico:'🔄', t:'री-ओपन (पुनः जांच) प्रकरण',               sub:'दोबारा खुले प्रकरण', c:'#7B1FA2'}
+    {k:'reopen', ico:'🔄', t:'री-ओपन (OR) प्रकरण',               sub:'दोबारा खुले प्रकरण', c:'#7B1FA2'}
   ];
-  let h='<div class="sh" style="margin:26px 0 6px;"><span class="tag" style="background:linear-gradient(135deg,var(--navy),var(--navy2))">श्रेणीवार</span><h2 style="font-size:16px;">पेंडिंग प्रकरण — श्रेणीवार अलग-अलग विवरण</h2></div>';
+  let h='<div class="sh" style="margin:26px 0 6px;"><span class="tag" style="background:linear-gradient(135deg,var(--navy),var(--navy2))">श्रेणीवार</span><h2 style="font-size:16px;">पेंडिंग प्रकरण — श्रेणीवार अलग-अलग विवरण</h2></div>'
+    +(fromFdc?'<div style="font-size:12px;color:var(--soft);margin:0 0 4px;">📂 डेटा स्रोत: <b>FIR Current Status</b> (OR = Re-Open)</div>':'<div style="font-size:12px;color:#B45309;margin:0 0 4px;">⚠️ FIR Current Status डेटा उपलब्ध नहीं — चयनित स्रोत से गणना की गई है।</div>');
   defs.forEach(d=>{
     const tot=agg.district[d.k]||0;
     h+=`<div class="sh" style="margin:16px 0 8px;"><span class="tag" style="background:${d.c}">${d.ico} ${tot}</span><h2 style="font-size:15px;">${d.t}</h2></div>`;
@@ -10957,7 +10983,7 @@ if(typeof renderHomeDeadlineAlert==='function'){ try{ renderHomeDeadlineAlert();
 // डेटा सिर्फ़ पोर्टल खुलने पर (एक बार) या यूज़र द्वारा "पुनः सिंक करें" दबाने पर लोड होगा —
 // पहले हर 60 सेकंड में अपने-आप बैकग्राउंड सिंक होता था, जिससे धीमे/सीमित इंटरनेट पर पोर्टल
 // बार-बार धीमा/हैंग महसूस होता था। अब बैकग्राउंड ऑटो-सिंक हटा दिया गया है।
-setTimeout(()=>{ loadLiveData().catch(()=>{}); }, 300);
+(function dkBoot(){ if(document.readyState!=='complete'){ window.addEventListener('load',function(){ setTimeout(dkBoot,100); },{once:true}); return; } (window.dkStartLoad?window.dkStartLoad():loadLiveData()).catch(()=>{}); })();
 
 // ============================================================
 // प्रिंट के दौरान चार्ट स्केलिंग बग फिक्स — प्रिंट लेआउट (चौड़ाई) बदलने पर
@@ -12656,6 +12682,7 @@ function mpApplySearchFilter(v){
   mpSearchText = v || '';
   mpRenderTable();
 }
+var mpIOSet=(typeof mpIOSet!=='undefined'&&mpIOSet)||new Set(), mpPsSet=(typeof mpPsSet!=='undefined'&&mpPsSet)||new Set(), mpMultiSel=(typeof mpMultiSel!=='undefined'&&mpMultiSel)||{};
 function ensureMyPendingLoaded(){
   const rows = mpAllPendingRows();
   const ioMap = {}; // normalizedKey -> display name
@@ -15323,12 +15350,81 @@ try{ initDispWordCircle(); }catch(e){}
     $('dkShMsg').textContent='';
     var u=base+(q.length?'?'+q.join('&'):''); $('dkShOut').value=u; return u;
   }
+
+  /* ---- सभी अधिकारियों की अलग-अलग लिंक: पासवर्ड एडमिन तय करे, लिंक/पासवर्ड WhatsApp पर भेजे ---- */
+  var OFFKEY='dkOfficerLinks';
+  function offLoad(){ try{ return JSON.parse(localStorage.getItem(OFFKEY)||'{}')||{}; }catch(e){ return {}; } }
+  function offStore(o){ try{ localStorage.setItem(OFFKEY,JSON.stringify(o)); }catch(e){} }
+  function rndPw(){ var c='abcdefghjkmnpqrstuvwxyz23456789',p=''; for(var i=0;i<7;i++) p+=c[Math.floor(Math.random()*c.length)]; return p; }
+  function rndSalt(){ return Math.random().toString(16).slice(2,10); }
+  function offTok(rec){ var t={s:rec.salt,h:window.dkSha256(rec.salt+':'+rec.pw)}; if(rec.exp) t.e=rec.exp; return btoa(unescape(encodeURIComponent(JSON.stringify(t)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+  function offPagesQ(){
+    var pgl=Array.from(document.querySelectorAll('#dkShPgs .dkPgc:checked')).map(function(c){return c.value}), rst=$('dkShRst').checked;
+    if(!pgl.length) return '';
+    return rst?('pgs='+pgl.map(encodeURIComponent).join(',')):('openpg='+encodeURIComponent(pgl[0]));
+  }
+  function offLink(rec){ var base=location.href.split('#')[0].split('?')[0], q=offPagesQ(); return base+'?'+(q?q+'&':'')+'lk='+offTok(rec); }
+  function offRecs(){
+    var o=offLoad(), days=+$('dkShDays').value, ch=false, A=window.DK_AREAS||{};
+    Object.keys(A).forEach(function(k){
+      var r=o[k]; if(!r||!r.pw||!r.salt){ r=o[k]={pw:rndPw(),salt:rndSalt(),ph:(r&&r.ph)||'',days:days}; r.exp=days?Date.now()+days*864e5:0; ch=true; }
+      if(r.days!==days){ r.days=days; r.exp=days?Date.now()+days*864e5:0; ch=true; }
+    });
+    if(ch) offStore(o); return o;
+  }
+  function offMsg(k,rec,withPw){
+    var A=window.DK_AREAS||{}, nm=(A[k]||{}).l||k;
+    return '📢 जिला डीडवाना-कुचामन पुलिस — सांख्यिकी शाखा पोर्टल\n(केवल पुलिस उपयोग हेतु)\n\n'+nm+' हेतु लिंक:\n'+offLink(rec)+(withPw?'\n\n🔑 पासवर्ड: '+rec.pw:'\n\n🔒 लिंक पासवर्ड-सुरक्षित है; पासवर्ड अलग से बताया जाएगा।');
+  }
+  function waUrl(ph,txt){ ph=String(ph||'').replace(/\D/g,''); if(ph.length===10) ph='91'+ph; return 'https://wa.me/'+ph+'?text='+encodeURIComponent(txt); }
+  function offRender(){
+    var bx=$('dkOffBox'), o=offRecs(), A=window.DK_AREAS||{}, keys=Object.keys(A);
+    var inc=bx.getAttribute('data-inc')==='1';
+    var h='<div style="border:1.5px dashed #b9b4f5;border-radius:12px;padding:10px;background:rgba(79,70,229,.05)">'+
+      '<div style="font-weight:800;font-size:14px;margin-bottom:4px">👥 अधिकारी-वार लिंक व पासवर्ड</div>'+
+      '<div style="font-size:11.5px;color:var(--soft,#666);line-height:1.5;margin-bottom:8px">हर अधिकारी का पासवर्ड आप बदल सकते हैं (कम से कम 4 अक्षर)। ऊपर चुने गए पेज/अवधि इन्हीं लिंक पर लागू हैं। मोबाइल नंबर (वैकल्पिक) भरने पर WhatsApp सीधे उसी नंबर पर खुलेगा। पासवर्ड इसी डिवाइस में सुरक्षित रहते हैं।</div>'+
+      '<label style="display:flex;align-items:center;gap:8px;font-size:12.5px;margin-bottom:8px"><input type="checkbox" id="dkOffInc"'+(inc?' checked':'')+'> WhatsApp संदेश में पासवर्ड भी जोड़ें</label>';
+    keys.forEach(function(k){
+      var r=o[k];
+      h+='<div data-k="'+k+'" style="border:1px solid var(--line,#ccc);border-radius:10px;padding:8px;margin-bottom:8px;background:var(--card,#fff)">'+
+        '<div style="font-weight:700;font-size:13px;margin-bottom:6px">'+esc(A[k].l)+'</div>'+
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">'+
+          '<input class="offPw" type="text" autocomplete="off" value="'+esc(r.pw)+'" placeholder="पासवर्ड" style="flex:1;min-width:110px;padding:8px;border-radius:8px;border:1px solid var(--line,#ccc)">'+
+          '<button type="button" class="offGen" style="padding:0 12px;border-radius:8px;background:var(--navy,#1E2A45);color:#fff">🎲</button>'+
+          '<input class="offPh" type="tel" inputmode="numeric" value="'+esc(r.ph||'')+'" placeholder="मोबाइल (वैकल्पिक)" style="flex:1;min-width:110px;padding:8px;border-radius:8px;border:1px solid var(--line,#ccc)">'+
+        '</div>'+
+        '<input class="offLink" readonly onclick="this.select()" value="'+esc(offLink(r))+'" style="width:100%;padding:7px;border-radius:8px;border:1px solid var(--line,#ccc);font-size:11px;box-sizing:border-box;margin-bottom:6px">'+
+        '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+          '<button type="button" class="offCopy" style="flex:1;padding:8px;border-radius:8px;background:#138808;color:#fff;font-weight:700;font-size:12.5px">📋 लिंक</button>'+
+          '<button type="button" class="offWa" style="flex:1;padding:8px;border-radius:8px;background:#25D366;color:#fff;font-weight:700;font-size:12.5px">💬 WhatsApp</button>'+
+          '<button type="button" class="offPwSend" style="flex:1;padding:8px;border-radius:8px;background:#B45309;color:#fff;font-weight:700;font-size:12.5px">🔑 पासवर्ड भेजें</button>'+
+        '</div></div>';
+    });
+    h+='<div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" id="dkOffAllCopy" style="flex:1;padding:9px;border-radius:8px;background:#4F46E5;color:#fff;font-weight:700;font-size:12.5px">📋 सभी की सूची (लिंक + पासवर्ड) कॉपी करें</button><button type="button" id="dkOffRegen" style="padding:9px 12px;border-radius:8px;background:#64748B;color:#fff;font-size:12.5px">🎲 सबके नए पासवर्ड</button></div>'+
+      '<div id="dkOffMsg" style="font-size:12px;color:#B45309;min-height:16px;margin-top:6px"></div></div>';
+    bx.innerHTML=h;
+    function say(t){ var m=$('dkOffMsg'); if(m) m.textContent=t; }
+    $('dkOffInc').onchange=function(){ bx.setAttribute('data-inc',this.checked?'1':'0'); };
+    bx.querySelectorAll('[data-k]').forEach(function(row){
+      var k=row.getAttribute('data-k'), pw=row.querySelector('.offPw'), ph=row.querySelector('.offPh'), lk=row.querySelector('.offLink');
+      function cur(){ return offLoad()[k]; }
+      function save(mut){ var all=offLoad(), r=all[k]; mut(r); offStore(all); lk.value=offLink(r); }
+      pw.oninput=function(){ var v=pw.value.trim(); if(v.length<4){ say('⚠️ पासवर्ड कम से कम 4 अक्षर का रखें'); return; } say(''); save(function(r){ r.pw=v; r.salt=rndSalt(); }); };
+      row.querySelector('.offGen').onclick=function(){ var v=rndPw(); pw.value=v; save(function(r){ r.pw=v; r.salt=rndSalt(); }); say(''); };
+      ph.oninput=function(){ save(function(r){ r.ph=ph.value.trim(); }); };
+      row.querySelector('.offCopy').onclick=function(){ var t=lk.value; if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(function(){ say('✅ लिंक कॉपी हो गई'); }); else { lk.select(); document.execCommand('copy'); say('✅ लिंक कॉपी हो गई'); } };
+      row.querySelector('.offWa').onclick=function(){ if(pw.value.trim().length<4){ say('⚠️ पहले कम से कम 4 अक्षर का पासवर्ड रखें'); return; } var r=cur(); window.open(waUrl(r.ph,offMsg(k,r,$('dkOffInc').checked)),'_blank'); };
+      row.querySelector('.offPwSend').onclick=function(){ if(pw.value.trim().length<4){ say('⚠️ पहले कम से कम 4 अक्षर का पासवर्ड रखें'); return; } var r=cur(); window.open(waUrl(r.ph,'🔑 पासवर्ड: '+r.pw),'_blank'); };
+    });
+    $('dkOffAllCopy').onclick=function(){ var all=offLoad(), A2=window.DK_AREAS||{}, t=Object.keys(A2).map(function(k){ return A2[k].l+'\n'+offLink(all[k])+'\nपासवर्ड: '+all[k].pw+'\n'; }).join('\n'); if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(function(){ say('✅ सूची कॉपी हो गई — लिंक व पासवर्ड अलग-अलग माध्यम से भेजें'); }); };
+    $('dkOffRegen').onclick=function(){ if(!confirm('सभी अधिकारियों के पासवर्ड नए बन जाएँगे (पुराने पासवर्ड/लिंक बंद हो जाएँगे)। जारी रखें?')) return; var all=offLoad(); Object.keys(all).forEach(function(k){ all[k].pw=rndPw(); all[k].salt=rndSalt(); }); offStore(all); offRender(); };
+  }
   function ui(){
     if($('dkShModal')) return;
     var opts=''; document.querySelectorAll('nav button[data-pg]').forEach(function(b){ opts+='<label style="display:flex;gap:6px;align-items:flex-start;font-size:12.5px;padding:3px 0"><input type="checkbox" class="dkPgc" value="'+esc(b.dataset.pg)+'"><span>'+esc(b.textContent.trim())+'</span></label>'; });
     var m=document.createElement('div'); m.id='dkShModal';
     m.style.cssText='display:none;position:fixed;inset:0;z-index:100000;background:rgba(5,19,48,.8);align-items:center;justify-content:center;padding:16px';
-    m.innerHTML='<div style="background:var(--card,#fff);color:var(--ink,#111);border-radius:14px;max-width:440px;width:100%;max-height:92vh;overflow:auto;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.45)">'+
+    m.innerHTML='<div style="background:var(--card,#fff);color:var(--ink,#111);border-radius:14px;max-width:560px;width:100%;max-height:92vh;overflow:auto;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.45)">'+
     '<div style="font-weight:700;font-size:16px;margin-bottom:10px">🔗 लिंक शेयर करें</div>'+
     '<label style="font-size:12px">कौन-से पेज खुलें (एक या अधिक चुनें; कुछ न चुनें तो पूरी साइट)</label><div id="dkShPgs" style="max-height:150px;overflow:auto;border:1px solid var(--line,#ccc);border-radius:8px;padding:6px 10px;margin:3px 0 4px">'+opts+'</div><div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:12px;margin-bottom:10px"><a href="#" id="dkShClr" style="color:#4F46E5">सब हटाएँ</a><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="dkShRst"> 🔐 बाकी मेनू छिपाएँ (केवल चुने पेज खुलें)</label></div>'+
     '<label style="display:flex;gap:8px;align-items:center;font-weight:600;margin-bottom:8px"><input type="checkbox" id="dkShLock"> 🔒 इस लिंक पर पासवर्ड/लॉक लगाएँ</label>'+
@@ -15336,8 +15432,9 @@ try{ initDispWordCircle(); }catch(e){}
     '<label style="font-size:12px;display:block;margin-top:8px">लिंक की वैधता</label><select id="dkShDays" style="width:100%;padding:9px;margin:3px 0 4px;border-radius:8px;border:1px solid var(--line,#ccc)"><option value="0">कोई सीमा नहीं</option><option value="1">1 दिन</option><option value="7">7 दिन</option><option value="30">30 दिन</option></select>'+
     '<div style="font-size:11.5px;color:var(--soft,#666);line-height:1.5">पासवर्ड लिंक के साथ नहीं जाता — अधिकारी को अलग से बताएँ। यह लॉक ब्राउज़र-स्तर का है।</div></div>'+
     '<textarea id="dkShOut" readonly rows="3" style="width:100%;margin-top:10px;padding:8px;border-radius:8px;border:1px solid var(--line,#ccc);font-size:11.5px;word-break:break-all"></textarea>'+
+    '<label id="dkShPwMsgRow" style="display:none;align-items:center;gap:8px;font-size:12.5px;margin-top:4px"><input type="checkbox" id="dkShPwInMsg"> WhatsApp संदेश में पासवर्ड भी जोड़ें</label>'+
     '<div id="dkShMsg" style="color:#B71C1C;font-size:12px;min-height:16px"></div>'+
-    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><button id="dkShCopy" style="flex:1;padding:10px;border-radius:8px;background:#138808;color:#fff;font-weight:700">📋 कॉपी</button><button id="dkShWa" style="flex:1;padding:10px;border-radius:8px;background:#25D366;color:#fff;font-weight:700">WhatsApp</button><button id="dkShX" style="padding:10px 14px;border-radius:8px;background:#64748B;color:#fff">बंद</button></div></div>';
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><button id="dkShCopy" style="flex:1;padding:10px;border-radius:8px;background:#138808;color:#fff;font-weight:700">📋 कॉपी</button><button id="dkShWa" style="flex:1;padding:10px;border-radius:8px;background:#25D366;color:#fff;font-weight:700">WhatsApp</button><button id="dkShPwOnly" style="display:none;flex:1;padding:10px;border-radius:8px;background:#B45309;color:#fff;font-weight:700">🔑 केवल पासवर्ड भेजें</button><button id="dkShOffBtn" style="width:100%;padding:10px;border-radius:8px;background:#4F46E5;color:#fff;font-weight:700">👥 सभी अधिकारियों की अलग-अलग लिंक व पासवर्ड</button><button id="dkShX" style="padding:10px 14px;border-radius:8px;background:#64748B;color:#fff">बंद</button></div><div id="dkOffBox" style="display:none;margin-top:12px"></div></div>';
     document.body.appendChild(m);
     ['dkShPgs','dkShRst','dkShLock','dkShDays'].forEach(function(i){$(i).addEventListener('change',function(){ $('dkShLockBox').style.display=$('dkShLock').checked?'block':'none'; build(); })});
     $('dkShPw').addEventListener('input',build);
@@ -15345,7 +15442,12 @@ try{ initDispWordCircle(); }catch(e){}
     $('dkShGen').onclick=function(){ var c='abcdefghjkmnpqrstuvwxyz23456789',s=''; for(var i=0;i<7;i++) s+=c[Math.floor(Math.random()*c.length)]; $('dkShPw').value=s; build(); };
     $('dkShX').onclick=function(){ m.style.display='none'; };
     $('dkShCopy').onclick=function(){ var u=build(); if(!u) return; if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(u).then(function(){ if(window.toast) toast('✅ लिंक कॉपी हो गई'); }); else { $('dkShOut').select(); document.execCommand('copy'); } };
-    $('dkShWa').onclick=function(){ var u=build(); if(!u) return; var lk=$('dkShLock').checked; window.open('https://wa.me/?text='+encodeURIComponent('📢 जिला डीडवाना-कुचामन पुलिस — सांख्यिकी शाखा पोर्टल\n(केवल पुलिस उपयोग हेतु)\n\n'+u+(lk?'\n\n🔒 लिंक पासवर्ड-सुरक्षित है; पासवर्ड अलग से बताया जाएगा।':'')),'_blank'); };
+    function togglePwRow(){ var lk=$('dkShLock').checked; $('dkShPwMsgRow').style.display=lk?'flex':'none'; $('dkShPwOnly').style.display=lk?'block':'none'; }
+    $('dkShLock').addEventListener('change',togglePwRow); window.dkTogglePwRow=togglePwRow;
+    $('dkShWa').onclick=function(){ var u=build(); if(!u) return; var lk=$('dkShLock').checked, pwl=(lk&&$('dkShPwInMsg').checked)?'\n\n🔑 पासवर्ड: '+$('dkShPw').value.trim():''; window.open('https://wa.me/?text='+encodeURIComponent('📢 जिला डीडवाना-कुचामन पुलिस — सांख्यिकी शाखा पोर्टल\n(केवल पुलिस उपयोग हेतु)\n\n'+u+(lk&&!pwl?'\n\n🔒 लिंक पासवर्ड-सुरक्षित है; पासवर्ड अलग से बताया जाएगा।':'')+pwl),'_blank'); };
+    $('dkShPwOnly').onclick=function(){ var pw=$('dkShPw').value.trim(); if(!pw){ $('dkShMsg').textContent='⚠️ पासवर्ड लिखें या 🎲 से बनाएँ'; return; } window.open('https://wa.me/?text='+encodeURIComponent('🔑 पासवर्ड: '+pw),'_blank'); };
+    $('dkShOffBtn').onclick=function(){ var bx=$('dkOffBox'); if(bx.style.display==='block'){ bx.style.display='none'; return; } bx.style.display='block'; offRender(); bx.scrollIntoView({behavior:'smooth',block:'nearest'}); };
+    ['dkShPgs','dkShRst','dkShDays'].forEach(function(i){ $(i).addEventListener('change',function(){ if($('dkOffBox').style.display==='block') offRender(); }); });
   }
   window.dkShareOpen=function(o){
     if(document.body.classList.contains('mon-restricted')){ if(window.toast) toast('🔒 इस लिंक से यह सुविधा उपलब्ध नहीं है'); return; }
@@ -15356,6 +15458,7 @@ try{ initDispWordCircle(); }catch(e){}
     $('dkShLock').checked=!!o.lock; $('dkShLockBox').style.display=o.lock?'block':'none';
     if(o.lock && !$('dkShPw').value) $('dkShGen').click(); else build();
     $('dkShModal').style.display='flex';
+    if(window.dkTogglePwRow) window.dkTogglePwRow(); $('dkOffBox').style.display='none';
   };
   /* मौजूदा शेयर-बटन अब इसी विकल्प-विंडो से खुलेंगे (डिफ़ॉल्ट: बिना लॉक — थाना हेतु) */
   window.branchCopyShareLink=function(id){ dkShareOpen({pg:id,lock:false}); };
@@ -15649,6 +15752,121 @@ try{ initDispWordCircle(); }catch(e){}
   window.go=function(id){ if(ids.indexOf(id)<0){ if(typeof toast==='function') toast('🔒 इस लिंक से यह पेज उपलब्ध नहीं है'); return; } return _go.apply(this,arguments); };
   window.adminGo=function(pg){ return window.go(pg); };
   window.go(ids[0]);
+})();
+</script>
+
+<script>
+/* ===== डेटा अंतिम-अपडेट दिनांक + बदलाव होने पर ही रिफ्रेश =====
+   एडमिन जब Generic / Current Status / SAS Export अपलोड करता है तो सर्वर (Apps Script) में एक छोटी "मेटा" प्रविष्टि
+   (अपडेट समय) लिखी जाती है। हर डिवाइस केवल यही छोटी प्रविष्टि जाँचता है; समय बदला हो तभी पूरा डेटा दोबारा लाता है —
+   वरना कैश किया हुआ वही डेटा बार-बार डाउनलोड/प्रोसेस नहीं होता। */
+(function(){
+  var LBL={gen:'Generic',fdc:'Current Status',sas:'SAS Export'}, ORDER=['gen','fdc','sas'];
+  var LKEY='dkLoadedMeta', MKEY='dkDataMeta', MAXAGE=4*3600e3, GRACE=150000;
+  function ls(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+  function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+  function jget(k){ try{ return JSON.parse(ls(k)||'null'); }catch(e){ return null; } }
+  function fmt(ms){ try{ return new Date(ms).toLocaleString('hi-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}); }catch(e){ return new Date(ms).toLocaleString(); } }
+
+  async function fetchMeta(ms){
+    var ctl=(typeof AbortController!=='undefined')?new AbortController():null, to=setTimeout(function(){ if(ctl) ctl.abort(); },ms||8000);
+    try{
+      var u=getSyncUrl()+'?'+new URLSearchParams({secret:getSyncSecret(),branch:'datameta',type:'',year:'',month:'',_:String(Date.now())}).toString();
+      var res=await fetch(u,{redirect:'follow',cache:'no-store',signal:ctl?ctl.signal:undefined}), j=JSON.parse(await res.text());
+      if(!j||!j.ok) return null;
+      var m={at:{},n:{},maxAt:0};
+      (j.rows||[]).forEach(function(r){ var p=r.payload||{}, t=r.type; if(p.at){ m.at[t]=+p.at; m.n[t]=p.n; if(+p.at>m.maxAt) m.maxAt=+p.at; } });
+      m.sig=Object.keys(m.at).sort().map(function(t){ return t+':'+m.at[t]; }).join('|');
+      return m.sig?m:null;
+    }catch(e){ return null; } finally{ clearTimeout(to); }
+  }
+  function paint(m){
+    m=m||jget(MKEY); var st=jget(LKEY);
+    var parts=ORDER.map(function(t){ var v=m&&m.at&&m.at[t]; return '<b>'+LBL[t]+':</b> '+(v?fmt(v):'—'); });
+    var html='📅 <b>डेटा अंतिम अपडेट</b> — '+parts.join(' &nbsp;|&nbsp; ');
+    if(!(m&&m.sig)&&st&&st.at) html='🔄 <b>डेटा अंतिम सिंक:</b> '+fmt(st.at);
+    document.querySelectorAll('.dk-upd').forEach(function(el){ el.innerHTML=html; });
+  }
+  function addChips(){
+    var css=document.createElement('style');
+    css.textContent='.dk-upd{display:block;margin:8px auto 0;max-width:100%;font-size:11.5px;line-height:1.55;color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:5px 10px;box-sizing:border-box}.dk-upd.inl{color:var(--navy,#1E2A45);background:#EEF1F8;border-color:#d3d9e6;margin:6px 0 10px}';
+    document.head.appendChild(css);
+    ['dashboard','disp60','disp90','pendency','actWatch','univsearch','crimeAnalysis','perfMonitor','dataQuality','myPending','district','mcrBook'].forEach(function(id){
+      var pg=document.getElementById(id), bn=pg&&pg.querySelector('.banner'); if(!bn||bn.querySelector('.dk-upd')) return;
+      var d=document.createElement('div'); d.className='dk-upd'; bn.appendChild(d);
+    });
+    var sb=document.getElementById('liveSyncBannerSettings');
+    if(sb&&sb.parentNode){ var d2=document.createElement('div'); d2.className='dk-upd inl'; sb.parentNode.insertBefore(d2,sb.nextSibling); }
+    paint(null);
+  }
+
+  function markLoaded(sig){ lsSet(LKEY,JSON.stringify({sig:sig||'',at:Date.now()})); }
+  function rerenderActive(){
+    try{
+      var a=document.querySelector('.pg.on'); if(!a) return; var id=a.id;
+      if(id==='dashboard'&&typeof renderAll==='function'){ initControls(); renderAll(); }
+      if(id==='disp60') renderDisposalPage(60);
+      if(id==='disp90') renderDisposalPage(90);
+      if(id==='pendency') renderPendencyPage();
+      if(id==='actWatch'&&typeof renderActWatch==='function') renderActWatch();
+      if(id==='univsearch'){ SEARCH_IDX=buildSearchIndex(); populateUnivFilters(); if(typeof runUniversalSearch==='function') runUniversalSearch(); }
+      if(id==='crimeAnalysis'&&typeof caInit==='function') caInit();
+    }catch(e){}
+  }
+
+  // loadLiveData को लपेटें: लोड सफल रहे तो "इस मेटा-संस्करण तक का डेटा लोड है" दर्ज करें
+  var _ll=window.loadLiveData;
+  window.loadLiveData=async function(){
+    var m=await fetchMeta(6000);
+    var r=await _ll.apply(this,arguments);
+    try{ if(typeof LIVE_SYNC_STATE!=='undefined'&&LIVE_SYNC_STATE&&LIVE_SYNC_STATE.status==='live') markLoaded(m&&m.sig); }catch(e){}
+    if(m){ lsSet(MKEY,JSON.stringify(m)); } paint(m||null);
+    return r;
+  };
+
+  // पेज खुलने पर: मेटा वही हो और कैश ताज़ा हो तो भारी डाउनलोड छोड़ दें
+  window.dkStartLoad=async function(){
+    var m=await fetchMeta(8000), st=jget(LKEY);
+    var have=(typeof GEN!=='undefined'&&GEN&&GEN.length)||(typeof RAW!=='undefined'&&RAW&&RAW.length)||(typeof FDC!=='undefined'&&FDC&&FDC.rows&&FDC.rows.length);
+    if(m&&st&&st.sig&&st.sig===m.sig&&have&&(Date.now()-st.at)<MAXAGE){
+      lsSet(MKEY,JSON.stringify(m)); paint(m);
+      try{ LIVE_SYNC_STATE={status:'live',time:new Date(st.at),errors:{}}; updateSyncBanner(); }catch(e){}
+      try{ if(typeof RAW!=='undefined'&&RAW&&RAW.length) buildRecords(); }catch(e){}
+      try{ if(typeof renderHomeDeadlineAlert==='function') renderHomeDeadlineAlert(); }catch(e){}
+      rerenderActive(); return;
+    }
+    return window.loadLiveData();
+  };
+
+  // एडमिन के अपलोड के बाद: अपडेट-समय सर्वर पर दर्ज करें; इस डिवाइस का डेटा पहले से सही है
+  window.dkAfterUpload=async function(type,aoa,mode){
+    if(['gen','fdc','sas','wanted'].indexOf(type)<0) return;
+    try{
+      var now=Date.now();
+      await fetch(getSyncUrl()+'?secret='+encodeURIComponent(getSyncSecret()),{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},redirect:'follow',
+        body:JSON.stringify({secret:getSyncSecret(),key:'datameta_'+type,branch:'datameta',type:type,thana:'ALL',year:'',month:'',monthName:'',payload:{at:now,n:Math.max(0,(aoa&&aoa.length||1)-1),mode:mode||'replace'}})});
+      var m=await fetchMeta(8000);
+      if(m){ lsSet(MKEY,JSON.stringify(m)); markLoaded(m.sig); paint(m); if(typeof saveOfflineCache==='function') saveOfflineCache(); }
+    }catch(e){}
+  };
+
+  // हल्की जाँच (हर 60 सेकंड, टैब सामने हो तभी): बदलाव मिले तो ही पूरा डेटा ताज़ा करें
+  var busy=false, pendingSig='';
+  async function check(){
+    if(busy||document.hidden) return; busy=true;
+    try{
+      var m=await fetchMeta(8000); if(!m) return; paint(m);
+      var st=jget(LKEY); if(!st||st.sig===m.sig||pendingSig===m.sig) return;
+      pendingSig=m.sig;
+      var wait=Math.max(0,m.maxAt+GRACE-Date.now());   // Google की कैश-देरी का इंतज़ार
+      if(typeof toast==='function') toast('🔄 नया डेटा मिला — समस्त साइट का डेटा अपडेट हो रहा है…');
+      setTimeout(function(){ Promise.resolve(window.loadLiveData()).catch(function(){}).then(function(){ pendingSig=''; }); },wait);
+    }finally{ busy=false; }
+  }
+  setInterval(check,60000);
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden) setTimeout(check,800); });
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',addChips); else addChips();
 })();
 </script>
 <script>
