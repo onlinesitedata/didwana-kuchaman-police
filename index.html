@@ -2056,10 +2056,11 @@ footer .ofc-f b{color:#fff;display:block;margin-bottom:4px}
     <div class="sh" style="margin-top:22px;"><span class="tag" style="background:linear-gradient(135deg,var(--maroon),var(--maroon2))">थानावार</span><h2 id="cdTableTitle" style="font-size:16px;">थाना-वार सारणी</h2></div>
     <div class="pcard-actions" style="margin-bottom:10px;">
       <button class="btn-fill amber" onclick="cdExportTable()">⬇️ सारणी + सभी FIR सूची (Excel)</button>
+      <button class="btn-fill" style="background:linear-gradient(135deg,#FF9933,#B45309);color:#fff" onclick="cdAttractivePDF()">🎨 आकर्षक PDF (अधिकारियों हेतु)</button>
       <button class="btn-ghost" onclick="window.print()">🖨️ पेज प्रिंट करें</button>
     </div>
     <div id="cdTable"></div>
-    <div class="note" style="margin-top:14px;">पद्धति: प्रत्येक FIR की गिनती उसकी दर्ज तिथि से होती है। <b>निस्तारण में लगे दिन</b> = चालान/एफ.आर. दिनांक − FIR दर्ज दिनांक; <b>पेंडिंग दिन</b> = आज − FIR दर्ज दिनांक। अनुपालना % = सीमा में निस्तारित ÷ (सीमा में निस्तारित + सीमा बाद निस्तारित + सीमा से अधिक पेंडिंग) × 100 (60/90 दिवस पेज वाला ही सूत्र)। जिन FIR में चालान/एफ.आर. दर्शाया है पर निस्तारण दिनांक रिक्त है, वे <b>पेंडिंग</b> गिने जाते हैं; उनके दिन = आज − FIR दर्ज दिनांक। दिन सीमा से अधिक हों तो "सीमा से अधिक पेंडिंग", कम हों तो "सीमा से कम पेंडिंग" में आते हैं (सूची में स्थिति "पेंडिंग (निस्तारण दिनांक रिक्त)" दिखती है)। डेटा स्रोत: SAS Export।</div>
+    <div class="note" style="margin-top:14px;">पद्धति: प्रत्येक FIR की गिनती उसकी दर्ज तिथि से होती है। <b>निस्तारण में लगे दिन</b> = चालान/एफ.आर. दिनांक − FIR दर्ज दिनांक; <b>पेंडिंग दिन</b> = आज − FIR दर्ज दिनांक। <b>निस्तारण % = सीमा में निस्तारित ÷ कुल प्रकरण × 100</b>; <b>अनुपालना % = सीमा में निस्तारित ÷ (कुल प्रकरण − सीमा में निस्तारित) × 100</b> (यह 100% से अधिक भी हो सकता है; जहाँ कुल = सीमा में निस्तारित, वहाँ हर शून्य होने से "-" दिखता है)। जिन FIR में चालान/एफ.आर. दर्शाया है पर निस्तारण दिनांक रिक्त है, वे <b>पेंडिंग</b> गिने जाते हैं; उनके दिन = आज − FIR दर्ज दिनांक। दिन सीमा से अधिक हों तो "सीमा से अधिक पेंडिंग", कम हों तो "सीमा से कम पेंडिंग" में आते हैं (सूची में स्थिति "पेंडिंग (निस्तारण दिनांक रिक्त)" दिखती है)। डेटा स्रोत: SAS Export।</div>
   </div>
 </div>
 
@@ -15998,8 +15999,9 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   var ST = {head:'scst', rows:[], agg:null, modal:null, ready:false};
 
   function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function dmy(iso){ if(!iso) return '-'; var p=String(iso).slice(0,10).split('-'); return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : String(iso); }
-  function dayDiff(a,b){ return Math.round((new Date(b)-new Date(a))/86400000); }
+  function dayDiff(a,b){ return Math.round((new Date(b)-new Date(a))/864000e2*10)/10 === 0 ? 0 : Math.round((new Date(b)-new Date(a))/86400000); }
   function addDays(iso,n){ var d=new Date(iso); d.setUTCDate(d.getUTCDate()+n); return d.toISOString().slice(0,10); }
   function pad(n){ return String(n).padStart(2,'0'); }
   function localIso(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
@@ -16043,9 +16045,9 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     if(r.disposed){ if(r.disposal==='Chargesheet') b.cs++; else if(r.disposal==='F.R.') b.fr++; }
   }
   function finish(b){
-    var den = b.c2+b.c3+b.c5;
-    b.dispPct = b.c1 ? (b.c2+b.c3)/b.c1*100 : 0;
-    b.compPct = den ? b.c2/den*100 : 0;
+    var den = b.c1-b.c2;   // कुल प्रकरण − समयावधि में निस्तारित
+    b.dispPct = b.c1 ? b.c2/b.c1*100 : 0;            // निस्तारण % = सीमा में निस्तारित ÷ कुल
+    b.compPct = den>0 ? b.c2/den*100 : null;         // अनुपालना % = सीमा में निस्तारित ÷ (कुल − सीमा में निस्तारित)
     b.avg = b.ddN ? b.ddSum/b.ddN : null;
     return b;
   }
@@ -16054,7 +16056,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     order.forEach(function(ps){ byPS[ps]=blank(); });
     rows.forEach(function(r){ if(!byPS[r.ps]){ byPS[r.ps]=blank(); order.push(r.ps); } addTo(byPS[r.ps], r); });
     var stations = order.map(function(ps){ var b=finish(byPS[ps]); b.ps=ps; b.hi=hiPS(ps); b.circle=dispCircleOf(ps); return b; });
-    var ranked = stations.filter(function(s){ return s.c1>0; }).sort(function(a,b){ return b.compPct-a.compPct; });
+    var ranked = stations.filter(function(s){ return s.compPct!=null; }).sort(function(a,b){ return b.compPct-a.compPct; });
     ranked.forEach(function(s,i){ s.rank=i+1; });
     var circles = {}, dist = blank();
     DISP_CIRCLE_ORDER.forEach(function(c){ circles[c]=blank(); });
@@ -16078,7 +16080,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     var st = opts.style ? ' style="'+opts.style+'"' : '';
     var avg = b.avg==null ? '-' : b.avg.toFixed(1);
     var disp = pctCell(key,'disp',b.dispPct,b.c1,opts.dColor);
-    var comp = pctCell(key,'comp',b.compPct,b.c2+b.c3+b.c5,opts.cColor);
+    var comp = pctCell(key,'comp',b.compPct,b.compPct!=null,opts.cColor);
     return '<tr'+st+'><td class="desc-td"'+(opts.bold?' style="font-weight:700;"':'')+'>'+label+'</td>'
       + num(key,'c1',b.c1)+num(key,'c2',b.c2)+num(key,'c3',b.c3)+num(key,'c4',b.c4)+num(key,'c5',b.c5)
       + disp + comp + '<td>'+avg+'</td><td>'+(opts.rank!=null?opts.rank:'')+'</td></tr>';
@@ -16089,15 +16091,16 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
       + '<th>'+L+' दिन से कम Pending</th><th>'+L+' दिन से अधिक Pending</th><th>Disposal %</th><th>Compliance %</th><th>औसत निस्तारण दिन</th><th>Rank</th></tr></thead><tbody>';
     h += rowHTML('जिला डीडवाना-कुचामन (कुल)', 'ALL', agg.dist, {style:'background:#EAF1FE;font-weight:700;', bold:true});
     var valid = agg.stations.filter(function(s){ return s.c1>0; });
+    var validC = agg.stations.filter(function(s){ return s.compPct!=null; });
     var dC = makeColorScaler(valid, function(s){return s.dispPct;}, false);
-    var cC = makeColorScaler(valid, function(s){return s.compPct;}, false);
+    var cC = makeColorScaler(validC, function(s){return s.compPct;}, false);
     function bg(c){ return c ? 'background:'+c+';' : ''; }
     DISP_CIRCLE_ORDER.forEach(function(c){
       var sts = agg.stations.filter(function(s){ return s.circle===c; });
       if(!sts.length) return;
       h += '<tr><td colspan="10" style="background:#EDF1F7;font-weight:700;color:var(--navy);">'+escHtml(c)+' सर्किल</td></tr>';
       sts.forEach(function(s){
-        h += rowHTML(escHtml(s.hi), 'P:'+s.ps, s, {dColor:s.c1?bg(dC(s.dispPct)):'', cColor:s.c1?bg(cC(s.compPct)):'', rank:(s.rank||'-')});
+        h += rowHTML(escHtml(s.hi), 'P:'+s.ps, s, {dColor:s.c1?bg(dC(s.dispPct)):'', cColor:s.compPct!=null?bg(cC(s.compPct)):'', rank:(s.rank||'-')});
       });
       var cb = agg.circles[c];
       h += rowHTML(escHtml(c)+' — सर्किल योग', 'C:'+c, cb, {style:'background:#e8f4ea;font-weight:700;', bold:true});
@@ -16113,7 +16116,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
       rows.forEach(function(r){ addTo(b, r); });
       finish(b);
       var on = (k===ST.head) ? 'background:#FFF7E0;' : '';
-      h += '<tr style="'+on+'"><td class="desc-td"><span class="cd-hl" data-h="'+k+'">'+HEADS[k].icon+' '+HEADS[k].label+'</span></td><td>'+b.c1+'</td><td>'+b.c2+'</td><td>'+b.c3+'</td><td>'+b.c4+'</td><td>'+b.c5+'</td><td>'+(b.c1?pctFmt(b.dispPct):'-')+'</td><td><b>'+((b.c2+b.c3+b.c5)?pctFmt(b.compPct):'-')+'</b></td></tr>';
+      h += '<tr style="'+on+'"><td class="desc-td"><span class="cd-hl" data-h="'+k+'">'+HEADS[k].icon+' '+HEADS[k].label+'</span></td><td>'+b.c1+'</td><td>'+b.c2+'</td><td>'+b.c3+'</td><td>'+b.c4+'</td><td>'+b.c5+'</td><td>'+(b.c1?pctFmt(b.dispPct):'-')+'</td><td><b>'+(b.compPct!=null?pctFmt(b.compPct):'-')+'</b></td></tr>';
     });
     return h + '</tbody></table></div>';
   }
@@ -16149,7 +16152,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   /* ---------- क्लिक → FIR सूची ---------- */
   function colTitle(col, L){
     return {c1:'कुल दर्ज FIR', c2:L+' दिन में निस्तारित', c3:L+' दिन बाद निस्तारित', c4:L+' दिन से कम पेंडिंग', c5:L+' दिन से अधिक पेंडिंग',
-            disp:'कुल निस्तारित (Disposal %)', comp:'अनुपालना आधार — सीमा में + सीमा बाद निस्तारित + सीमा से अधिक पेंडिंग (Compliance %)'}[col] || col;
+            disp:L+' दिन में निस्तारित प्रकरण (Disposal % का अंश)', comp:'कुल − '+L+' दिन में निस्तारित = '+L+' दिन बाद निस्तारित + सभी पेंडिंग (Compliance % का हर)'}[col] || col;
   }
   function keyTitle(key){
     if(key==='ALL') return 'जिला डीडवाना-कुचामन';
@@ -16161,8 +16164,8 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
       if(key.indexOf('P:')===0 && r.ps!==key.slice(2)) return false;
       if(key.indexOf('C:')===0 && r.circle!==key.slice(2)) return false;
       if(col==='c1') return true;
-      if(col==='disp') return r.bucket==='c2'||r.bucket==='c3';
-      if(col==='comp') return r.bucket!=='c4';
+      if(col==='disp') return r.bucket==='c2';
+      if(col==='comp') return r.bucket!=='c2';
       return r.bucket===col;
     });
     if(col==='c4'||col==='c5') rows.sort(function(a,b){ return b.age-a.age; });
@@ -16256,7 +16259,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   window.cdExportTable = function(){
     if(!ST.agg || !ST.rows.length){ toast('इस चयन में डेटा नहीं है'); return; }
     var L = ST.L, A = ST.agg;
-    function line(name, b, rank){ return [name,b.c1,b.c2,b.c3,b.c4,b.c5,+b.dispPct.toFixed(2),+b.compPct.toFixed(2),b.avg==null?'-':+b.avg.toFixed(1),rank==null?'':rank]; }
+    function line(name, b, rank){ return [name,b.c1,b.c2,b.c3,b.c4,b.c5,+b.dispPct.toFixed(2),(b.compPct==null?'-':+b.compPct.toFixed(2)),b.avg==null?'-':+b.avg.toFixed(1),rank==null?'':rank]; }
     var t = [['इकाई','कुल FIR (दर्ज)',L+' दिन में निस्तारित',L+' दिन बाद निस्तारित',L+' दिन से कम Pending',L+' दिन से अधिक Pending','Disposal %','Compliance %','औसत निस्तारण दिन','Rank']];
     t.push(line('जिला डीडवाना-कुचामन (कुल)', A.dist));
     DISP_CIRCLE_ORDER.forEach(function(c){
@@ -16271,6 +16274,87 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
       {name:'थानावार सारणी', aoa:t, filter:true, colWidths:[34,12,14,14,16,18,11,13,14,8]},
       {name:'सभी FIR सूची', aoa:all, filter:true, colWidths:[7,18,14,14,13,30,26,26,14,12,12,13,18,24]}
     ]);
+  };
+
+
+  /* ---------- आकर्षक PDF (अधिकारियों हेतु) ---------- */
+  window.cdAttractivePDF = function(){
+    if(!ST.agg || !ST.rows.length){ toast('इस चयन में डेटा नहीं है — पहले हेड/अवधि चुनें'); return; }
+    var L=ST.L, A=ST.agg, head=HEADS[ST.head], rg=ST.rg, d=A.dist;
+    var LBc = window.dkLbl || {co:function(c){return c;}, sho:function(t){return t;}};
+    function pc(v){ return v==null ? '-' : pctFmt(v); }
+    function bg(c){ return c ? ' style="background:'+c+'"' : ''; }
+    var sts = A.stations.filter(function(s){ return s.c1>0; });
+    var dC = makeColorScaler(sts, function(s){return s.dispPct;}, false);
+    var cC = makeColorScaler(sts.filter(function(s){return s.compPct!=null;}), function(s){return s.compPct;}, false);
+    function cells(b, strong){
+      return '<td>'+b.c1+'</td><td>'+b.c2+'</td><td>'+b.c3+'</td><td>'+b.c4+'</td><td>'+b.c5+'</td>'
+        + '<td'+(strong?'':bg(b.c1?dC(b.dispPct):''))+'>'+(b.c1?pc(b.dispPct):'-')+'</td>'
+        + '<td'+(strong?'':bg(b.compPct!=null?cC(b.compPct):''))+'><b>'+pc(b.compPct)+'</b></td><td>'+(b.avg==null?'-':b.avg.toFixed(1))+'</td>';
+    }
+    var cols = '<th>कुल FIR</th><th>'+L+' दिन में निस्तारित</th><th>'+L+' दिन बाद निस्तारित</th><th>'+L+' दिन से कम Pending</th><th>'+L+' दिन से अधिक Pending</th><th>निस्तारण %</th><th>अनुपालना %</th><th>औसत निस्तारण दिन</th>';
+    /* 1) चारों विशेष हेड */
+    var ov = '<table class="at"><thead><tr><th>अपराध हेड</th>'+cols+'</tr></thead><tbody>';
+    OVERVIEW_HEADS.forEach(function(k){
+      var rows = buildRows(k, L, rg), b = blank(); rows.forEach(function(r){ addTo(b,r); }); finish(b);
+      ov += '<tr'+(k===ST.head?' class="sel"':'')+'><td class="nm"><b>'+HEADS[k].icon+' '+esc(HEADS[k].label)+'</b></td>'+cells(b,true)+'</tr>';
+    });
+    ov += '</tbody></table>';
+    /* 2) सर्किल-वार */
+    var ct = '<table class="at"><thead><tr><th>सर्किल</th>'+cols+'</tr></thead><tbody>';
+    DISP_CIRCLE_ORDER.forEach(function(c){ var b=A.circles[c]; if(b&&b.c1>0) ct += '<tr class="yog-row"><td class="nm"><b>'+esc(c)+'</b></td>'+cells(b,true)+'</tr>'; });
+    ct += '<tr class="dist-row"><td class="nm"><b>जिला कुल</b></td>'+cells(d,true)+'</tr></tbody></table>';
+    /* 3) थाना-वार (अनुपालना रैंक अनुसार) */
+    var ranked = sts.filter(function(s){return s.rank;}).sort(function(a,b){return a.rank-b.rank;});
+    var rest = sts.filter(function(s){return !s.rank;});
+    var st = '<table class="at"><thead><tr><th>रैंक</th><th>थाना</th><th>सर्किल</th>'+cols+'</tr></thead><tbody>';
+    ranked.concat(rest).forEach(function(s){
+      var rk = s.rank ? '<span class="rk'+(s.rank<=3?' rk'+s.rank:'')+'">'+s.rank+'</span>' : '-';
+      st += '<tr><td>'+rk+'</td><td class="nm"><b>'+esc(s.hi)+'</b></td><td>'+esc(s.circle)+'</td>'+cells(s,false)+'</tr>';
+    });
+    st += '</tbody></table>';
+    /* टिप्पणी */
+    var cArr = DISP_CIRCLE_ORDER.filter(function(c){ return A.circles[c] && A.circles[c].compPct!=null; }).sort(function(a,b){ return A.circles[a].compPct-A.circles[b].compPct; });
+    function cName(c){ return c.indexOf('सर्किल')<0 ? c+' सर्किल' : c; }
+    var nt = 'टिप्पणी: '+head.label+' के प्रकरणों (FIR दर्ज अवधि: '+periodLabel(rg)+') में जिले की '+L+'-दिवस निस्तारण '+pc(d.dispPct)+' तथा अनुपालना '+pc(d.compPct)+' रही।';
+    try{
+      if(cArr.length>1) nt += ' सर्वोत्तम वृत्त '+cArr[cArr.length-1]+' ('+pc(A.circles[cArr[cArr.length-1]].compPct)+'); न्यूनतम वृत्त '+cArr[0]+' ('+pc(A.circles[cArr[0]].compPct)+') — '+LBc.co(cName(cArr[0]))+'।';
+      if(ranked.length>1){ var w=ranked[ranked.length-1], bst=ranked[0]; nt += ' सबसे पिछड़ा थाना '+w.hi+' ('+pc(w.compPct)+') — '+LBc.sho(w.hi)+'; श्रेष्ठ थाना '+bst.hi+' ('+pc(bst.compPct)+')।'; }
+    }catch(e){}
+    nt += ' संबंधित वृत्ताधिकारी व थानाधिकारी निर्धारित समय-सीमा में निस्तारण सुनिश्चित करें।';
+    var kp = [['कुल FIR',d.c1,'#1D4ED8,#3B82F6'],[L+' दिन में निस्तारित',d.c2,'#138808,#34A853'],['निस्तारण %',pc(d.dispPct),'#B45309,#F59E0B'],['अनुपालना %',pc(d.compPct),'#7B1FA2,#AB47BC']]
+      .map(function(x){ return '<div style="background:linear-gradient(135deg,'+x[2]+')"><b>'+esc(String(x[1]))+'</b>'+esc(x[0])+'</div>'; }).join('');
+    var title = head.label+' — '+L+' दिवस निस्तारण (थानावार) — जिला डीडवाना-कुचामन';
+    var dt = new Date().toLocaleDateString('hi-IN',{day:'numeric',month:'long',year:'numeric'});
+    var html = '<div class="p1"><div class="tri"></div><div class="hd"><h1>🏛️ '+esc(title)+'</h1><p>राजस्थान पुलिस · जिला पुलिस अधीक्षक कार्यालय, डीडवाना-कुचामन · सांख्यिकी शाखा | FIR दर्ज अवधि: '+esc(periodLabel(rg))+' | दिनांक: '+dt+' | 🔒 केवल पुलिस उपयोग हेतु</p></div>'
+      + '<div class="kp">'+kp+'</div>'
+      + '<div class="sec">सभी विशेष हेड — जिला स्तर</div>'+ov
+      + '<div class="sec">सर्किल-वार स्थिति — '+esc(head.label)+'</div>'+ct
+      + '<div class="nt">📝 '+esc(nt)+'</div></div>'
+      + '<div class="pb p2"><div class="sec">थाना-वार स्थिति — '+esc(head.label)+' (अनुपालना % के क्रम में)</div>'+st
+      + (typeof COLOR_LEGEND_HTML!=='undefined'?COLOR_LEGEND_HTML:'')+'</div>'
+      + '<div class="ft">यह रिपोर्ट मनोज कुमार सारण, सांख्यिकी शाखा, कार्यालय पुलिस अधीक्षक, जिला डीडवाना-कुचामन द्वारा तैयार की गई। निस्तारण % = '+L+' दिन में निस्तारित ÷ कुल प्रकरण × 100; अनुपालना % = '+L+' दिन में निस्तारित ÷ (कुल प्रकरण − '+L+' दिन में निस्तारित) × 100 (100% से अधिक भी संभव)। निस्तारण दिनांक रिक्त वाले प्रकरण पेंडिंग गिने गए हैं।</div>';
+    if(typeof resolvePrintVarsHTML==='function') html = resolvePrintVarsHTML(html);
+    var w = window.open('','_blank'); if(!w){ toast('⚠️ पॉप-अप ब्लॉक हो गया — कृपया इस साइट के लिए पॉप-अप की अनुमति दें'); return; }
+    w.document.write('<html><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>'
+      + "body{margin:0;font-family:Hind,'Noto Sans Devanagari',Arial,sans-serif;color:#101828;-webkit-print-color-adjust:exact;print-color-adjust:exact}"
+      + '.tri{height:7px;background:linear-gradient(90deg,#FF9933 0 33%,#fff 33% 66%,#138808 66%)}'
+      + '.hd{background:linear-gradient(135deg,#1E2A45,#2F4A8A);color:#fff;padding:14px 20px;border-radius:0 0 16px 16px}.hd h1{font-size:18px;margin:0}.hd p{margin:5px 0 0;font-size:10.5px;opacity:.92}'
+      + '.kp{display:flex;gap:10px;margin:10px 12px}.kp div{flex:1;border-radius:12px;padding:7px 4px;color:#fff;text-align:center;font-size:11px}.kp b{display:block;font-size:18px;margin-bottom:2px}'
+      + '.sec{margin:10px 12px 5px;font-weight:700;font-size:13px;color:#1E2A45;border-left:5px solid #FF9933;padding-left:8px}'
+      + '.pb{page-break-before:always;break-before:page;margin-top:6px}'
+      + 'table.at{width:calc(100% - 24px);margin:0 12px;border-collapse:separate;border-spacing:0;font-size:10px;border:1px solid #C7CDD9;border-radius:10px;overflow:hidden}'
+      + '.at th{background:linear-gradient(180deg,#1E2A45,#2B3C66);color:#fff;padding:5px 3px;font-size:9px;line-height:1.3}'
+      + '.at td{padding:4px 3px;text-align:center;border-bottom:1px solid #E5E9F2;white-space:nowrap}'
+      + '.at td.nm{text-align:left;white-space:normal}'
+      + '.at tbody tr:nth-child(even) td{background:#F7F9FC}.at tr.sel td{background:#FFF3CC !important}.at tr.yog-row td{background:#E8F4EA !important;font-weight:700}.at tr.dist-row td{background:#DCEBFF !important;border-top:2px solid #1E2A45;font-weight:700}'
+      + '.rk{display:inline-block;min-width:22px;padding:1px 5px;border-radius:999px;font-weight:800;background:#EEF1F6}.rk1{background:#FFE699;color:#7A5B00}.rk2{background:#E2E8F0;color:#334155}.rk3{background:#FDDCC0;color:#7C2D12}'
+      + '.at thead{display:table-header-group}.at tr{page-break-inside:avoid}'
+      + '.nt{margin:12px 12px 6px;padding:9px 12px;border:1.5px solid #B45309;background:#FFFBEB;border-radius:10px;font-size:11px;line-height:1.65}'
+      + '.ft{margin:8px 12px 10px;font-size:9px;color:#64748B;text-align:center}'
+      + '@page{size:A4 portrait;margin:9mm}</style></head><body>'+html+'</body></html>');
+    w.document.close(); toast('🖨️ प्रिंट विंडो खुल रही है — डेस्टिनेशन में "Save as PDF" चुनें');
+    setTimeout(function(){ w.focus(); w.print(); },500);
   };
 
   /* ---------- सार्वजनिक फ़ंक्शन ---------- */
@@ -16302,6 +16386,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   };
 })();
 </script>
+
 
 </body>
 </html>
