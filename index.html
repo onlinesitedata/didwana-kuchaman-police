@@ -1332,6 +1332,7 @@ footer .ofc-f b{color:#fff;display:block;margin-bottom:4px}
   <button data-pg="disp60" onclick="go('disp60')">⏱️ 60 दिवस निस्तारण</button>
   <button data-pg="disp90" onclick="go('disp90')">⏱️ 90 दिवस निस्तारण</button>
   <button data-pg="crimeDisp" onclick="go('crimeDisp')">🧾 अपराध-वार निस्तारण सारणी (SC/ST, महिला आदि)</button>
+  <button data-pg="asOnDate" onclick="go('asOnDate')">📅 दिनांक-अनुसार स्थिति व रैंकिंग</button>
   <button data-pg="pendency" onclick="go('pendency')">📉 पेंडेंसी रैंकिंग</button>
   <button data-pg="mcrBook" onclick="adminGo('mcrBook')">📗 MCR Book (मासिक अपराध प्रतिवेदन)</button>
   <button data-pg="univsearch" onclick="go('univsearch')">🔎 यूनिवर्सल सर्च</button>
@@ -1413,6 +1414,11 @@ footer .ofc-f b{color:#fff;display:block;margin-bottom:4px}
         <div class="ni" style="background:linear-gradient(135deg,#6A1B9A,#4A148C)">🧾</div>
         <h3>अपराध-वार निस्तारण सारणी</h3>
         <p>SC/ST, महिला अत्याचार, पोक्सो, बलात्कार — चुनी अवधि की थानावार सारणी; संख्या पर क्लिक कर FIR सूची व डाउनलोड</p>
+      </div>
+      <div class="nc" onclick="go('asOnDate')">
+        <div class="ni" style="background:linear-gradient(135deg,#1E4DB7,#7C3AED)">📅</div>
+        <h3>दिनांक-अनुसार स्थिति व रैंकिंग</h3>
+        <p>किसी भी दिनांक की स्थिति — 60/90 दिवस व SC/ST की दो दिनांक + आज की अनुपालना, रैंक सुधार/गिरावट, FIR-वार जाँच व डाउनलोड</p>
       </div>
       <div class="nc" onclick="go('pendency')">
         <div class="ni" style="background:linear-gradient(135deg,#6A1B9A,#4A148C)">📉</div>
@@ -2028,6 +2034,13 @@ footer .ofc-f b{color:#fff;display:block;margin-bottom:4px}
           </select>
         </div>
         <div>
+          <label>गणना पद्धति</label>
+          <select id="cdMode" onchange="cdRender()">
+            <option value="new" selected>नई पद्धति (वर्तमान)</option>
+            <option value="old">पुरानी स्थिति (पूर्व पद्धति)</option>
+          </select>
+        </div>
+        <div>
           <label>FIR दर्ज तिथि से (From)</label>
           <input type="date" id="cdFrom" onchange="cdRender()">
         </div>
@@ -2060,7 +2073,66 @@ footer .ofc-f b{color:#fff;display:block;margin-bottom:4px}
       <button class="btn-ghost" onclick="window.print()">🖨️ पेज प्रिंट करें</button>
     </div>
     <div id="cdTable"></div>
-    <div class="note" style="margin-top:14px;">पद्धति: प्रत्येक FIR की गिनती उसकी दर्ज तिथि से होती है। <b>निस्तारण में लगे दिन</b> = चालान/एफ.आर. दिनांक − FIR दर्ज दिनांक; <b>पेंडिंग दिन</b> = आज − FIR दर्ज दिनांक। <b>निस्तारण % = सीमा में निस्तारित ÷ कुल प्रकरण × 100</b>; <b>अनुपालना % = सीमा में निस्तारित ÷ (कुल प्रकरण − सीमा में पेंडिंग) × 100</b> (जहाँ कुल = सीमा में पेंडिंग, वहाँ हर शून्य होने से "-" दिखता है)। जिन FIR में चालान/एफ.आर. दर्शाया है पर निस्तारण दिनांक रिक्त है, वे <b>पेंडिंग</b> गिने जाते हैं; उनके दिन = आज − FIR दर्ज दिनांक। दिन सीमा से अधिक हों तो "सीमा से अधिक पेंडिंग", कम हों तो "सीमा से कम पेंडिंग" में आते हैं (सूची में स्थिति "पेंडिंग (निस्तारण दिनांक रिक्त)" दिखती है)। डेटा स्रोत: SAS Export।</div>
+    <div class="note" style="margin-top:14px;">पद्धति: प्रत्येक FIR की गिनती उसकी दर्ज तिथि से होती है। <b>निस्तारण में लगे दिन</b> = चालान/एफ.आर. दिनांक − FIR दर्ज दिनांक; <b>पेंडिंग दिन</b> = आज − FIR दर्ज दिनांक। <b>निस्तारण % = सीमा में निस्तारित ÷ कुल प्रकरण × 100</b>; <b>अनुपालना % = सीमा में निस्तारित ÷ (कुल प्रकरण − सीमा में पेंडिंग) × 100</b> (जहाँ कुल = सीमा में पेंडिंग, वहाँ हर शून्य होने से "-" दिखता है)। <b>पुरानी स्थिति</b> चुनने पर: निस्तारण % = (सीमा में + सीमा बाद निस्तारित) ÷ कुल; अनुपालना % = सीमा में निस्तारित ÷ (सीमा में + बाद निस्तारित + सीमा से अधिक पेंडिंग); और निस्तारण दिनांक रिक्त वाले प्रकरण "सीमा बाद निस्तारित" में गिने जाते हैं। जिन FIR में चालान/एफ.आर. दर्शाया है पर निस्तारण दिनांक रिक्त है, वे <b>पेंडिंग</b> गिने जाते हैं; उनके दिन = आज − FIR दर्ज दिनांक। दिन सीमा से अधिक हों तो "सीमा से अधिक पेंडिंग", कम हों तो "सीमा से कम पेंडिंग" में आते हैं (सूची में स्थिति "पेंडिंग (निस्तारण दिनांक रिक्त)" दिखती है)। डेटा स्रोत: SAS Export।</div>
+  </div>
+</div>
+
+<!-- ============================================================ दिनांक-अनुसार स्थिति व रैंकिंग (60 / 90 / SC-ST) ============================================================ -->
+<div class="pg" id="asOnDate">
+  <div class="banner" style="background:linear-gradient(135deg,#0F2557,#1E4DB7 55%,#7C3AED)">
+    <div class="b-icon">📅</div>
+    <h1>दिनांक-अनुसार स्थिति व रैंकिंग</h1>
+    <p>किसी भी चयनित दिनांक की निस्तारण/अनुपालना स्थिति · दो दिनांक + आज की तुलना · किसकी रैंक सुधरी, किसकी गिरी</p>
+  </div>
+  <div class="wrap">
+    <div class="ctx-bar">
+      <div class="ctx-title">📅 दिनांक चुनें — उस दिन की स्थिति देखें</div>
+      <div class="ctx-grid">
+        <div>
+          <label>डेटा स्रोत (60/90 दिवस हेतु)</label>
+          <select id="aodSource" onchange="aodRender()"></select>
+        </div>
+        <div>
+          <label>🔵 चयनित दिनांक-1</label>
+          <input type="date" id="aodD1" onchange="aodRender()">
+        </div>
+        <div>
+          <label>🟠 चयनित दिनांक-2</label>
+          <input type="date" id="aodD2" onchange="aodRender()">
+        </div>
+        <div>
+          <label>🟢 आज की दिनांक (स्वतः)</label>
+          <input type="text" id="aodToday" readonly>
+        </div>
+        <div>
+          <label>🛡️ SC/ST एक्ट — निस्तारण सीमा</label>
+          <select id="aodScstLimit" onchange="aodRender()">
+            <option value="60" selected>60 दिवस</option>
+            <option value="90">90 दिवस</option>
+          </select>
+        </div>
+      </div>
+      <div class="aod-presets">
+        <span>जल्दी चुनें:</span>
+        <button onclick="aodPreset('month')">पिछले दो माह-अंत</button>
+        <button onclick="aodPreset('days')">आज से 60 व 30 दिन पहले</button>
+        <button onclick="aodPreset('week')">आज से 14 व 7 दिन पहले</button>
+      </div>
+      <div id="aodNote"></div>
+    </div>
+
+    <div class="aod-tabs" id="aodTabs"></div>
+
+    <div class="pcard-actions" style="margin:6px 0 12px;">
+      <button class="btn-fill green" onclick="aodExcel('all')">⬇️ सभी श्रेणियाँ — Excel</button>
+      <button class="btn-fill amber" onclick="aodPDF('all')">🖨️ सभी श्रेणियाँ — आकर्षक PDF</button>
+      <button class="btn-ghost" onclick="aodExcel('tab')">⬇️ यह श्रेणी — Excel</button>
+      <button class="btn-ghost" onclick="aodPDF('tab')">🖨️ यह श्रेणी — PDF</button>
+    </div>
+
+    <div id="aodBody"></div>
+
+    <div class="note" style="margin-top:16px;" id="aodFormula"></div>
   </div>
 </div>
 
@@ -9362,6 +9434,7 @@ const _origGo = go;
 go = function(id){
   _origGo(id);
   if(id==='crimeDisp') cdInit();
+  if(id==='asOnDate') aodInit();
   if(id==='disp60') renderDisposalPage(60);
   if(id==='disp90') renderDisposalPage(90);
   if(id==='pendency') renderPendencyPage();
@@ -10978,7 +11051,7 @@ async function loadLiveData(){
     const id = activePg.id;
     if(id==='dashboard' && typeof renderAll==='function'){ initControls(); renderAll(); }
     if(id==='disp60') renderDisposalPage(60);
-    if(id==='disp90') renderDisposalPage(90); if(id==='crimeDisp' && typeof cdRender==='function') cdRender();
+    if(id==='disp90') renderDisposalPage(90); if(id==='crimeDisp' && typeof cdRender==='function') cdRender(); if(id==='asOnDate' && typeof aodRender==='function') aodRender();
     if(id==='pendency') renderPendencyPage();
     if(id==='actWatch' && typeof renderActWatch==='function') renderActWatch();
     if(id==='univsearch'){ SEARCH_IDX = buildSearchIndex(); populateUnivFilters(); if(typeof runUniversalSearch==='function') runUniversalSearch(); }
@@ -11351,7 +11424,7 @@ function refreshAfterDataChange(){
     const id = activePg.id;
     if(id==='dashboard' && typeof renderAll==='function'){ initControls(); renderAll(); }
     if(id==='disp60') renderDisposalPage(60);
-    if(id==='disp90') renderDisposalPage(90); if(id==='crimeDisp' && typeof cdRender==='function') cdRender();
+    if(id==='disp90') renderDisposalPage(90); if(id==='crimeDisp' && typeof cdRender==='function') cdRender(); if(id==='asOnDate' && typeof aodRender==='function') aodRender();
     if(id==='pendency') renderPendencyPage();
     if(id==='actWatch' && typeof renderActWatch==='function') renderActWatch();
     if(id==='univsearch'){ SEARCH_IDX = buildSearchIndex(); populateUnivFilters(); if(typeof runUniversalSearch==='function') runUniversalSearch(); }
@@ -15207,6 +15280,7 @@ try{ initDispWordCircle(); }catch(e){}
     {k:'dashboard',  label:'📊 अपराध सांख्यिकी डैशबोर्ड',                 pages:['dashboard']},
     {k:'disp',       label:'⏱️ 60/90 दिवस में निस्तारण योग्य',             pages:['disp60','disp90']},
     {k:'crimeDisp',  label:'🧾 अपराध-वार निस्तारण सारणी',                  pages:['crimeDisp']},
+    {k:'asOnDate',   label:'📅 दिनांक-अनुसार स्थिति व रैंकिंग',              pages:['asOnDate']},
     {k:'actWatch',   label:'⚖️ आबकारी/जुआ/आर्म्स/NDPS निगरानी',            pages:['actWatch']},
     {k:'pendency',   label:'📉 पेंडेंसी रैंकिंग',                           pages:['pendency']},
     {k:'univsearch', label:'🔎 यूनिवर्सल सर्च',                             pages:['univsearch']}
@@ -15855,7 +15929,7 @@ try{ initDispWordCircle(); }catch(e){}
     var css=document.createElement('style');
     css.textContent='.dk-upd{display:block;margin:8px auto 0;max-width:100%;font-size:11.5px;line-height:1.55;color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:5px 10px;box-sizing:border-box}.dk-upd.inl{color:var(--navy,#1E2A45);background:#EEF1F8;border-color:#d3d9e6;margin:6px 0 10px}';
     document.head.appendChild(css);
-    ['dashboard','disp60','disp90','crimeDisp','pendency','actWatch','univsearch','crimeAnalysis','perfMonitor','dataQuality','myPending','district','mcrBook'].forEach(function(id){
+    ['dashboard','disp60','disp90','crimeDisp','asOnDate','pendency','actWatch','univsearch','crimeAnalysis','perfMonitor','dataQuality','myPending','district','mcrBook'].forEach(function(id){
       var pg=document.getElementById(id), bn=pg&&pg.querySelector('.banner'); if(!bn||bn.querySelector('.dk-upd')) return;
       var d=document.createElement('div'); d.className='dk-upd'; bn.appendChild(d);
     });
@@ -15870,7 +15944,7 @@ try{ initDispWordCircle(); }catch(e){}
       var a=document.querySelector('.pg.on'); if(!a) return; var id=a.id;
       if(id==='dashboard'&&typeof renderAll==='function'){ initControls(); renderAll(); }
       if(id==='disp60') renderDisposalPage(60);
-      if(id==='disp90') renderDisposalPage(90); if(id==='crimeDisp' && typeof cdRender==='function') cdRender();
+      if(id==='disp90') renderDisposalPage(90); if(id==='crimeDisp' && typeof cdRender==='function') cdRender(); if(id==='asOnDate' && typeof aodRender==='function') aodRender();
       if(id==='pendency') renderPendencyPage();
       if(id==='actWatch'&&typeof renderActWatch==='function') renderActWatch();
       if(id==='univsearch'){ SEARCH_IDX=buildSearchIndex(); populateUnivFilters(); if(typeof runUniversalSearch==='function') runUniversalSearch(); }
@@ -16006,6 +16080,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   function pad(n){ return String(n).padStart(2,'0'); }
   function localIso(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
   function limit(){ return parseInt(($('cdLimit')||{}).value,10)===90 ? 90 : 60; }
+  function mode(){ return (($('cdMode')||{}).value==='old') ? 'old' : 'new'; }
   function range(){ var f=$('cdFrom'), t=$('cdTo'); return {from:(f&&f.value)||null, to:(t&&t.value)||null}; }
   function hiPS(ps){ return (typeof ENG2HI_PS!=='undefined' && ENG2HI_PS[ps]) || ps; }
   function periodLabel(r){
@@ -16024,10 +16099,11 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
       if(!fl.length) return;
       var disposed = !!r.disposal && r.disposal!=='Pending';
       var noDate = disposed && !r.csDate;   // निस्तारित दर्शाया पर निस्तारण दिनांक रिक्त → पेंडिंग गिना जाएगा
-      if(noDate) disposed = false;
+      if(noDate && mode()==='new') disposed = false;   // पुरानी पद्धति में ऐसे प्रकरण "बाद निस्तारित" गिने जाते हैं
       var dd=null, age=null, bucket;
       if(disposed){
-        dd = dayDiff(r.date, r.csDate); bucket = dd<=L ? 'c2' : 'c3';
+        if(noDate){ bucket = 'c3'; }
+        else { dd = dayDiff(r.date, r.csDate); bucket = dd<=L ? 'c2' : 'c3'; }
       } else {
         age = dayDiff(r.date, today);
         bucket = age<=L ? 'c4' : 'c5';
@@ -16045,9 +16121,10 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     if(r.disposed){ if(r.disposal==='Chargesheet') b.cs++; else if(r.disposal==='F.R.') b.fr++; }
   }
   function finish(b){
-    var den = b.c1-b.c4;   // कुल प्रकरण − समयावधि में पेंडिंग
-    b.dispPct = b.c1 ? b.c2/b.c1*100 : 0;            // निस्तारण % = सीमा में निस्तारित ÷ कुल
-    b.compPct = den>0 ? b.c2/den*100 : null;         // अनुपालना % = सीमा में निस्तारित ÷ (कुल − सीमा में पेंडिंग)
+    var old = mode()==='old';
+    var den = old ? (b.c2+b.c3+b.c5) : (b.c1-b.c4);   // नई: कुल − सीमा में पेंडिंग | पुरानी: सीमा में + बाद निस्तारित + सीमा से अधिक पेंडिंग
+    b.dispPct = b.c1 ? (old ? (b.c2+b.c3) : b.c2)/b.c1*100 : 0;   // नई: सीमा में निस्तारित ÷ कुल | पुरानी: कुल निस्तारित ÷ कुल
+    b.compPct = den>0 ? b.c2/den*100 : null;
     b.avg = b.ddN ? b.ddSum/b.ddN : null;
     return b;
   }
@@ -16142,7 +16219,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     ST.rows = rows; ST.agg = agg; ST.L = L; ST.rg = rg;
     var minD=null, maxD=null;
     buildRows(ST.head, L, {from:null,to:null}).forEach(function(r){ if(!minD||r.date<minD) minD=r.date; if(!maxD||r.date>maxD) maxD=r.date; });
-    $('cdNote').innerHTML = '<div class="note">📅 अवधि (FIR दर्ज तिथि): <b>'+periodLabel(rg)+'</b> | हेड: <b>'+HEADS[ST.head].label+'</b> | इस अवधि में कुल FIR: <b>'+rows.length+'</b>'
+    $('cdNote').innerHTML = '<div class="note">📅 अवधि (FIR दर्ज तिथि): <b>'+periodLabel(rg)+'</b> | पद्धति: <b>'+(mode()==='old'?'पुरानी स्थिति':'नई')+'</b> | हेड: <b>'+HEADS[ST.head].label+'</b> | इस अवधि में कुल FIR: <b>'+rows.length+'</b>'
       + (minD ? ' | इस हेड का उपलब्ध डेटा: '+dmy(minD)+' से '+dmy(maxD) : '') + '</div>';
     $('cdTableTitle').textContent = HEADS[ST.head].label+' — थाना-वार सारणी ('+L+' दिवस सीमा)';
     $('cdOverview').innerHTML = overviewHTML(L, rg);
@@ -16152,7 +16229,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   /* ---------- क्लिक → FIR सूची ---------- */
   function colTitle(col, L){
     return {c1:'कुल दर्ज FIR', c2:L+' दिन में निस्तारित', c3:L+' दिन बाद निस्तारित', c4:L+' दिन से कम पेंडिंग', c5:L+' दिन से अधिक पेंडिंग',
-            disp:L+' दिन में निस्तारित प्रकरण (Disposal % का अंश)', comp:'कुल − '+L+' दिन से कम पेंडिंग = '+L+' दिन में निस्तारित + '+L+' दिन बाद निस्तारित + '+L+' दिन से अधिक पेंडिंग (Compliance % का हर)'}[col] || col;
+            disp:(mode()==='old' ? 'कुल निस्तारित — '+L+' दिन में + बाद (Disposal % का अंश)' : L+' दिन में निस्तारित प्रकरण (Disposal % का अंश)'), comp:'कुल − '+L+' दिन से कम पेंडिंग = '+L+' दिन में निस्तारित + '+L+' दिन बाद निस्तारित + '+L+' दिन से अधिक पेंडिंग (Compliance % का हर)'}[col] || col;
   }
   function keyTitle(key){
     if(key==='ALL') return 'जिला डीडवाना-कुचामन';
@@ -16164,7 +16241,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
       if(key.indexOf('P:')===0 && r.ps!==key.slice(2)) return false;
       if(key.indexOf('C:')===0 && r.circle!==key.slice(2)) return false;
       if(col==='c1') return true;
-      if(col==='disp') return r.bucket==='c2';
+      if(col==='disp') return mode()==='old' ? (r.bucket==='c2'||r.bucket==='c3') : r.bucket==='c2';
       if(col==='comp') return r.bucket!=='c4';
       return r.bucket===col;
     });
@@ -16181,6 +16258,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   }
   function gapText(r, L){
     if(r.disposed){
+      if(r.dd==null) return 'दिनांक रिक्त';
       return r.dd<=L ? (L-r.dd)+' दिन पहले' : (r.dd-L)+' दिन देरी';
     }
     return r.age>L ? (r.age-L)+' दिन सीमा पार' : (L-r.age)+' दिन शेष';
@@ -16214,7 +16292,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     var k = '<div class="cd-kpi">कुल <b>'+rows.length+'</b></div>';
     ['c2','c3','c4','c5'].forEach(function(b){ if(cnt[b]) k += '<div class="cd-kpi">'+BUCKET_HI[b].replace('सीमा',L+' दिन')+': <b>'+cnt[b]+'</b></div>'; });
     if(ddN) k += '<div class="cd-kpi">औसत निस्तारण दिन: <b>'+(ddS/ddN).toFixed(1)+'</b></div>';
-    if(noDate) k += '<div class="cd-kpi" style="background:#FFF3CD;color:#7A5B00;">इनमें निस्तारण दिनांक रिक्त (पेंडिंग गिने): <b>'+noDate+'</b></div>';
+    if(noDate) k += '<div class="cd-kpi" style="background:#FFF3CD;color:#7A5B00;">इनमें निस्तारण दिनांक रिक्त ('+(mode()==='old'?'बाद निस्तारित':'पेंडिंग')+' गिने): <b>'+noDate+'</b></div>';
     $('cdMKpi').innerHTML = k;
     var aoa = detailAoa(rows, L);
     var h = '<table class="data-tbl"><thead><tr>'+DETAIL_HDR.map(function(x){ return '<th>'+x+'</th>'; }).join('')+'</tr></thead><tbody>';
@@ -16333,7 +16411,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
       + '<div class="nt">📝 '+esc(nt)+'</div></div>'
       + '<div class="pb p2"><div class="sec">थाना-वार स्थिति — '+esc(head.label)+' (अनुपालना % के क्रम में)</div>'+st
       + (typeof COLOR_LEGEND_HTML!=='undefined'?COLOR_LEGEND_HTML:'')+'</div>'
-      + '<div class="ft">यह रिपोर्ट मनोज कुमार सारण, सांख्यिकी शाखा, कार्यालय पुलिस अधीक्षक, जिला डीडवाना-कुचामन द्वारा तैयार की गई। निस्तारण % = '+L+' दिन में निस्तारित ÷ कुल प्रकरण × 100; अनुपालना % = '+L+' दिन में निस्तारित ÷ (कुल प्रकरण − '+L+' दिन में पेंडिंग) × 100। निस्तारण दिनांक रिक्त वाले प्रकरण पेंडिंग गिने गए हैं।</div>';
+      + '<div class="ft">यह रिपोर्ट मनोज कुमार सारण, सांख्यिकी शाखा, कार्यालय पुलिस अधीक्षक, जिला डीडवाना-कुचामन द्वारा तैयार की गई। '+(mode()==='old' ? 'निस्तारण % = कुल निस्तारित (सीमा में + सीमा बाद) ÷ कुल प्रकरण × 100; अनुपालना % = '+L+' दिन में निस्तारित ÷ ('+L+' दिन में + बाद निस्तारित + '+L+' दिन से अधिक पेंडिंग) × 100। निस्तारण दिनांक रिक्त वाले प्रकरण बाद निस्तारित गिने गए हैं (पुरानी स्थिति)।' : 'निस्तारण % = '+L+' दिन में निस्तारित ÷ कुल प्रकरण × 100; अनुपालना % = '+L+' दिन में निस्तारित ÷ (कुल प्रकरण − '+L+' दिन में पेंडिंग) × 100। निस्तारण दिनांक रिक्त वाले प्रकरण पेंडिंग गिने गए हैं।')+'</div>';
     if(typeof resolvePrintVarsHTML==='function') html = resolvePrintVarsHTML(html);
     var w = window.open('','_blank'); if(!w){ toast('⚠️ पॉप-अप ब्लॉक हो गया — कृपया इस साइट के लिए पॉप-अप की अनुमति दें'); return; }
     w.document.write('<html><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>'
@@ -16387,6 +16465,623 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
 })();
 </script>
 
+
+<style id="aodCss">
+.aod-presets{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--soft);margin:2px 0 8px}
+.aod-presets button{padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:12px;cursor:pointer}
+#asOnDate .ctx-grid input[type=date],#asOnDate .ctx-grid input[type=text]{width:100%;padding:9px 12px;border:1px solid var(--line);background:#fff;border-radius:var(--r-sm);font-size:13px;color:var(--ink)}
+.aod-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 6px}
+.aod-tabs button{padding:10px 18px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);font-size:14px;font-weight:700;cursor:pointer}
+.aod-tabs button.on{background:linear-gradient(135deg,#1E4DB7,#7C3AED);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(30,77,183,.3)}
+.aod-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:20px 0 8px;font-size:16px;font-weight:800;color:var(--navy)}
+.aod-h select{padding:5px 8px;border-radius:8px;border:1px solid var(--line);font-size:12px}
+.aod-kpis{display:flex;align-items:stretch;gap:6px;flex-wrap:wrap;margin:10px 0}
+.aod-kpi{flex:1;min-width:210px;background:#fff;border-radius:16px;padding:12px 14px;border-top:5px solid var(--c);box-shadow:0 4px 14px rgba(15,37,87,.10)}
+.aod-kd{font-size:12px;color:#475569}.aod-kd b{display:block;font-size:14px;color:var(--c)}
+.aod-kv{font-size:30px;font-weight:900;color:var(--c);line-height:1.15;margin-top:4px}
+.aod-ks{font-size:11px;font-weight:700;color:#475569}
+.aod-km{font-size:11px;color:#64748B;margin-top:6px;line-height:1.5}
+.aod-arr{display:flex;align-items:center;justify-content:center;min-width:64px;font-weight:800;font-size:12px}
+.aod-mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}
+.aod-mbox{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 3px 12px rgba(15,37,87,.09);border:1px solid #E5E9F2}
+.aod-mbox h4{margin:0;padding:8px 12px;font-size:13px;color:#fff}
+.aod-mbox.up h4{background:linear-gradient(135deg,#138808,#34A853)}
+.aod-mbox.dn h4{background:linear-gradient(135deg,#B91C1C,#EF4444)}
+.aod-mbox.top h4{background:linear-gradient(135deg,#B45309,#F59E0B)}
+.aod-mbox.low h4{background:linear-gradient(135deg,#475569,#94A3B8)}
+.aod-mbox ul{list-style:none;margin:0;padding:6px 12px 8px}
+.aod-mbox li{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px dashed #E5E9F2;font-size:12.5px}
+.aod-mbox li:last-child{border-bottom:none}
+.aod-mbox li small{color:#64748B}
+.aod-mv{display:inline-block;padding:2px 8px;border-radius:999px;font-weight:800;font-size:11.5px;white-space:nowrap}
+.aod-mv.up{background:#DCFCE7;color:#166534}.aod-mv.dn{background:#FEE2E2;color:#B91C1C}.aod-mv.eq{background:#E2E8F0;color:#475569}.aod-mv.na{background:#F1F5F9;color:#94A3B8}
+.aod-rk{display:inline-block;min-width:24px;padding:2px 7px;border-radius:999px;font-weight:800;background:#EEF1F6;color:#1E2A45}
+.aod-rk.r1{background:#FFE699;color:#7A5B00}.aod-rk.r2{background:#E2E8F0;color:#334155}.aod-rk.r3{background:#FDDCC0;color:#7C2D12}
+.aod-dl{font-size:10.5px;font-weight:700;display:block}.aod-dl.p{color:#166534}.aod-dl.m{color:#B91C1C}.aod-dl.z{color:#64748B}
+.aod-n{cursor:pointer;font-weight:700;color:#1D4ED8;text-decoration:underline dotted;text-underline-offset:3px}
+.aod-n:hover{background:#FFF3CC !important}
+.aod-z{color:var(--soft)}
+.aod-tbl{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px;border:1px solid #C7CDD9;border-radius:12px;overflow:hidden;background:#fff}
+.aod-tbl th{background:linear-gradient(180deg,#1E2A45,#2B3C66);color:#fff;padding:7px 5px;font-size:11.5px;line-height:1.35;text-align:center}
+.aod-tbl td{padding:6px 5px;text-align:center;border-bottom:1px solid #E5E9F2;white-space:nowrap}
+.aod-tbl td.nm{text-align:left;white-space:normal;font-weight:600}
+.aod-tbl tbody tr:nth-child(even) td{background:#F7F9FC}
+.aod-tbl tr.cir td{background:#EDF1F7 !important;font-weight:800;color:#1E2A45;text-align:left}
+.aod-tbl tr.cy td{background:#E8F4EA !important;font-weight:700}
+.aod-tbl tr.ds td{background:#DCEBFF !important;font-weight:800;border-top:2px solid #1E2A45}
+.aod-sub{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.aod-sub button{padding:8px 14px;border-radius:12px;border:2px solid var(--c);background:#fff;color:var(--c);font-weight:700;font-size:13px;cursor:pointer}
+.aod-sub button.on{background:var(--c);color:#fff}
+.aod-modal{position:fixed;inset:0;background:rgba(10,20,40,.55);z-index:10000;display:none;align-items:flex-end;justify-content:center}
+.aod-modal.on{display:flex}
+.aod-sheet{background:var(--card);color:var(--ink);width:100%;max-width:1200px;max-height:92vh;border-radius:18px 18px 0 0;display:flex;flex-direction:column;box-shadow:0 -8px 40px rgba(0,0,0,.3)}
+@media(min-width:800px){.aod-modal{align-items:center;padding:16px}.aod-sheet{border-radius:18px;max-height:88vh}}
+.aod-mh{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:14px 16px 6px}
+.aod-mt{font-size:15.5px;font-weight:800;color:var(--navy)}.aod-ms{font-size:12px;color:var(--soft);margin-top:3px}
+.aod-x{border:none;background:var(--line);color:var(--ink);width:32px;height:32px;border-radius:50%;font-size:15px;cursor:pointer;flex:none}
+.aod-kp2{display:flex;gap:8px;flex-wrap:wrap;padding:4px 16px}
+.aod-kp2 div{background:#EEF3FA;border-radius:10px;padding:6px 11px;font-size:12px;color:#102C57}
+.aod-mact{display:flex;gap:8px;flex-wrap:wrap;padding:8px 16px}
+.aod-mbody{overflow:auto;padding:0 12px 16px}
+.aod-mbody .aod-tbl{min-width:1050px;font-size:12px}
+.aod-mbody thead th{position:sticky;top:0;z-index:2}
+.aod-s2{color:#166534;font-weight:700}.aod-s3{color:#B45309;font-weight:700}.aod-s4{color:#1D4ED8;font-weight:700}.aod-s5{color:#B91C1C;font-weight:700}
+@media print{#aodModal{display:none !important}}
+</style>
+<script>
+/* ============================================================
+   दिनांक-अनुसार स्थिति व रैंकिंग — 60 दिवस / 90 दिवस / SC-ST एक्ट
+   चयनित दिनांक D पर:
+     • कुल = D तक दर्ज प्रकरण (दर्ज दिनांक ≤ D)
+     • निस्तारित = निस्तारण दिनांक ≤ D  → समय पर (≤ सीमा) / सीमा बाद
+     • निस्तारण दिनांक D के बाद की हो, या रिक्त हो → D को पेंडिंग; दिन = D − दर्ज दिनांक
+     • निस्तारण % = समय पर निस्तारित ÷ कुल
+     • अनुपालना % = समय पर निस्तारित ÷ (समय पर + सीमा बाद निस्तारित + सीमा पूर्ण पेंडिंग)
+   ============================================================ */
+(function(){
+  'use strict';
+  var TABS = {
+    l60:  {label:'60 दिवस',   icon:'⏱️', limit:60},
+    l90:  {label:'90 दिवस',   icon:'⏳', limit:90},
+    scst: {label:'SC/ST एक्ट', icon:'🛡️', limit:null}
+  };
+  var TAB_ORDER = ['l60','l90','scst'];
+  var COL = ['#2563EB','#F59E0B','#16A34A'];
+  var DLBL = ['दिनांक-1','दिनांक-2','आज'];
+  var CLS_HI = {c2:'समय पर निस्तारित', c3:'सीमा बाद निस्तारित', c4:'पेंडिंग (सीमा के अंदर)', c5:'पेंडिंग (सीमा पूर्ण)'};
+  var ST = {tab:'l60', sub:1, sort:'circle', ready:false, cache:{}, modal:null};
+
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function localIso(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function dmy(iso){ if(!iso) return '-'; var p=String(iso).slice(0,10).split('-'); return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : String(iso); }
+  function dayDiff(a,b){ return Math.round((new Date(b)-new Date(a))/86400000); }
+  function addDays(iso,n){ var d=new Date(iso); d.setUTCDate(d.getUTCDate()+n); return d.toISOString().slice(0,10); }
+  function hiPS(ps){ return (typeof ENG2HI_PS!=='undefined' && ENG2HI_PS[ps]) || ps; }
+  function fmtP(v){ return v==null ? '-' : pctFmt(v); }
+  function r2(v){ return Math.round(v*100)/100; }
+  function todayIso(){ return localIso(new Date()); }
+  function normDate(x){
+    if(!x) return null; x = String(x);
+    if(/^\d{4}-\d{2}-\d{2}/.test(x)) return x.slice(0,10);
+    var m = x.match(/^(\d{2})[\/-](\d{2})[\/-](\d{4})/);
+    return m ? m[3]+'-'+m[2]+'-'+m[1] : null;
+  }
+  function dates(){
+    var a = ($('aodD1')||{}).value, b = ($('aodD2')||{}).value, t = todayIso();
+    if(a && b && a > b){ var x=a; a=b; b=x; }
+    return [a||t, b||t, t];
+  }
+  function tabLimit(tab){
+    if(tab==='l60') return 60;
+    if(tab==='l90') return 90;
+    return parseInt(($('aodScstLimit')||{}).value,10)===90 ? 90 : 60;
+  }
+
+  /* ---------- आधार पंक्तियाँ ---------- */
+  function baseRows(tab, L){
+    var out = [];
+    if(tab==='scst'){
+      (typeof dbRecords!=='undefined' ? dbRecords : []).forEach(function(r){
+        if(!r.scst || !r.date) return;
+        var disposed = !!r.disposal && r.disposal!=='Pending';
+        var cs = (disposed && r.csDate) ? normDate(r.csDate) : null;
+        var lbl = !disposed ? '-' : (r.disposal==='Chargesheet' ? 'चालान' : (r.disposal==='F.R.' ? 'एफ.आर.' : r.disposal));
+        out.push({ps:r.ps, hi:hiPS(r.ps), circle:dispCircleOf(r.ps), fir:r.fir||'-', reg:normDate(r.date), section:r.sections||'-',
+                  cats:(typeof r.scst==='string'?r.scst:'SC/ST'), csDate:cs, label:lbl, noDate:disposed && !cs});
+      });
+      return out.filter(function(r){ return r.reg; });
+    }
+    var src = ($('aodSource')||{}).value || 'automerge';
+    var raw = buildRowsForSource(src, L, null);
+    raw.forEach(function(x){
+      if(ALL_PS_EN.indexOf(x.ps)<0) return;
+      var reg = normDate(x.reg); if(!reg) return;
+      var cs = (x.disposed && x.dd!=null) ? addDays(reg, Math.round(x.dd)) : null;
+      var lbl = x.ctype==='CS' ? 'चालान' : (x.ctype==='FR' ? 'एफ.आर.' : (x.disposed ? 'अन्य निस्तारण' : '-'));
+      out.push({ps:x.ps, hi:hiPS(x.ps), circle:dispCircleOf(x.ps), fir:x.fir||'-', reg:reg, section:x.section||'-',
+                cats:'', csDate:cs, label:lbl, noDate:!!x.disposed && !cs});
+    });
+    return out;
+  }
+
+  /* ---------- किसी दिनांक D की स्थिति ---------- */
+  function evalAt(rows, D, L){
+    return rows.map(function(r){
+      if(!r.reg || r.reg > D) return null;
+      var cls, days, later = false;
+      if(r.csDate && r.csDate <= D){ days = dayDiff(r.reg, r.csDate); cls = days<=L ? 'c2' : 'c3'; }
+      else { days = dayDiff(r.reg, D); cls = days<=L ? 'c4' : 'c5'; later = !!r.csDate; }
+      return {r:r, cls:cls, days:days, later:later, D:D, L:L};
+    });
+  }
+  function blank(){ return {c1:0,c2:0,c3:0,c4:0,c5:0}; }
+  function fin(b){
+    var den = b.c1 - b.c4;
+    b.disp = b.c1 ? b.c2/b.c1*100 : null;
+    b.comp = den>0 ? b.c2/den*100 : null;
+    return b;
+  }
+  function rankList(arr){
+    var ranked = arr.filter(function(x){ return x.c1>0 && x.comp!=null; });
+    arr.forEach(function(x){
+      x.rank = (x.c1>0 && x.comp!=null) ? 1 + ranked.filter(function(y){ return r2(y.comp) > r2(x.comp); }).length : null;
+    });
+  }
+  function aggAt(list){
+    var order = ALL_PS_EN.slice(), by = {}, circ = {}, dist = blank();
+    order.forEach(function(ps){ by[ps] = blank(); });
+    DISP_CIRCLE_ORDER.forEach(function(c){ circ[c] = blank(); });
+    list.forEach(function(e){
+      var r = e.r;
+      if(!by[r.ps]){ by[r.ps] = blank(); order.push(r.ps); }
+      by[r.ps].c1++; by[r.ps][e.cls]++;
+      if(!circ[r.circle]) circ[r.circle] = blank();
+      circ[r.circle].c1++; circ[r.circle][e.cls]++;
+      dist.c1++; dist[e.cls]++;
+    });
+    var stations = order.map(function(ps){ var b = fin(by[ps]); b.ps=ps; b.hi=hiPS(ps); b.circle=dispCircleOf(ps); return b; });
+    rankList(stations);
+    var circles = Object.keys(circ).map(function(c){ var b = fin(circ[c]); b.name=c; return b; });
+    rankList(circles);
+    fin(dist);
+    return {stations:stations, circles:circles, dist:dist};
+  }
+  function getData(tab){
+    var ds = dates(), L = tabLimit(tab);
+    var key = [tab, L, ds.join(','), ($('aodSource')||{}).value].join('|');
+    if(ST.cache[key]) return ST.cache[key];
+    var rows = baseRows(tab, L);
+    var evs = ds.map(function(D){ return evalAt(rows, D, L); });
+    var aggs = evs.map(function(ev){ return aggAt(ev.filter(Boolean)); });
+    return (ST.cache[key] = {tab:tab, L:L, ds:ds, rows:rows, evs:evs, aggs:aggs});
+  }
+
+  /* ---------- छोटे HTML टुकड़े ---------- */
+  function mv(prev, now){
+    if(prev==null || now==null) return '<span class="aod-mv na">–</span>';
+    var d = prev - now;
+    if(d>0) return '<span class="aod-mv up">▲ '+d+'</span>';
+    if(d<0) return '<span class="aod-mv dn">▼ '+(-d)+'</span>';
+    return '<span class="aod-mv eq">● स्थिर</span>';
+  }
+  function ppTag(p, n){
+    if(p==null || n==null) return '<span class="aod-mv na">–</span>';
+    var d = r2(n-p);
+    if(d>0) return '<span class="aod-mv up">▲ +'+d.toFixed(2)+'</span>';
+    if(d<0) return '<span class="aod-mv dn">▼ '+d.toFixed(2)+'</span>';
+    return '<span class="aod-mv eq">● 0.00</span>';
+  }
+  function rk(n){ return n ? '<span class="aod-rk'+(n<=3?' r'+n:'')+'">'+n+'</span>' : '<span class="aod-z">–</span>'; }
+  function dlt(p, n){
+    if(p==null || n==null) return '';
+    var d = r2(n-p);
+    return '<span class="aod-dl '+(d>0?'p':(d<0?'m':'z'))+'">'+(d>0?'▲ +':(d<0?'▼ ':'● '))+d.toFixed(2)+'</span>';
+  }
+  function bgc(c){ return c ? ' style="background:'+c+';"' : ''; }
+  function findSt(A, ps){ for(var i=0;i<A.stations.length;i++) if(A.stations[i].ps===ps) return A.stations[i]; return null; }
+  function findCi(A, name){ for(var i=0;i<A.circles.length;i++) if(A.circles[i].name===name) return A.circles[i]; return null; }
+
+  function kpiHTML(d){
+    var h = '<div class="aod-kpis">';
+    d.aggs.forEach(function(A,i){
+      var b = A.dist;
+      h += '<div class="aod-kpi" style="--c:'+COL[i]+'"><div class="aod-kd">'+DLBL[i]+'<b>'+dmy(d.ds[i])+'</b></div>'
+        + '<div class="aod-kv">'+fmtP(b.comp)+'</div><div class="aod-ks">अनुपालना %</div>'
+        + '<div class="aod-km">निस्तारण % <b>'+fmtP(b.disp)+'</b><br>कुल दर्ज '+b.c1+' · समय पर निस्तारित '+b.c2+' · सीमा बाद '+b.c3+'<br>पेंडिंग: सीमा के अंदर '+b.c4+' · सीमा पूर्ण '+b.c5+'</div></div>';
+      if(i<2) h += '<div class="aod-arr">'+ppTag(A.dist.comp, d.aggs[i+1].dist.comp)+'</div>';
+    });
+    return h + '</div>';
+  }
+  function moverList(items, fn){
+    if(!items.length) return '<ul><li><small>कोई प्रकरण नहीं</small></li></ul>';
+    return '<ul>'+items.map(fn).join('')+'</ul>';
+  }
+  function moversData(d){
+    var A0=d.aggs[0], A1=d.aggs[1], A2=d.aggs[2];
+    var both = [];
+    A2.stations.forEach(function(s2){
+      var s0 = findSt(A0, s2.ps);
+      if(s0 && s0.rank && s2.rank) both.push({hi:s2.hi, r0:s0.rank, r2:s2.rank, c0:s0.comp, c2:s2.comp, ch:s0.rank-s2.rank});
+    });
+    var up = both.filter(function(x){return x.ch>0;}).sort(function(a,b){return b.ch-a.ch || b.c2-a.c2;}).slice(0,3);
+    var dn = both.filter(function(x){return x.ch<0;}).sort(function(a,b){return a.ch-b.ch || a.c2-b.c2;}).slice(0,3);
+    var top = A2.stations.filter(function(x){return x.rank;}).sort(function(a,b){return a.rank-b.rank;}).slice(0,3);
+    var low = A2.stations.filter(function(x){return x.rank;}).sort(function(a,b){return b.rank-a.rank;}).slice(0,3);
+    return {both:both, up:up, dn:dn, top:top, low:low};
+  }
+  function moversHTML(d){
+    var m = moversData(d);
+    function li1(x){ return '<li><span>'+esc(x.hi)+'<br><small>'+x.r0+' → '+x.r2+' रैंक | '+fmtP(x.c0)+' → '+fmtP(x.c2)+'</small></span><span>'+mv(x.r0,x.r2)+'</span></li>'; }
+    function li2(x){ return '<li><span>'+rk(x.rank)+' '+esc(x.hi)+'</span><span><b>'+fmtP(x.comp)+'</b></span></li>'; }
+    return '<div class="aod-mgrid">'
+      + '<div class="aod-mbox up"><h4>🚀 सर्वाधिक रैंक सुधार ('+dmy(d.ds[0])+' → आज)</h4>'+moverList(m.up,li1)+'</div>'
+      + '<div class="aod-mbox dn"><h4>📉 सर्वाधिक रैंक गिरावट ('+dmy(d.ds[0])+' → आज)</h4>'+moverList(m.dn,li1)+'</div>'
+      + '<div class="aod-mbox top"><h4>🏆 आज के श्रेष्ठ 3 थाने</h4>'+moverList(m.top,li2)+'</div>'
+      + '<div class="aod-mbox low"><h4>⚠️ आज के निचले 3 थाने</h4>'+moverList(m.low,li2)+'</div></div>';
+  }
+  function noteText(d){
+    var m = moversData(d), A = d.aggs, t = '';
+    t += (TABS[d.tab].label+' ('+d.L+' दिवस सीमा) — जिले की अनुपालना '+fmtP(A[0].dist.comp)+' ('+dmy(d.ds[0])+') से '+fmtP(A[1].dist.comp)+' ('+dmy(d.ds[1])+') होते हुए आज '+fmtP(A[2].dist.comp)+' रही।');
+    if(m.up.length) t += ' सर्वाधिक सुधार: '+m.up[0].hi+' (रैंक '+m.up[0].r0+' → '+m.up[0].r2+').';
+    if(m.dn.length) t += ' सर्वाधिक गिरावट: '+m.dn[0].hi+' (रैंक '+m.dn[0].r0+' → '+m.dn[0].r2+').';
+    return t;
+  }
+
+  /* ---------- तुलनात्मक रैंकिंग सारणी ---------- */
+  function sortStations(list, A0, A2, mode){
+    var arr = list.slice();
+    function ch(s){ var s0=findSt(A0,s.ps); return (s0&&s0.rank&&s.rank) ? s0.rank-s.rank : null; }
+    if(mode==='today') arr.sort(function(a,b){ return (a.rank||999)-(b.rank||999); });
+    else if(mode==='gain') arr.sort(function(a,b){ var x=ch(a), y=ch(b); return (y==null?-999:y)-(x==null?-999:x); });
+    else if(mode==='drop') arr.sort(function(a,b){ var x=ch(a), y=ch(b); return (x==null?999:x)-(y==null?999:y); });
+    return arr;
+  }
+  function cmpHTML(d){
+    var A0=d.aggs[0], A1=d.aggs[1], A2=d.aggs[2];
+    var scal = d.aggs.map(function(A){
+      return makeColorScaler(A.stations.filter(function(s){return s.comp!=null;}), function(s){return s.comp;}, false);
+    });
+    function pcell(x, i, prevx){
+      var inner = (x && x.comp!=null) ? '<b>'+fmtP(x.comp)+'</b>'+(i>0 && prevx ? dlt(prevx.comp, x.comp) : '') : '-';
+      var c = (x && x.comp!=null && x.c1>0) ? scal[i](x.comp) : '';
+      return '<td'+bgc(c)+'>'+inner+'</td><td>'+rk(x ? x.rank : null)+'</td>';
+    }
+    function row(name, x0, x1, x2, cls){
+      var tot = (x0 && x2 && x0.comp!=null && x2.comp!=null) ? ppTag(x0.comp, x2.comp) : '';
+      var m02 = (x0&&x2) ? mv(x0.rank, x2.rank) : '–';
+      if(cls==='ds' || (cls==='cy' && false)) { /* जिला पंक्ति में रैंक नहीं */ }
+      return '<tr'+(cls?' class="'+cls+'"':'')+'><td class="nm">'+name+'</td>'
+        + pcell(x0,0,null)+pcell(x1,1,x0)+pcell(x2,2,x1)
+        + '<td>'+((x0&&x1)?mv(x0.rank,x1.rank):'–')+'</td><td>'+((x1&&x2)?mv(x1.rank,x2.rank):'–')+'</td><td>'+m02+'<br>'+(cls==='ds'?'':'')+tot+'</td></tr>';
+    }
+    var head = '<thead><tr><th rowspan="2">थाना / इकाई</th>'
+      + [0,1,2].map(function(i){ return '<th colspan="2" style="border-top:4px solid '+COL[i]+'">'+DLBL[i]+'<br>'+dmy(d.ds[i])+'</th>'; }).join('')
+      + '<th colspan="3">रैंक में बदलाव (▲ सुधार / ▼ गिरावट)</th></tr><tr>'
+      + '<th>अनुपालना %</th><th>रैंक</th><th>अनुपालना %</th><th>रैंक</th><th>अनुपालना %</th><th>रैंक</th>'
+      + '<th>'+DLBL[0]+' → '+DLBL[1]+'</th><th>'+DLBL[1]+' → आज</th><th>'+DLBL[0]+' → आज (कुल)</th></tr></thead>';
+    var body = '';
+    var distRow = function(){ return '<tr class="ds"><td class="nm">जिला डीडवाना-कुचामन (कुल)</td>'
+      + [A0,A1,A2].map(function(A,i){ return '<td'+'>'+'<b>'+fmtP(A.dist.comp)+'</b>'+(i>0?dlt(d.aggs[i-1].dist.comp, A.dist.comp):'')+'</td><td>–</td>'; }).join('')
+      + '<td>'+ppTag(A0.dist.comp,A1.dist.comp)+'</td><td>'+ppTag(A1.dist.comp,A2.dist.comp)+'</td><td>'+ppTag(A0.dist.comp,A2.dist.comp)+'</td></tr>'; };
+    body += distRow();
+    if(ST.sort==='circle'){
+      DISP_CIRCLE_ORDER.forEach(function(c){
+        var sts = A2.stations.filter(function(s){ return s.circle===c; });
+        if(!sts.length) return;
+        body += '<tr class="cir"><td colspan="10">'+esc(c)+' सर्किल</td></tr>';
+        sts.forEach(function(s){ body += row(esc(s.hi), findSt(A0,s.ps), findSt(A1,s.ps), s, ''); });
+        body += row('<b>'+esc(c)+' — सर्किल योग</b>', findCi(A0,c), findCi(A1,c), findCi(A2,c), 'cy');
+      });
+    } else {
+      sortStations(A2.stations.filter(function(s){ return s.c1>0 || findSt(A0,s.ps).c1>0; }), A0, A2, ST.sort).forEach(function(s){
+        body += row(esc(s.hi)+' <small style="color:#64748B">('+esc(s.circle)+')</small>', findSt(A0,s.ps), findSt(A1,s.ps), s, '');
+      });
+    }
+    return '<div style="overflow-x:auto;"><table class="aod-tbl">'+head+'<tbody>'+body+'</tbody></table></div>';
+  }
+
+  /* ---------- चयनित दिनांक की विस्तृत सारणी ---------- */
+  function numc(di, key, col, v){
+    if(!v) return '<td class="aod-z">0</td>';
+    return '<td class="aod-n" data-d="'+di+'" data-k="'+encodeURIComponent(key)+'" data-c="'+col+'" title="FIR सूची देखें">'+v+'</td>';
+  }
+  function pcc(di, key, col, v, den, style){
+    if(v==null) return '<td class="aod-z">-</td>';
+    return '<td class="aod-n"'+(style?' style="'+style+'"':'')+' data-d="'+di+'" data-k="'+encodeURIComponent(key)+'" data-c="'+col+'" title="FIR सूची देखें">'+fmtP(v)+'</td>';
+  }
+  function detailRow(di, label, key, b, cls, scal){
+    var st = (scal && b.comp!=null && b.c1>0) ? 'background:'+scal(b.comp)+';' : '';
+    return '<tr'+(cls?' class="'+cls+'"':'')+'><td class="nm">'+label+'</td>'
+      + numc(di,key,'c1',b.c1)+numc(di,key,'c2',b.c2)+numc(di,key,'c3',b.c3)+numc(di,key,'c4',b.c4)+numc(di,key,'c5',b.c5)
+      + pcc(di,key,'disp',b.disp)+pcc(di,key,'comp',b.comp,0,st)+'<td>'+(b.rank?rk(b.rank):'<span class="aod-z">–</span>')+'</td></tr>';
+  }
+  function detailTable(d, di){
+    var A = d.aggs[di], L = d.L;
+    var scal = makeColorScaler(A.stations.filter(function(s){return s.comp!=null;}), function(s){return s.comp;}, false);
+    var h = '<div style="overflow-x:auto;"><table class="aod-tbl"><thead><tr><th>थाना / इकाई</th><th>कुल दर्ज FIR</th><th>'+L+' दिन में (समय पर) निस्तारित</th><th>'+L+' दिन बाद निस्तारित</th><th>पेंडिंग — '+L+' दिन के अंदर</th><th>पेंडिंग — '+L+' दिन पूर्ण</th><th>निस्तारण %</th><th>अनुपालना %</th><th>रैंक</th></tr></thead><tbody>';
+    h += detailRow(di,'जिला डीडवाना-कुचामन (कुल)','ALL',A.dist,'ds',null);
+    DISP_CIRCLE_ORDER.forEach(function(c){
+      var sts = A.stations.filter(function(s){ return s.circle===c; });
+      if(!sts.length) return;
+      h += '<tr class="cir"><td colspan="9">'+esc(c)+' सर्किल</td></tr>';
+      sts.forEach(function(s){ h += detailRow(di, esc(s.hi), 'P:'+s.ps, s, '', scal); });
+      var cb = findCi(A,c);
+      if(cb) h += detailRow(di, '<b>'+esc(c)+' — सर्किल योग</b>', 'C:'+c, cb, 'cy', null);
+    });
+    return h + '</tbody></table></div>';
+  }
+  function detailHTML(d){
+    var btns = [0,1,2].map(function(i){
+      return '<button style="--c:'+COL[i]+'" class="'+(ST.sub===i?'on':'')+'" onclick="aodSub('+i+')">'+DLBL[i]+' — '+dmy(d.ds[i])+'</button>';
+    }).join('');
+    return '<div class="aod-sub">'+btns+'</div>'
+      + '<div class="note" style="margin-bottom:8px;">📌 <b>'+DLBL[ST.sub]+' ('+dmy(d.ds[ST.sub])+')</b> की स्थिति: इस दिनांक तक दर्ज प्रकरण; इस दिनांक के बाद निस्तारित प्रकरण पेंडिंग गिने गए हैं। किसी भी संख्या पर क्लिक करके FIR-वार जाँच सूची देखें।</div>'
+      + detailTable(d, ST.sub);
+  }
+
+  /* ---------- मुख्य रेंडर ---------- */
+  function renderTabs(){
+    $('aodTabs').innerHTML = TAB_ORDER.map(function(k){
+      return '<button class="'+(k===ST.tab?'on':'')+'" onclick="aodTab(\''+k+'\')">'+TABS[k].icon+' '+TABS[k].label+'</button>';
+    }).join('');
+  }
+  function formulaHTML(L){
+    return '<b>गणना का आधार:</b> चयनित दिनांक तक दर्ज प्रकरण (दर्ज दिनांक ≤ चयनित दिनांक) ही गिने जाते हैं। '
+      + '<b>निस्तारण % = चयनित दिनांक तक समय पर (सीमा के अंदर) निस्तारित ÷ चयनित दिनांक तक दर्ज कुल प्रकरण × 100।</b> '
+      + '<b>अनुपालना % = चयनित दिनांक तक समय पर निस्तारित ÷ (समय पर निस्तारित + सीमा बाद निस्तारित + वे पेंडिंग जिनमें चयनित दिनांक − दर्ज दिनांक ने 60/90 दिन की सीमा पूर्ण कर ली) × 100।</b> '
+      + 'जिन प्रकरणों का निस्तारण चयनित दिनांक के <b>बाद</b> हुआ (या निस्तारण दिनांक रिक्त है), वे चयनित दिनांक को <b>पेंडिंग</b> गिने जाते हैं और उनके दिन = चयनित दिनांक − दर्ज दिनांक। '
+      + 'रैंक: अनुपालना % के आधार पर (बराबर % पर समान रैंक); रैंक में ▲ = सुधार, ▼ = गिरावट।';
+  }
+  function render(){
+    if(!$('aodBody')) return;
+    if(!ST.ready){ window.aodInit(); return; }
+    ST.cache = {};
+    $('aodToday').value = dmy(todayIso());
+    renderTabs();
+    var d = getData(ST.tab);
+    var srcTxt = '';
+    if(ST.tab!=='scst'){ var so = $('aodSource'); srcTxt = so && so.selectedOptions[0] ? ' | स्रोत: <b>'+esc(so.selectedOptions[0].textContent)+'</b>' : ''; }
+    else srcTxt = ' | स्रोत: <b>SAS Export</b> (SC/ST श्रेणी)';
+    $('aodNote').innerHTML = '<div class="note">'+TABS[ST.tab].icon+' <b>'+TABS[ST.tab].label+'</b> | सीमा: <b>'+d.L+' दिन</b>'+srcTxt+' | तुलना: <b>'+dmy(d.ds[0])+'</b>, <b>'+dmy(d.ds[1])+'</b> व <b>आज '+dmy(d.ds[2])+'</b> | इस श्रेणी के कुल FIR: <b>'+d.rows.length+'</b></div>';
+    if(!d.rows.length){
+      $('aodBody').innerHTML = '<div class="note">⚠️ '+(ST.tab==='scst' ? 'SC/ST प्रकरण नहीं मिले — "डेटा अपडेट" में SAS Export अपलोड करें।' : 'इस स्रोत में '+d.L+' दिवस श्रेणी का डेटा नहीं मिला — दूसरा डेटा स्रोत चुनें।')+'</div>';
+      $('aodFormula').innerHTML = formulaHTML(d.L); return;
+    }
+    $('aodBody').innerHTML =
+        kpiHTML(d)
+      + '<div class="aod-h">🏅 रैंक में सुधार / गिरावट</div>' + moversHTML(d)
+      + '<div class="note" style="margin-top:10px;">📝 '+esc(noteText(d))+'</div>'
+      + '<div class="aod-h">📊 थानावार तुलनात्मक अनुपालना व रैंकिंग <select onchange="aodSort(this.value)">'
+        + [['circle','सर्किल अनुसार'],['today','आज की रैंक अनुसार'],['gain','सर्वाधिक सुधार पहले'],['drop','सर्वाधिक गिरावट पहले']].map(function(o){ return '<option value="'+o[0]+'"'+(ST.sort===o[0]?' selected':'')+'>'+o[1]+'</option>'; }).join('')
+        + '</select></div>' + cmpHTML(d)
+      + '<div class="aod-h">🔍 चयनित दिनांक अनुसार प्रकरणों की सारणी (जाँच हेतु)</div>' + detailHTML(d);
+    $('aodFormula').innerHTML = formulaHTML(d.L);
+  }
+
+  /* ---------- FIR-वार जाँच सूची (modal) ---------- */
+  function colTitle(col, L){
+    return {c1:'कुल दर्ज FIR', c2:L+' दिन में (समय पर) निस्तारित', c3:L+' दिन बाद निस्तारित', c4:'पेंडिंग — '+L+' दिन के अंदर', c5:'पेंडिंग — '+L+' दिन पूर्ण',
+            disp:'समय पर निस्तारित (निस्तारण % का अंश)', comp:'अनुपालना आधार: कुल − सीमा के अंदर पेंडिंग'}[col] || col;
+  }
+  function keyTitle(key){
+    if(key==='ALL') return 'जिला डीडवाना-कुचामन';
+    if(key.indexOf('C:')===0) return key.slice(2)+' सर्किल';
+    return hiPS(key.slice(2))+' थाना';
+  }
+  function pick(d, di, key, col){
+    var out = d.evs[di].filter(function(e){
+      if(!e) return false;
+      if(key.indexOf('P:')===0 && e.r.ps!==key.slice(2)) return false;
+      if(key.indexOf('C:')===0 && e.r.circle!==key.slice(2)) return false;
+      if(col==='c1') return true;
+      if(col==='disp') return e.cls==='c2';
+      if(col==='comp') return e.cls!=='c4';
+      return e.cls===col;
+    });
+    if(col==='c1'||col==='disp'||col==='comp') out.sort(function(a,b){ return a.r.hi.localeCompare(b.r.hi,'hi') || (a.r.reg<b.r.reg?-1:1); });
+    else out.sort(function(a,b){ return b.days-a.days; });
+    return out;
+  }
+  function gap(e){
+    var L = e.L;
+    if(e.cls==='c2') return (L-e.days)+' दिन पहले';
+    if(e.cls==='c3') return (e.days-L)+' दिन देरी';
+    if(e.cls==='c4') return (L-e.days)+' दिन शेष';
+    return (e.days-L)+' दिन सीमा पार';
+  }
+  function remark(e){
+    var r = e.r;
+    if(e.later) return 'चयनित दिनांक के बाद '+dmy(r.csDate)+' को '+r.label+' — इस दिनांक पर पेंडिंग गिना गया';
+    if(!r.csDate && r.noDate) return 'निस्तारण दिनांक रिक्त — पेंडिंग गिना गया';
+    return '';
+  }
+  var DET_HDR = ['क्र.सं.','थाना','सर्किल','FIR नं.','दर्ज दिनांक','धाराएँ','श्रेणी','चयनित दिनांक की स्थिति','वास्तविक निस्तारण दिनांक','गणना दिन (निस्तारण में लगे / पेंडिंग)','सीमा से अंतर','टिप्पणी'];
+  function detAoa(list){
+    return list.map(function(e,i){ var r=e.r;
+      return [i+1, r.hi, r.circle, r.fir, dmy(r.reg), r.section, r.cats||'-', CLS_HI[e.cls], r.csDate?dmy(r.csDate):'-', e.days, gap(e), remark(e)];
+    });
+  }
+  function ensureModal(){
+    if($('aodModal')) return;
+    var m = document.createElement('div'); m.id='aodModal'; m.className='aod-modal';
+    m.innerHTML = '<div class="aod-sheet"><div class="aod-mh"><div><div class="aod-mt" id="aodMT"></div><div class="aod-ms" id="aodMS"></div></div><button class="aod-x" onclick="aodClose()" aria-label="बंद करें">✕</button></div>'
+      + '<div class="aod-kp2" id="aodMK"></div>'
+      + '<div class="aod-mact"><button class="btn-fill green sm" onclick="aodExportDetail(\'xlsx\')">⬇️ Excel डाउनलोड</button><button class="btn-fill sm" onclick="aodExportDetail(\'csv\')">⬇️ CSV डाउनलोड</button><button class="btn-ghost sm" onclick="aodClose()">बंद करें</button></div>'
+      + '<div class="aod-mbody" id="aodMB"></div></div>';
+    m.addEventListener('click', function(e){ if(e.target===m) aodClose(); });
+    document.body.appendChild(m);
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape') aodClose(); });
+  }
+  function openDetail(di, key, col){
+    ensureModal();
+    var d = getData(ST.tab), list = pick(d, di, key, col);
+    ST.modal = {d:d, di:di, key:key, col:col, list:list};
+    $('aodMT').textContent = keyTitle(key)+' — '+colTitle(col, d.L);
+    $('aodMS').textContent = TABS[d.tab].label+' | '+DLBL[di]+' ('+dmy(d.ds[di])+') की स्थिति | कुल '+list.length+' FIR';
+    var cnt = {c2:0,c3:0,c4:0,c5:0}, later = 0;
+    list.forEach(function(e){ cnt[e.cls]++; if(e.later || (!e.r.csDate && e.r.noDate)) later++; });
+    var k = '<div>कुल <b>'+list.length+'</b></div>';
+    ['c2','c3','c4','c5'].forEach(function(c){ if(cnt[c]) k += '<div>'+CLS_HI[c]+': <b>'+cnt[c]+'</b></div>'; });
+    if(later) k += '<div style="background:#FFF3CD;color:#7A5B00;">इस दिनांक के बाद निस्तारित / दिनांक रिक्त (पेंडिंग गिने): <b>'+later+'</b></div>';
+    $('aodMK').innerHTML = k;
+    var aoa = detAoa(list);
+    var h = '<table class="aod-tbl"><thead><tr>'+DET_HDR.map(function(x){ return '<th>'+x+'</th>'; }).join('')+'</tr></thead><tbody>';
+    list.forEach(function(e,i){
+      var a = aoa[i];
+      h += '<tr>'+a.map(function(v,j){
+        var t = esc(String(v));
+        if(j===1) return '<td class="nm">'+t+'</td>';
+        if(j===5||j===6||j===11) return '<td class="nm" style="min-width:150px;font-weight:500;">'+t+'</td>';
+        if(j===7||j===10) return '<td class="aod-s'+e.cls.slice(1)+'" style="white-space:normal;">'+t+'</td>';
+        return '<td>'+t+'</td>';
+      }).join('')+'</tr>';
+    });
+    h += '</tbody></table>';
+    $('aodMB').innerHTML = list.length ? h : '<div class="note" style="margin:10px 4px;">इस चयन में कोई FIR नहीं।</div>';
+    $('aodModal').classList.add('on'); document.body.style.overflow = 'hidden';
+  }
+
+  /* ---------- डाउनलोड ---------- */
+  function safe(s){ return String(s).replace(/[^A-Za-z0-9_\-]+/g,'_'); }
+  function sheetName(s){ return String(s).replace(/[\\\/\?\*\[\]:]/g,'-').slice(0,31); }
+  function download(name, mime, content){
+    var b = new Blob([content], {type:mime}), a = document.createElement('a');
+    a.href = URL.createObjectURL(b); a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  function csvEsc(v){ v = String(v==null?'':v); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
+  window.aodExportDetail = function(kind){
+    var m = ST.modal; if(!m) return;
+    var aoa = [DET_HDR].concat(detAoa(m.list));
+    var stem = 'sthiti_'+m.d.tab+'_'+m.d.L+'din_'+m.d.ds[m.di]+'_'+safe(m.col)+'_'+safe(m.key==='ALL'?'jila':m.key.replace(/^[PC]:/,''));
+    if(kind==='csv'){ download(stem+'.csv','text/csv;charset=utf-8','\uFEFF'+aoa.map(function(r){ return r.map(csvEsc).join(','); }).join('\r\n')); toast('✅ CSV डाउनलोड हो रही है'); }
+    else exportRowsToXLSX(stem+'.xlsx', [{name:'FIR सूची', aoa:aoa, filter:true, colWidths:[7,18,14,14,13,30,22,24,16,16,16,44]}]);
+  };
+  function chText(a,b){ if(!a||!b||!a.rank||!b.rank) return '-'; var d=a.rank-b.rank; return d>0?'+'+d+' (सुधार)':(d<0?String(d)+' (गिरावट)':'0 (स्थिर)'); }
+  function chNum(a,b){ return (a&&b&&a.rank&&b.rank) ? a.rank-b.rank : '-'; }
+  function stText(e, L){
+    if(!e) return '-';
+    return CLS_HI[e.cls]+' ('+e.days+' दिन)';
+  }
+  function sheetsFor(d){
+    var tag = d.tab==='scst' ? 'SCST_'+d.L+'दिन' : d.L+'दिवस';
+    var A0=d.aggs[0], A1=d.aggs[1], A2=d.aggs[2], L=d.L, sheets=[];
+    var cmp = [['थाना / इकाई','सर्किल',
+      'अनुपालना % ('+dmy(d.ds[0])+')','रैंक','अनुपालना % ('+dmy(d.ds[1])+')','रैंक','अनुपालना % (आज '+dmy(d.ds[2])+')','रैंक',
+      'रैंक बदलाव '+DLBL[0]+'→'+DLBL[1],'रैंक बदलाव '+DLBL[1]+'→आज','रैंक बदलाव '+DLBL[0]+'→आज','स्थिति ('+DLBL[0]+'→आज)']];
+    function crow(name, circ, x0,x1,x2){
+      var t = chNum(x0,x2);
+      cmp.push([name, circ, x0&&x0.comp!=null?+x0.comp.toFixed(2):'-', x0&&x0.rank||'-', x1&&x1.comp!=null?+x1.comp.toFixed(2):'-', x1&&x1.rank||'-', x2&&x2.comp!=null?+x2.comp.toFixed(2):'-', x2&&x2.rank||'-',
+        chNum(x0,x1), chNum(x1,x2), t, t==='-'?'-':(t>0?'सुधार':(t<0?'गिरावट':'स्थिर'))]);
+    }
+    cmp.push(['जिला डीडवाना-कुचामन (कुल)','', A0.dist.comp!=null?+A0.dist.comp.toFixed(2):'-','',A1.dist.comp!=null?+A1.dist.comp.toFixed(2):'-','',A2.dist.comp!=null?+A2.dist.comp.toFixed(2):'-','','','','','']);
+    DISP_CIRCLE_ORDER.forEach(function(c){
+      var sts = A2.stations.filter(function(s){ return s.circle===c; }); if(!sts.length) return;
+      sts.forEach(function(s){ crow(s.hi, c, findSt(A0,s.ps), findSt(A1,s.ps), s); });
+      crow(c+' — सर्किल योग', c, findCi(A0,c), findCi(A1,c), findCi(A2,c));
+    });
+    sheets.push({name:sheetName(tag+' तुलना'), aoa:cmp, filter:true, colWidths:[34,14,14,8,14,8,16,8,14,14,14,14]});
+    [0,1,2].forEach(function(i){
+      var A = d.aggs[i];
+      var t = [['थाना / इकाई','सर्किल','कुल दर्ज FIR',L+' दिन में (समय पर) निस्तारित',L+' दिन बाद निस्तारित','पेंडिंग — '+L+' दिन के अंदर','पेंडिंग — '+L+' दिन पूर्ण','निस्तारण %','अनुपालना %','रैंक']];
+      function drow(n,c,b){ t.push([n,c,b.c1,b.c2,b.c3,b.c4,b.c5,b.disp!=null?+b.disp.toFixed(2):'-',b.comp!=null?+b.comp.toFixed(2):'-',b.rank||'-']); }
+      drow('जिला डीडवाना-कुचामन (कुल)','',A.dist);
+      DISP_CIRCLE_ORDER.forEach(function(c){
+        var sts = A.stations.filter(function(s){ return s.circle===c; }); if(!sts.length) return;
+        sts.forEach(function(s){ drow(s.hi,c,s); });
+        var cb = findCi(A,c); if(cb) drow(c+' — सर्किल योग',c,cb);
+      });
+      sheets.push({name:sheetName(tag+' '+(i<2?'दि'+(i+1):'आज')+' '+dmy(d.ds[i]).replace(/\//g,'-')), aoa:t, filter:true, colWidths:[34,14,12,18,16,16,16,12,12,8]});
+    });
+    var fir = [['क्र.सं.','थाना','सर्किल','FIR नं.','दर्ज दिनांक','धाराएँ','श्रेणी','वास्तविक निस्तारण दिनांक',
+      'स्थिति '+dmy(d.ds[0]),'स्थिति '+dmy(d.ds[1]),'स्थिति आज '+dmy(d.ds[2])]];
+    d.rows.forEach(function(r,i){
+      var e0=d.evs[0][i], e1=d.evs[1][i], e2=d.evs[2][i];
+      if(!e0 && !e1 && !e2) return;
+      fir.push([fir.length, r.hi, r.circle, r.fir, dmy(r.reg), r.section, r.cats||'-', r.csDate?dmy(r.csDate):'-',
+        e0?stText(e0,L):'दर्ज नहीं', e1?stText(e1,L):'दर्ज नहीं', e2?stText(e2,L):'दर्ज नहीं']);
+    });
+    sheets.push({name:sheetName(tag+' FIR सूची'), aoa:fir, filter:true, colWidths:[7,18,14,14,13,30,22,16,30,30,30]});
+    return sheets;
+  }
+  window.aodExcel = function(scope){
+    var tabs = scope==='tab' ? [ST.tab] : TAB_ORDER, sheets = [], any=false;
+    tabs.forEach(function(t){ var d = getData(t); if(d.rows.length){ any=true; sheets = sheets.concat(sheetsFor(d)); } });
+    if(!any){ toast('डाउनलोड हेतु डेटा उपलब्ध नहीं'); return; }
+    var ds = dates();
+    exportRowsToXLSX('sthiti_'+(scope==='tab'?ST.tab:'sabhi')+'_'+ds[0]+'_'+ds[1]+'_aaj.xlsx', sheets);
+  };
+  window.aodPDF = function(scope){
+    var tabs = scope==='tab' ? [ST.tab] : TAB_ORDER, html = '', any = false;
+    var ds0 = dates();
+    var dt = new Date().toLocaleDateString('hi-IN',{day:'numeric',month:'long',year:'numeric'});
+    var saved = ST.sub, savedTab = ST.tab, first = true;
+    tabs.forEach(function(t){
+      var d = getData(t); if(!d.rows.length) return; any = true;
+      var ttl = TABS[t].icon+' '+TABS[t].label+(t==='scst' ? ' — '+d.L+' दिवस सीमा' : ' निस्तारण');
+      html += '<div class="'+(first?'':'pb')+'"><div class="ph"><h1>🏛️ '+esc(ttl)+' — दिनांक-अनुसार स्थिति व रैंकिंग</h1><p>राजस्थान पुलिस · जिला पुलिस अधीक्षक कार्यालय, डीडवाना-कुचामन · सांख्यिकी शाखा | तुलना: '+dmy(d.ds[0])+' · '+dmy(d.ds[1])+' · आज '+dmy(d.ds[2])+' | दिनांक: '+dt+' | 🔒 केवल पुलिस उपयोग हेतु</p></div>'
+        + kpiHTML(d) + '<div class="aod-h">🏅 रैंक में सुधार / गिरावट</div>' + moversHTML(d)
+        + '<div class="note">📝 '+esc(noteText(d))+'</div>'
+        + '<div class="aod-h">📊 थानावार तुलनात्मक अनुपालना व रैंकिंग</div>' + (function(){ var s=ST.sort; ST.sort='circle'; var h=cmpHTML(d); ST.sort=s; return h; })()
+        + '</div>';
+      first = false;
+      [0,1,2].forEach(function(i){
+        html += '<div class="pb"><div class="ph" style="background:linear-gradient(135deg,'+COL[i]+',#1E2A45)"><h1>'+esc(ttl)+' — '+DLBL[i]+' ('+dmy(d.ds[i])+') की स्थिति</h1><p>इस दिनांक तक दर्ज प्रकरण; इस दिनांक के बाद निस्तारित प्रकरण पेंडिंग गिने गए हैं</p></div>'+detailTable(d,i)+'</div>';
+      });
+    });
+    ST.sub = saved; ST.tab = savedTab;
+    if(!any){ toast('डाउनलोड हेतु डेटा उपलब्ध नहीं'); return; }
+    html += '<div class="pft">'+formulaHTML(60)+'<br>यह रिपोर्ट मनोज कुमार सारण, सांख्यिकी शाखा, कार्यालय पुलिस अधीक्षक, जिला डीडवाना-कुचामन द्वारा तैयार की गई।</div>';
+    if(typeof resolvePrintVarsHTML==='function') html = resolvePrintVarsHTML(html);
+    var css = ($('aodCss')||{}).textContent || '';
+    var w = window.open('','_blank'); if(!w){ toast('⚠️ पॉप-अप ब्लॉक हो गया — कृपया इस साइट के लिए पॉप-अप की अनुमति दें'); return; }
+    w.document.write('<html><head><meta charset="utf-8"><title>दिनांक-अनुसार स्थिति व रैंकिंग</title><style>'
+      + ':root{--navy:#1E2A45;--navy2:#2F4A8A;--card:#fff;--ink:#101828;--soft:#64748B;--line:#D9DEE8;--r-sm:8px}'
+      + "body{margin:0;font-family:Hind,'Noto Sans Devanagari',Arial,sans-serif;color:#101828;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:11px}"
+      + css
+      + '.ph{background:linear-gradient(135deg,#0F2557,#1E4DB7 55%,#7C3AED);color:#fff;padding:12px 18px;border-radius:0 0 14px 14px;margin-bottom:8px}.ph h1{font-size:17px;margin:0}.ph p{margin:4px 0 0;font-size:10px;opacity:.92}'
+      + '.pb{page-break-before:always;break-before:page}'
+      + '.aod-tbl{font-size:10px}.aod-tbl th{font-size:9.5px;padding:4px 3px}.aod-tbl td{padding:3px 4px}.aod-tbl thead{display:table-header-group}.aod-tbl tr{page-break-inside:avoid}'
+      + '.aod-kpi{min-width:150px;padding:8px 10px}.aod-kv{font-size:24px}.aod-km{font-size:10px}.aod-mbox li{font-size:11px;padding:3px 0}.aod-h{font-size:13px;margin:10px 0 5px}'
+      + '.note{margin:8px 0;padding:7px 10px;border:1.5px solid #B45309;background:#FFFBEB;border-radius:9px;font-size:10.5px;line-height:1.6}'
+      + '.pft{margin:10px 6px;font-size:9px;color:#64748B;line-height:1.6;text-align:center}'
+      + '@page{size:A4 landscape;margin:8mm}</style></head><body>'+html+'</body></html>');
+    w.document.close(); toast('🖨️ प्रिंट विंडो खुल रही है — डेस्टिनेशन में "Save as PDF" चुनें');
+    setTimeout(function(){ w.focus(); w.print(); }, 600);
+  };
+
+  /* ---------- सार्वजनिक फ़ंक्शन ---------- */
+  window.aodClose = function(){ var m=$('aodModal'); if(m) m.classList.remove('on'); document.body.style.overflow=''; };
+  window.aodTab = function(t){ if(TABS[t]){ ST.tab = t; render(); } };
+  window.aodSub = function(i){ ST.sub = i; render(); };
+  window.aodSort = function(v){ ST.sort = v; render(); };
+  window.aodPreset = function(kind){
+    var now = new Date(), a, b;
+    if(kind==='month'){ a = new Date(now.getFullYear(), now.getMonth()-1, 0); b = new Date(now.getFullYear(), now.getMonth(), 0); }
+    else if(kind==='days'){ a = new Date(now.getFullYear(), now.getMonth(), now.getDate()-60); b = new Date(now.getFullYear(), now.getMonth(), now.getDate()-30); }
+    else { a = new Date(now.getFullYear(), now.getMonth(), now.getDate()-14); b = new Date(now.getFullYear(), now.getMonth(), now.getDate()-7); }
+    $('aodD1').value = localIso(a); $('aodD2').value = localIso(b); render();
+  };
+  window.aodRender = render;
+  window.aodInit = function(){
+    if(!ST.ready){
+      ST.ready = true;
+      var src = $('aodSource'), ref = $('d60Source');
+      if(src && ref){ src.innerHTML = ref.innerHTML; src.value = ref.value; }
+      else if(src){ src.innerHTML = '<option value="automerge">ऑटो-मर्ज</option>'; }
+      var t = todayIso(); $('aodD1').max = t; $('aodD2').max = t;
+      $('aodBody').addEventListener('click', function(e){
+        var td = e.target.closest ? e.target.closest('td.aod-n') : null;
+        if(td) openDetail(parseInt(td.getAttribute('data-d'),10), decodeURIComponent(td.getAttribute('data-k')), td.getAttribute('data-c'));
+      });
+      aodPreset('month'); return;
+    }
+    render();
+  };
+})();
+</script>
 
 </body>
 </html>
