@@ -1,6 +1,6 @@
 /* डीडवाना-कुचामन पोर्टल — सर्विस वर्कर: ऐप-शैल कैश (दूसरी बार से तुरंत खुलना)।
    Google Sheets / Apps Script के अनुरोध कभी कैश नहीं होते — डेटा हमेशा ताज़ा आता है। */
-const CACHE = 'dk-portal-v9';
+const CACHE = 'dk-portal-v14';
 const INDEX = './index.html';
 const PRE = [INDEX, './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
@@ -49,12 +49,13 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // केवल cdnjs की लाइब्रेरी कैश करें (html2canvas); Google डेटा-अनुरोध सीधे नेटवर्क से
-  if (url.hostname === 'cdnjs.cloudflare.com') {
+  // cdnjs की लाइब्रेरी व Google Fonts कैश करें (ऑफ़लाइन भी फ़ॉन्ट/PDF लाइब्रेरी मिले); Google डेटा-अनुरोध सीधे नेटवर्क से
+  if (url.hostname === 'cdnjs.cloudflare.com' || url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
     e.respondWith(caches.open(CACHE).then(async cache => {
       const cached = await cache.match(req);
-      if (cached) return cached;
-      const r = await fetch(req); if (r && r.ok) cache.put(req, r.clone()); return r;
+      const net = fetch(req).then(r => { if (r && (r.ok || r.type === 'opaque')) cache.put(req, r.clone()); return r; }).catch(() => null);
+      if (cached) { e.waitUntil(net); return cached; }
+      return (await net) || Response.error();
     }));
   }
 });

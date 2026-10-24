@@ -1338,8 +1338,10 @@ html #toast{border-radius:var(--r-pill);box-shadow:var(--sh-lg)}
 @media (min-width:1100px){html .wrap{max-width:1180px}}
 @media print{html body::before{display:none}html .pcard,html .tbl-outer{box-shadow:none}}
 </style>
+<meta name="referrer" content="strict-origin-when-cross-origin">
 </head>
 <body>
+<noscript><div style="padding:16px;margin:12px;background:#FEF3C7;color:#7C2D12;border-radius:12px;font-weight:600">⚠️ यह पोर्टल चलाने के लिए ब्राउज़र में JavaScript चालू होना ज़रूरी है।</div></noscript>
 <a class="dk-skip" href="#main-content" onclick="var m=document.querySelector('.pg.on,.pg.active,.pg:not([style*=none])');if(m&&!m.id)m.id='main-content'">मुख्य सामग्री पर जाएँ</a>
 
 
@@ -2211,6 +2213,11 @@ html #toast{border-radius:var(--r-pill);box-shadow:var(--sh-lg)}
         <div>
           <label>🟠 चयनित दिनांक-2</label>
           <input type="date" id="aodD2" onchange="aodRender()">
+        </div>
+        <div>
+          <label>📆 डेटा किस दिनांक से (FIR दर्ज दिनांक)</label>
+          <select id="aodFromSel" onchange="aodFromChange()"></select>
+          <input type="date" id="aodFrom" onchange="aodFromManual()" style="margin-top:6px" aria-label="डेटा आरंभ दिनांक">
         </div>
         <div>
           <label>🟢 आज की दिनांक (स्वतः)</label>
@@ -13455,8 +13462,9 @@ function wrPushHistoryToSheet(){
 }
 /** पेज खुलते समय — यदि इसी डिवाइस पर स्थानीय माहवार इतिहास खाली है, तो Google Sheet के
  * "WantedHistory" टैब से पुनर्निर्मित करने की कोशिश करता है (दूसरे डिवाइस से अपलोड किया गया इतिहास)। */
-async function wrRestoreHistoryFromSheetIfEmpty(){
-  if(WANTED_SNAPSHOTS.length) return; // स्थानीय इतिहास पहले से है — यहीं भरोसा रखें
+async function wrRestoreHistoryFromSheetIfEmpty(force){
+  if(WANTED_SNAPSHOTS.length && !force) return; // स्थानीय इतिहास पहले से है (force=true पर Sheet से मिलान किया जाता है)
+  if(force && typeof LAST_MANUAL_SHEET_PUSH_AT!=='undefined' && LAST_MANUAL_SHEET_PUSH_AT && Date.now()-LAST_MANUAL_SHEET_PUSH_AT<180000) return; // अभी-अभी इसी डिवाइस से अपलोड हुआ — Google की कैश-देरी में पुराना न उठाएँ
   try{
     const aoa = await fetchSheetAOA(SHEET_IDS.wantedHistory, SHEET_TABS.wantedHistory);
     if(!aoa || aoa.length<2) return;
@@ -13473,6 +13481,8 @@ async function wrRestoreHistoryFromSheetIfEmpty(){
     }
     const restored = Object.values(byMonth).sort((a,b)=>a.month.localeCompare(b.month));
     if(restored.length){
+      const _hs = a=>a.length+'|'+a.map(x=>x.month+':'+x.data.length).join(',');
+      if(force && _hs(restored)===_hs(WANTED_SNAPSHOTS)) return; // कोई बदलाव नहीं
       WANTED_SNAPSHOTS = restored;
       wrSaveSnapshotsToStorage();
       const latest = WANTED_SNAPSHOTS[WANTED_SNAPSHOTS.length-1];
@@ -13618,6 +13628,28 @@ function wrApplyNewRows(rows, statusEl, mode){
     else { statusEl.innerHTML = baseOk + '<br>🔴 Google Sheet अपडेट नहीं हो पाई: '+(res.error||'अज्ञात त्रुटि')+' — दोबारा प्रयास करें।'; }
   });
 }
+let _wrSyncAt = 0;
+/** वांछित रजिस्टर खुलने पर हर बार (अधिकतम हर 2 मिनट में) Google Sheet के "Wanted" टैब से मिलान करता है —
+ * पहले यह केवल तब चलता था जब डिवाइस पर डेटा खाली हो, इसलिए पुराना सहेजा डेटा नया Sheet-डेटा रोके रखता था। */
+async function wrSyncWantedFromSheet(initial){
+  if(!initial && Date.now()-_wrSyncAt<120000) return;
+  if(typeof LAST_MANUAL_SHEET_PUSH_AT!=='undefined' && LAST_MANUAL_SHEET_PUSH_AT && Date.now()-LAST_MANUAL_SHEET_PUSH_AT<180000) return; // अभी-अभी अपना अपलोड — Google की कैश-देरी में पुराना न उठाएँ
+  _wrSyncAt = Date.now();
+  try{
+    const aoa = await fetchSheetAOA(SHEET_IDS.wanted, SHEET_TABS.wanted);
+    const p = wrParseRows(aoa);
+    if(!(p.data && p.data.length)) return;
+    const sg = d=> d.length+'|'+(d.length?JSON.stringify(d[0])+JSON.stringify(d[d.length-1]):'');
+    if(sg(p.data)===sg(WANTED_DATA)) return;
+    WANTED_DATA = p.data;
+    if(typeof saveOfflineCache==='function') saveOfflineCache();
+    if(!initial && wantedRegLoaded){
+      wrRefreshFiltersAndFilters(); runWantedSearch();
+      const tc = document.getElementById('wrTotalCount'); if(tc) tc.textContent = WANTED_DATA.length.toLocaleString('en-IN');
+    }
+    toast('🟢 वांछित अपराधी रजिस्टर — Sheet से नया डेटा मिला ('+p.data.length.toLocaleString('en-IN')+' रिकॉर्ड)');
+  }catch(e){ if(navigator.onLine) toast('⚠️ वांछित डेटा Sheet से नहीं मिल सका — पिछला सहेजा डेटा दिख रहा है'); }
+}
 /** पेज पहली बार खुलते ही Google Sheet के "Wanted" टैब से लाइव डेटा लाने की कोशिश करता है */
 async function wrLoadLiveIfEmpty(){
   if(WANTED_DATA.length>0) return; // पहले से local/snapshot डेटा है तो live-fetch से न बदलें
@@ -13691,11 +13723,14 @@ function wrLoadNewData(){
 }
 
 async function ensureWantedRegLoaded(){
-  if(wantedRegLoaded) return;
+  if(wantedRegLoaded){
+    wrSyncWantedFromSheet(false).then(()=>wrRestoreHistoryFromSheetIfEmpty(true)).then(()=>{ try{ updateWrSnapshotSummary(); renderWantedMonthlyPivot(); }catch(_){} });
+    return;
+  }
   wantedRegLoaded = true;
   wrLoadSnapshotsFromStorage();
-  await wrLoadLiveIfEmpty();
-  await wrRestoreHistoryFromSheetIfEmpty();
+  await wrSyncWantedFromSheet(true);
+  await wrRestoreHistoryFromSheetIfEmpty(true);
   wrMultiSel.s = buildMultiSelect('wrStationFilter', wrUniqueVals('s'), wrFilters.s, 'थाना', runWantedSearch);
   wrMultiSel.hs = buildMultiSelect('wrHomeStationFilter', wrUniqueVals('hs'), wrFilters.hs, 'गृह थाना', runWantedSearch);
   wrMultiSel.hd = buildMultiSelect('wrHomeDistrictFilter', wrUniqueVals('hd'), wrFilters.hd, 'गृह जिला', runWantedSearch);
@@ -14040,7 +14075,7 @@ function downloadPivotDrill(){
   // नहीं किया जा सकता, इसे http/https पर होस्ट की गई असली फाइल होना ज़रूरी है)।
   // साथ दी गई sw.js फाइल इसी HTML के साथ अपलोड करने पर यह अपने आप सक्रिय हो जाएगी।
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js').catch(()=>{ /* sw.js अभी अपलोड नहीं है — पोर्टल सामान्य ऑनलाइन मोड में चलता रहेगा, कोई दिक्कत नहीं */ });
+    navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>{ document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ try{ reg.update(); }catch(_){} } }); }).catch(()=>{ /* sw.js अभी अपलोड नहीं है — पोर्टल सामान्य ऑनलाइन मोड में चलता रहेगा, कोई दिक्कत नहीं */ });
   }
 })();
 </script>
@@ -16687,6 +16722,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     if(a && b && a > b){ var x=a; a=b; b=x; }
     return [a||t, b||t, t];
   }
+  function fromD(){ var v=($('aodFrom')||{}).value; return v||null; }
   function tabLimit(tab){
     if(tab==='l60') return 60;
     if(tab==='l90') return 90;
@@ -16723,7 +16759,8 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   /* ---------- किसी दिनांक D की स्थिति ---------- */
   function evalAt(rows, D, L){
     return rows.map(function(r){
-      if(!r.reg || r.reg > D) return null;
+      var F = fromD();
+      if(!r.reg || r.reg > D || (F && r.reg < F)) return null;
       var cls, days, later = false;
       if(r.csDate && r.csDate <= D){ days = dayDiff(r.reg, r.csDate); cls = days<=L ? 'c2' : 'c3'; }
       else { days = dayDiff(r.reg, D); cls = days<=L ? 'c4' : 'c5'; later = !!r.csDate; }
@@ -16764,7 +16801,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   }
   function getData(tab){
     var ds = dates(), L = tabLimit(tab);
-    var key = [tab, L, ds.join(','), ($('aodSource')||{}).value].join('|');
+    var key = [tab, L, ds.join(','), ($('aodSource')||{}).value, fromD()].join('|');
     if(ST.cache[key]) return ST.cache[key];
     var rows = baseRows(tab, L);
     var evs = ds.map(function(D){ return evalAt(rows, D, L); });
@@ -16958,7 +16995,11 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     var srcTxt = '';
     if(ST.tab!=='scst'){ var so = $('aodSource'); srcTxt = so && so.selectedOptions[0] ? ' | स्रोत: <b>'+esc(so.selectedOptions[0].textContent)+'</b>' : ''; }
     else srcTxt = ' | स्रोत: <b>SAS Export</b> (SC/ST श्रेणी)';
-    $('aodNote').innerHTML = '<div class="note">'+TABS[ST.tab].icon+' <b>'+TABS[ST.tab].label+'</b> | सीमा: <b>'+d.L+' दिन</b>'+srcTxt+' | तुलना: <b>'+dmy(d.ds[0])+'</b>, <b>'+dmy(d.ds[1])+'</b> व <b>आज '+dmy(d.ds[2])+'</b> | इस श्रेणी के कुल FIR: <b>'+d.rows.length+'</b></div>';
+    $('aodNote').innerHTML = '<div class="note">'+TABS[ST.tab].icon+' <b>'+TABS[ST.tab].label+'</b> | सीमा: <b>'+d.L+' दिन</b>'+srcTxt+' | डेटा अवधि: <b>'+(fromD()?dmy(fromD())+' से':'आरंभ से')+'</b> | तुलना: <b>'+dmy(d.ds[0])+'</b>, <b>'+dmy(d.ds[1])+'</b> व <b>आज '+dmy(d.ds[2])+'</b> | इस श्रेणी के कुल FIR: <b>'+d.rows.length+'</b></div>';
+    if(fromD() && fromD() > d.ds[0]){
+      $('aodBody').innerHTML = '<div class="note">⚠️ डेटा-आरंभ दिनांक ('+dmy(fromD())+') चयनित दिनांक-1 ('+dmy(d.ds[0])+') के बाद की है — कृपया आरंभ दिनांक पहले की चुनें या दिनांक-1 आगे बढ़ाएँ।</div>';
+      $('aodFormula').innerHTML = formulaHTML(d.L); return;
+    }
     if(!d.rows.length){
       $('aodBody').innerHTML = '<div class="note">⚠️ '+(ST.tab==='scst' ? 'SC/ST प्रकरण नहीं मिले — "डेटा अपडेट" में SAS Export अपलोड करें।' : 'इस स्रोत में '+d.L+' दिवस श्रेणी का डेटा नहीं मिला — दूसरा डेटा स्रोत चुनें।')+'</div>';
       $('aodFormula').innerHTML = formulaHTML(d.L); return;
@@ -17253,6 +17294,17 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     else { a = new Date(now.getFullYear(), now.getMonth(), now.getDate()-14); b = new Date(now.getFullYear(), now.getMonth(), now.getDate()-7); }
     $('aodD1').value = localIso(a); $('aodD2').value = localIso(b); render();
   };
+  window.aodFromChange = function(){
+    var sel = $('aodFromSel'), inp = $('aodFrom'); if(!sel||!inp) return;
+    if(sel.value==='all') inp.value = ''; else if(sel.value!=='custom') inp.value = sel.value;
+    render();
+  };
+  window.aodFromManual = function(){
+    var sel = $('aodFromSel'), inp = $('aodFrom'); if(!sel||!inp) return;
+    var m = Array.prototype.some.call(sel.options, function(o){ return o.value===inp.value && o.value!=='all' && o.value!=='custom'; });
+    sel.value = inp.value ? (m ? inp.value : 'custom') : 'all';
+    render();
+  };
   window.aodRender = render;
   window.aodInit = function(){
     if(!ST.ready){
@@ -17265,6 +17317,13 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
         var td = e.target.closest ? e.target.closest('td.aod-n') : null;
         if(td) openDetail(parseInt(td.getAttribute('data-d'),10), decodeURIComponent(td.getAttribute('data-k')), td.getAttribute('data-c'));
       });
+      var sel = $('aodFromSel'), y = new Date().getFullYear(), opts = [['all','समस्त डेटा (आरंभ से)']];
+      [y, y-1].forEach(function(yy){ opts.push([yy+'-01-01','01/01/'+yy+' से']); });
+      [y, y-1].forEach(function(yy){ opts.push([yy+'-07-01','01/07/'+yy+' से']); });
+      opts.push(['2024-07-01','01/07/2024 से']);
+      opts.push(['custom','अन्य दिनांक (नीचे चुनें)']);
+      if(sel) sel.innerHTML = opts.map(function(o){ return '<option value="'+o[0]+'">'+o[1]+'</option>'; }).join('');
+      if($('aodFrom')) $('aodFrom').max = t;
       aodPreset('month'); return;
     }
     render();
@@ -17354,6 +17413,22 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
       if(typeof toast==='function')toast('✅ Generic डेटा अपडेट हुआ');
     }catch(e){console.error(e);st('डेटा नहीं मिल सका: '+(e&&e.message||e)+' — सर्वर ने डेटा-पहुँच की अनुमति न दी हो तो CSV डाउनलोड करके Generic अपलोड करें।',true)}
   };
+})();
+</script>
+<script>
+/* ===== तकनीकी सुधार: नामहीन फ़ील्ड को लेबल, डेटा-भंडारण सुरक्षा ===== */
+(function(){
+  function label(){
+    document.querySelectorAll('input:not([type=hidden]):not([aria-label]):not([aria-labelledby]),select:not([aria-label]):not([aria-labelledby]),textarea:not([aria-label]):not([aria-labelledby])').forEach(function(el){
+      if(el.labels&&el.labels.length)return;
+      var t=el.getAttribute('placeholder')||el.title||el.getAttribute('name')||el.id;
+      if(t)el.setAttribute('aria-label',t);
+    });
+  }
+  label();
+  var pend=false;
+  new MutationObserver(function(){if(pend)return;pend=true;setTimeout(function(){pend=false;label()},400)}).observe(document.body,{childList:true,subtree:true});
+  try{ if(navigator.storage&&navigator.storage.persist)navigator.storage.persist(); }catch(_){}
 })();
 </script>
 <script>
