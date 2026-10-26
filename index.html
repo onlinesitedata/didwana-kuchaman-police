@@ -17528,17 +17528,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     var tag='जन-'+MONTHS[month-1]+'-'+year, jsPDF=window.jspdf.jsPDF;
     if(document.fonts&&document.fonts.ready){try{await document.fonts.ready}catch(e){}}
     for(var i=0;i<psList.length;i++){
-      var ps=psList[i], pages=allPages(ps,byPs,month,year,i), doc=new jsPDF({orientation:'portrait',unit:'pt',format:'a4'});
-      var W=doc.internal.pageSize.getWidth(), H=doc.internal.pageSize.getHeight(), mx=30, my=26;
-      for(var k=0;k<pages.length;k++){
-        var wrap=document.createElement('div'); wrap.style.cssText='position:fixed;left:-99999px;top:0;width:760px;background:#fff;padding:14px';
-        wrap.innerHTML=resolvePrintVarsHTML(pages[k]); document.body.appendChild(wrap);
-        try{ await new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r)})});
-          var cv=await html2canvas(wrap,{scale:2,backgroundColor:'#ffffff'});
-          var sc=Math.min((W-mx*2)/cv.width,(H-my*2)/cv.height), iw=cv.width*sc, ih=cv.height*sc;
-          if(k>0) doc.addPage(); doc.addImage(cv.toDataURL('image/png',1.0),'PNG',(W-iw)/2,my,iw,ih);
-        }finally{document.body.removeChild(wrap)}
-      }
+      var ps=psList[i], pages=allPages(ps,byPs,month,year,i), doc=await window.dkPdfKit.pagesToPdf(pages);
       doc.save('पत्र-'+(ENG2HI_PS[ps]||ps)+'-'+tag+'.pdf');
       if(st)st.textContent='⏳ '+(i+1)+' / '+psList.length+' थानों के पत्र डाउनलोड हुए…';
       await new Promise(function(r){setTimeout(r,400)});
@@ -17764,23 +17754,66 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
         '<div style="font-weight:700;margin-bottom:2px">(अ) 60 दिवस श्रेणी — कुल '+n60.length+' प्रकरण:</div>'+offNear(n60,60,15)});
       ann.push({h:'<div style="font-weight:700;margin:6px 0 2px">(ब) 90 दिवस श्रेणी — कुल '+n90.length+' प्रकरण:</div>'+offNear(n90,90,15)});
     }
-    var pages=[], cur=[], h=0;
+    var PK=window.dkPdfKit;
+    function wrapPage(blocks,i){return '<div style="font-family:'+OFONT+';color:#000;font-size:16.5px;line-height:1.65;padding:4px 10px">'+(i>0?'<div style="text-align:center;font-size:14px;margin-bottom:6px">- '+(i+1)+' -</div>':'')+blocks.join('')+'</div>'}
+    var pages=[], cur=[];
+    /* असली पृष्ठ-ऊँचाई नापकर भरते हैं: अगला खंड समाए तो उसी पृष्ठ पर, वरना नया पृष्ठ */
     B.concat(ann).forEach(function(b){
-      var bh=measure(b.h);
-      if(b.br&&cur.length){pages.push(cur);cur=[];h=0}
-      else if(h+bh>PAGEH&&cur.length){pages.push(cur);cur=[];h=0}
-      cur.push(b.h); h+=bh;
+      if(b.br&&cur.length){pages.push(cur);cur=[]}
+      var t=cur.concat([b.h]);
+      if(cur.length&&PK&&PK.measureFull(wrapPage(t,pages.length))>PK.CAP){pages.push(cur);cur=[b.h]}
+      else cur=t;
     });
     if(cur.length) pages.push(cur);
-    return pages.map(function(blocks,i){
-      return '<div style="font-family:'+OFONT+';color:#000;font-size:16.5px;line-height:1.65;padding:4px 10px">'+(i>0?'<div style="text-align:center;font-size:14px;margin-bottom:6px">- '+(i+1)+' -</div>':'')+blocks.join('')+'</div>';
-    });
+    return pages.map(function(blocks,i){return wrapPage(blocks,i)});
   };
   /* पत्र-किट (प्रदर्शन रिपोर्ट के लिए) भी सादा/आधिकारिक रूप में */
   function offHead(){return '<div style="text-align:center;line-height:1.35"><div style="font-size:14px;letter-spacing:.2em">राजस्थान पुलिस</div><div style="font-size:21px;font-weight:700">कार्यालय पुलिस अधीक्षक, जिला डीडवाना-कुचामन</div><div style="font-size:15px">(सांख्यिकी शाखा)</div><div style="border-bottom:3px double #000;margin:6px 0 8px"></div></div>'}
   function offSec(n,t){return '<div style="font-weight:700;font-size:16px;margin:12px 0 4px;border-bottom:1px solid #000;padding-bottom:2px">'+n+'. '+t+'</div>'}
   function offWrap(inner,i,N,ref){return '<div style="font-family:'+OFONT+';color:#000;font-size:15.5px;line-height:1.55;padding:4px 10px">'+(i>0?'<div style="text-align:center;font-size:14px;margin-bottom:6px">- '+(i+1)+' -</div>':'')+inner+'</div>'}
   window.dkLetterKit={letterhead:offHead,sec:offSec,kpi:kpi,wrap:offWrap,TRI:'',TH:BT,NAVY:'#E7E6E6',GOLD:'#000',bar:bar};
+})();
+</script>
+<script>
+/* ===== पत्र/रिपोर्ट PDF किट: उच्च-रेज़ोल्यूशन (~300 dpi) + पृष्ठ-भराव (खाली जगह कम) ===== */
+(function(){
+  var RW=760, RP=14, MX=22, MY=22, A4W=595.28, A4H=841.89;
+  /* एक A4 पृष्ठ में रेंडर-बॉक्स (पैडिंग सहित) की अधिकतम ऊँचाई (px) */
+  var CAP=Math.floor((RW+RP*2)*((A4H-MY*2)/(A4W-MX*2)))-4;
+  function rv(h){return (typeof resolvePrintVarsHTML==='function')?resolvePrintVarsHTML(h):h}
+  /* html2canvas जिस बॉक्स को खींचता है ठीक वही बॉक्स बनाकर उसकी असली ऊँचाई नापता है */
+  function measureFull(html){
+    var d=document.createElement('div');
+    d.style.cssText='position:absolute;left:-99999px;top:0;width:'+RW+'px;padding:'+RP+'px;visibility:hidden';
+    d.innerHTML=rv(html); document.body.appendChild(d);
+    var h=d.offsetHeight; document.body.removeChild(d); return h;
+  }
+  async function pagesToPdf(pages,opt){
+    opt=opt||{};
+    if(!window.jspdf||!window.jspdf.jsPDF) throw new Error('PDF लाइब्रेरी लोड नहीं हो पाई');
+    if(typeof html2canvas==='undefined') throw new Error('इमेज लाइब्रेरी लोड नहीं हो पाई — इंटरनेट जांचें');
+    if(document.fonts&&document.fonts.ready){try{await document.fonts.ready}catch(e){}}
+    var doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'pt',format:'a4',compress:true});
+    var W=doc.internal.pageSize.getWidth(), H=doc.internal.pageSize.getHeight(), aw=W-MX*2, ah=H-MY*2;
+    for(var k=0;k<pages.length;k++){
+      var w=document.createElement('div');
+      w.style.cssText='position:fixed;left:-99999px;top:0;width:'+RW+'px;background:#fff;padding:'+RP+'px';
+      w.innerHTML=rv(pages[k]); document.body.appendChild(w);
+      try{
+        await new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r)})});
+        var hpx=w.offsetHeight, wpx=w.offsetWidth;
+        /* ~300 dpi: scale 3 (मोबाइल की canvas-सीमा हेतु पिक्सल-संख्या पर अंकुश) */
+        var s=Math.max(2,Math.min(opt.scale||3,Math.sqrt(14e6/(wpx*hpx))));
+        var cv=await html2canvas(w,{scale:s,backgroundColor:'#ffffff',logging:false});
+        var sc=Math.min(aw/cv.width,ah/cv.height), iw=cv.width*sc, ih=cv.height*sc;
+        if(k>0) doc.addPage();
+        doc.addImage(cv.toDataURL('image/png'),'PNG',(W-iw)/2,MY,iw,ih,undefined,'FAST');
+        cv.width=cv.height=0;
+      }finally{document.body.removeChild(w)}
+    }
+    return doc;
+  }
+  window.dkPdfKit={CAP:CAP,measureFull:measureFull,pagesToPdf:pagesToPdf};
 })();
 </script>
 <script>
@@ -17902,11 +17935,12 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
       '<div style="background:#fff;border:1px solid #000;padding:8px 12px;margin-bottom:8px"><div style="font-size:15px;font-weight:700;color:'+NAVY+'">थाना '+I.hi+' — प्रदर्शन रिपोर्ट एवं निर्देश</div><div style="font-size:11px;color:#475569">60/90 दिवस दिनांक-अनुसार स्थिति व रैंकिंग • पेंडेंसी • SLL कार्यवाही</div></div>'+
       '<div style="font-size:11.8px;margin-bottom:4px"><b>प्रेषित:</b> '+to+'</div><div style="font-size:11.8px;margin-bottom:8px"><b>प्रतिलिपि:</b> '+cc.join(' • ')+'</div>'+cards+
       K.sec(1,'मुख्य बिन्दु (एक नज़र में)')+'<ul style="margin:2px 0 6px 18px;padding:0;font-size:11.8px">'+
-      (D.bad.slice(0,4).map(function(x){return '<li style="margin-bottom:3px;color:#7F1D1D">⚠️ '+x+'</li>'}).join(''))+(D.good.slice(0,3).map(function(x){return '<li style="margin-bottom:3px;color:#14532D">✅ '+x+'</li>'}).join(''))+'</ul>'+
-      '<div style="font-size:10.8px;color:#64748B;margin-top:6px">विस्तृत सारणियाँ व निर्देश आगामी पृष्ठों पर संलग्न हैं।</div>';
-    var p2=K.sec(1,'60 दिवस — दिनांक-अनुसार स्थिति व रैंकिंग')+aodTable(I,'l60')+K.sec(2,'90 दिवस — दिनांक-अनुसार स्थिति व रैंकिंग')+aodTable(I,'l90');
-    var p3=K.sec(3,'पेंडेंसी की स्थिति')+pendTable(I)+K.sec(4,'SLL (आबकारी/जुआ/आर्म्स/NDPS) कार्यवाही — गत वर्ष से तुलना')+sllTable(I);
-    var p4=K.sec(5,'निर्देश')+
+      (D.bad.slice(0,4).map(function(x){return '<li style="margin-bottom:3px;color:#7F1D1D">⚠️ '+x+'</li>'}).join(''))+(D.good.slice(0,3).map(function(x){return '<li style="margin-bottom:3px;color:#14532D">✅ '+x+'</li>'}).join(''))+'</ul>';
+    var b60=K.sec(2,'60 दिवस — दिनांक-अनुसार स्थिति व रैंकिंग')+aodTable(I,'l60'),
+        b90=K.sec(3,'90 दिवस — दिनांक-अनुसार स्थिति व रैंकिंग')+aodTable(I,'l90'),
+        bpd=K.sec(4,'पेंडेंसी की स्थिति')+pendTable(I),
+        bsl=K.sec(5,'SLL (आबकारी/जुआ/आर्म्स/NDPS) कार्यवाही — गत वर्ष से तुलना')+sllTable(I);
+    var bdir=K.sec(6,'निर्देश')+
       (D.bad.length?'<div style="font-weight:700;color:#B91C1C;margin:4px 0 2px">⚠️ तत्काल सुधार हेतु:</div>'+olist(D.bad):'')+
       (D.todo.length?'<div style="font-weight:700;color:'+K.GOLD+';margin:4px 0 2px">📌 अन्य आवश्यक कार्यवाही:</div>'+olist(D.todo):'')+
       (D.good.length?'<div style="font-weight:700;color:#15803D;margin:4px 0 2px">✅ सराहनीय / बनाए रखें:</div>'+olist(D.good):'')+
@@ -17914,8 +17948,16 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
       '<table style="width:100%;border-collapse:collapse;margin-top:18px"><tr><td style="font-size:10.5px;color:#64748B;vertical-align:bottom">(कार्यालय मुहर)</td><td style="text-align:right;font-size:12px"><div style="height:30px"></div><div style="border-top:1.5px solid #101828;display:inline-block;padding-top:3px"><b>पुलिस अधीक्षक</b><br>जिला डीडवाना-कुचामन</div></td></tr></table>'+
       '<div style="margin-top:12px;font-size:11px;border:1px solid #000;padding:7px 10px;background:#fff"><b>प्रतिलिपि सूचनार्थ/आवश्यक कार्यवाही हेतु:</b><ol style="margin:3px 0 0 18px;padding:0">'+cc.map(function(c){return '<li>'+c+'</li>'}).join('')+'</ol></div>';
     var mini=function(t){return '<table style="width:100%;border-collapse:collapse"><tr><td style="background:#fff;color:#000;border-bottom:2px solid #000;padding:6px 4px;font-size:14px"><b>थाना '+I.hi+'</b> — '+t+'</td></tr></table>'+K.TRI};
-    var all=[p1,mini('60/90 दिवस रैंकिंग')+p2,mini('पेंडेंसी व SLL कार्यवाही')+p3,mini('निर्देश')+p4];
-    return all.map(function(h,i){return K.wrap(h,i,all.length,ref)});
+    /* खंडों को असली पृष्ठ-ऊँचाई नापकर क्रम से भरते हैं (हर खंड अलग पृष्ठ पर नहीं) — खाली जगह कम */
+    var PK=window.dkPdfKit, blocks=[p1,b60,b90,bpd,bsl,bdir], pgs=[], cur=[];
+    function wrapP(arr,i){return K.wrap((i>0?mini('प्रदर्शन रिपोर्ट (क्रमशः)'):'')+arr.join(''),i,0,ref)}
+    blocks.forEach(function(b){
+      var t=cur.concat([b]);
+      if(cur.length&&PK&&PK.measureFull(wrapP(t,pgs.length))>PK.CAP){pgs.push(cur);cur=[b]}
+      else cur=t;
+    });
+    if(cur.length) pgs.push(cur);
+    return pgs.map(function(a,i){return wrapP(a,i)});
   }
   function bodyText(I){
     var E=emailsOf(I), D=directions(I), a60=I.aod.l60&&I.aod.l60.st[2], a90=I.aod.l90&&I.aod.l90.st[2], L=[];
@@ -17930,17 +17972,8 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   async function buildPdf(ps){
     if(!window.jspdf||!window.jspdf.jsPDF) throw new Error('PDF लाइब्रेरी लोड नहीं हो पाई');
     if(typeof html2canvas==='undefined') throw new Error('इमेज लाइब्रेरी लोड नहीं हो पाई — इंटरनेट जांचें');
-    var I=gather(ps), pgs=pages(I), doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'pt',format:'a4'});
-    var W=doc.internal.pageSize.getWidth(), H=doc.internal.pageSize.getHeight(), mx=30, my=26;
     if(document.fonts&&document.fonts.ready){try{await document.fonts.ready}catch(e){}}
-    for(var k=0;k<pgs.length;k++){
-      var w=document.createElement('div'); w.style.cssText='position:fixed;left:-99999px;top:0;width:760px;background:#fff;padding:14px';
-      w.innerHTML=resolvePrintVarsHTML(pgs[k]); document.body.appendChild(w);
-      try{ await new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r)})});
-        var cv=await html2canvas(w,{scale:2,backgroundColor:'#ffffff'}), sc=Math.min((W-mx*2)/cv.width,(H-my*2)/cv.height);
-        if(k>0) doc.addPage(); doc.addImage(cv.toDataURL('image/jpeg',0.93),'JPEG',(W-cv.width*sc)/2,my,cv.width*sc,cv.height*sc);
-      }finally{document.body.removeChild(w)}
-    }
+    var I=gather(ps), pgs=pages(I), doc=await window.dkPdfKit.pagesToPdf(pgs);
     var fname='प्रदर्शन-रिपोर्ट-'+I.hi+'-'+new Date().toISOString().slice(0,10)+'.pdf';
     return {I:I,doc:doc,fname:fname,blob:doc.output('blob'),b64:doc.output('datauristring').split(',')[1]};
   }
