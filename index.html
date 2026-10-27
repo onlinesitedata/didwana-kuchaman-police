@@ -2343,6 +2343,7 @@ html #toast{border-radius:var(--r-pill);box-shadow:var(--sh-lg)}
     <div class="ctx-bar">
       <div class="ctx-grid">
         <div><label>तुलना हेतु वर्ष (चालू)</label><select id="mcrYear"></select></div>
+        <div><label>माह (तक)</label><select id="mcrMonth"></select></div>
       </div>
       <div class="note" style="margin-top:8px">नीचे हर सेक्शन में चयनित वर्ष व उससे पिछले 2 वर्षों की तुलना दिखेगी (पोर्टल में जितना डेटा उपलब्ध है)। यह रिपोर्ट पोर्टल के dbRecords (SAS Export से बना) से सीधे बनती है — अलग से CCTNS_BASED_MCR फाइल अपलोड करने की जरूरत नहीं।</div>
       <button class="btn-fill" style="margin-top:10px;background:linear-gradient(135deg,var(--navy),var(--navy2))" onclick="renderMcrBook()">🔍 रिपोर्ट बनाएं</button>
@@ -6562,7 +6563,7 @@ function mcrHeadSection(num, title, field, cats, years, curY){
   return mcrBookSection(`${num}. ${title}`, body, 'वर्ष '+curY);
 }
 
-function renderMcrBook(){
+function renderMcrBookOld(){
   const sel = document.getElementById('mcrYear');
   const curY = sel ? parseInt(sel.value) : CY;
   const years = [curY-2, curY-1, curY];
@@ -16752,7 +16753,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
       var cs = (x.disposed && x.dd!=null) ? addDays(reg, Math.round(x.dd)) : null;
       var lbl = x.ctype==='CS' ? 'चालान' : (x.ctype==='FR' ? 'एफ.आर.' : (x.disposed ? 'अन्य निस्तारण' : '-'));
       out.push({ps:x.ps, hi:hiPS(x.ps), circle:dispCircleOf(x.ps), fir:x.fir||'-', reg:reg, section:x.section||'-',
-                cats:'', csDate:cs, label:lbl, noDate:!!x.disposed && !cs});
+                cats:'', csDate:cs, label:lbl, noDate:!!x.disposed && !cs, disposed:!!x.disposed, rd:(x.rd==null?null:x.rd), limitTab:true});
     });
     return out;
   }
@@ -16764,6 +16765,11 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
       if(!r.reg || r.reg > D || (F && r.reg < F)) return null;
       var cls, days, later = false;
       if(r.csDate && r.csDate <= D){ days = dayDiff(r.reg, r.csDate); cls = days<=L ? 'c2' : 'c3'; }
+      else if(r.disposed && !r.csDate && r.limitTab){ days = dayDiff(r.reg, D); cls = 'c3'; }   /* निस्तारित पर दिनांक रिक्त → 60/90 दिवस पेज की तरह "सीमा बाद निस्तारित" */
+      else if(!r.disposed && r.limitTab){   /* पेंडिंग: CCTNS (Generic) के दिए पेंडिंग-दिवस (rd) आधार — 60/90 दिवस पेज जैसा; पूर्व दिनांक D हेतु उसी से पीछे गिनती */
+        days = (r.rd!=null) ? (r.rd - dayDiff(D, todayIso())) : null;
+        cls = (days!=null && days<=L) ? 'c4' : 'c5';
+      }
       else { days = dayDiff(r.reg, D); cls = days<=L ? 'c4' : 'c5'; later = !!r.csDate; }
       return {r:r, cls:cls, days:days, later:later, D:D, L:L};
     });
@@ -17814,6 +17820,347 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     return doc;
   }
   window.dkPdfKit={CAP:CAP,measureFull:measureFull,pagesToPdf:pagesToPdf};
+})();
+</script>
+<script>
+/* ===== MCR Book — राज्य MCR Book (PDF) के अनुरूप अपराध-प्रारूप (जिला-स्तर: थाना/वृत्त) ===== */
+(function(){
+  var FONT="font-family:'Mangal','Nirmala UI','Hind',serif;color:#000;";
+  var S_T='border:1px solid #000;padding:3px 3px;text-align:center;vertical-align:middle;font-size:11.5px;';
+  var S_L='border:1px solid #000;padding:3px 5px;text-align:left;vertical-align:middle;font-size:11.5px;';
+  var AV={FALSE:1,MOF:1,MOL:1,CIVIL:1,NONCOG:1};   /* एफ.आर. अदम वकू = मिथ्या/तथ्य की भूल/विधि की भूल/सिविल/असंज्ञेय */
+  var IDX=null, ALLPS=[];
+
+  /* ---------- डेटा-सूचकांक: (हेड|श्रेणी|थाना|वर्ष|माह) → दर्ज / चालान / एफ.आर. / अदम वकू / पेंडिंग ---------- */
+  function Z(){return {n:0,cs:0,fr:0,av:0,pd:0}}
+  function add(a,b){a.n+=b.n;a.cs+=b.cs;a.fr+=b.fr;a.av+=b.av;a.pd+=b.pd;return a}
+  function mkIdx(){
+    var F=['ipc','sll','wa','scst','pocso','rape'], ix={};
+    dbRecords.forEach(function(r){
+      if(!r.year||!r.month) return;
+      for(var i=0;i<F.length;i++){
+        var c=r[F[i]]; if(!c) continue;
+        var k=F[i]+'|'+c+'|'+r.ps+'|'+r.year+'|'+r.month, o=ix[k]||(ix[k]=Z());
+        o.n++;
+        if(r.disposal==='Chargesheet') o.cs++;
+        else if(r.disposal==='F.R.'){ o.fr++; if(AV[frSubKey(r)]) o.av++; }
+        else o.pd++;
+      }
+    });
+    return ix;
+  }
+  function Q(field,cats,pss,y,m1,m2){
+    var t=Z();
+    for(var ci=0;ci<cats.length;ci++) for(var pi=0;pi<pss.length;pi++) for(var m=m1;m<=m2;m++){
+      var o=IDX[field+'|'+cats[ci]+'|'+pss[pi]+'|'+y+'|'+m]; if(o) add(t,o);
+    }
+    return t;
+  }
+  function QR(row,pss,y,m1,m2){
+    var t=Z();
+    if(row.children){ row.children.forEach(function(c){add(t,QR(c,pss,y,m1,m2))}); return t; }
+    row.parts.forEach(function(p){add(t,Q(p[0],p[1],pss,y,m1,m2))});
+    return t;
+  }
+  function R(label,field,cats){return {label:label,parts:[[field,cats]]}}
+  function T(label,children,bold){return {label:label,children:children,bold:!!bold}}
+
+  /* ---------- पंक्तियाँ (राज्य PDF के क्रम व शीर्षक) ---------- */
+  var r_mur=R('हत्या','ipc',['Murder']), r_att=R('हत्या का प्रयास','ipc',['Attempt to Commit Murder']),
+      r_dac=R('डकैती','ipc',['Dacoity']), r_rob=R('लूट','ipc',['Robbery']),
+      r_kid=R('व्यपहरण / अपहरण','ipc',['Kidnapping & Abduction']), r_rap=R('दुष्कर्म (बालिग)','ipc',['Rape(Major)']),
+      r_rio=R('बलवा','ipc',['Riots']), r_bur=R('नकबजनी','ipc',['Burglary']), r_the=R('चोरी','ipc',['Theft']),
+      r_oth=R('अन्य भा.द.सं./बी.एन.एस.','ipc',['Other BNS/IPC','Snatching','Rape(Minor)']);
+  var IPC_L=[r_mur,r_att,r_dac,r_rob,r_kid,r_rap,r_rio,r_bur,r_the,r_oth];
+  var IPC_TOT=T('योग भा.द.सं./बी.एन.एस.',IPC_L,true), IPC_ROWS=IPC_L.concat([IPC_TOT]);
+  var PROP=T('कुल सम्पत्ति संबंधी अपराध',[r_dac,r_rob,r_bur,r_the],true);
+
+  var SLL_L=[R('एक्साईज एक्ट','sll',['Excise Act']),R('जुआ अध्यादेश','sll',['Gambling Ordinance']),R('आर्म्स एक्ट','sll',['Arms Act']),
+    R('एन.डी.पी.एस. एक्ट','sll',['NDPS Act']),R('एक्सप्लोजिव एक्ट','sll',['Explosive Act']),R('ई.सी.एक्ट','sll',['EC Act']),
+    R('आई.टी. एक्ट','sll',['IT Act']),R('ध्वनि प्रदूषण एक्ट','sll',['Noise Pollution']),R('अन्य एक्ट','sll',['Other SLL'])];
+  var SLL_TOT=T('कुल एक्ट',SLL_L,true), SLL_ROWS=SLL_L.concat([SLL_TOT]);
+
+  var WA_L=[R('दुष्कर्म के साथ हत्या','wa',['Rape with Murder']),R('दहेज मृत्यु','wa',['Dowry Death']),
+    R('आत्महत्या का दुष्प्रेरण','wa',['Abetment of Suicide']),R('महिला उत्पीड़न (498(A) IPC /85 BNS)','wa',['Women Harassment']),
+    R('छेड़छाड़','wa',['Molestation']),R('व्यपहरण / अपहरण','wa',['Kidnapping & Abduction']),R('दुष्कर्म (बालिग)','wa',['Rape(Major)']),
+    R('दुष्कर्म (नाबालिग)','wa',['Rape(Minor)']),R('अन्य','wa',['Others'])];
+  var WA_TOT=T('कुल महिला अत्याचार',WA_L,true), WA_ROWS=WA_L.concat([WA_TOT]);
+
+  var SC_L=[R('हत्या','scst',['Murder']),R('गम्भीर चोट','scst',['Grievous Hurt']),R('दुष्कर्म (बालिग)','scst',['Rape(Major)']),
+    R('दुष्कर्म (नाबालिग)','scst',['Rape(Minor)']),R('गम्भीर क्षति','scst',['Arson']),R('अपहरण / व्यपहरण','scst',['Kidnapping & Abduction']),
+    R('अन्य अपराध','scst',['Others']),R('3 एससी / एसटी एक्ट','scst',['The SC/ST (Prevention of Atrocities) Act'])];
+  var SC_TOT=T('कुल योग',SC_L,true), SC_ROWS=SC_L.concat([SC_TOT]);
+
+  var RP1=[R('दुष्कर्म के साथ हत्या (बालिग)','wa',['Rape with Murder']),R('सामूहिक दुष्कर्म (बालिग)','rape',['Gang Rape (Major)']),R('अन्य दुष्कर्म (बालिग)','rape',['Rape (Major)'])];
+  var RP1_ROWS=RP1.concat([T('कुल दुष्कर्म (धारा 4/6 पॉक्सो एक्ट के अलावा)',RP1,true)]);
+  var RP2=[R('दुष्कर्म के साथ हत्या (नाबालिग)','pocso',['Rape with Murder (Minor)']),R('सामूहिक दुष्कर्म (नाबालिग) (धारा 4 व 6 पॉक्सो एक्ट)','pocso',['Gang Rape (Minor)']),
+    R('दुष्कर्म (नाबालिग) धारा 4 व 6 पॉक्सो एक्ट (सामूहिक दुष्कर्म के अलावा)','pocso',['Rape (Minor)']),R('अन्य पॉक्सो एक्ट','pocso',['Other POCSO Act'])];
+  var RP2_ROWS=RP2.concat([T('कुल पॉक्सो एक्ट',RP2,true)]);
+
+  /* ---------- सहायक ---------- */
+  function f2(v){return (Math.round(v*100)/100).toFixed(2)}
+  function pc(a,b){return a?((b-a)/a*100):(b?100:0)}
+  function td(v,b){return '<td style="'+S_T+(b?'font-weight:700;':'')+'">'+v+'</td>'}
+  function tdl(v,b){return '<td style="'+S_L+(b?'font-weight:700;':'')+'">'+v+'</td>'}
+  function th(v,attr){return '<th'+(attr||'')+' style="'+S_T+'font-weight:400">'+v+'</th>'}
+  function tbl(inner,fs){return '<table style="width:100%;border-collapse:collapse;margin:4px 0 12px;'+(fs?'font-size:'+fs+'px;':'')+'">'+inner+'</table>'}
+  function H1(t){return '<div style="text-align:center;font-weight:700;font-size:17px;text-decoration:underline;margin:2px 0 4px">'+t+'</div>'}
+  function H2(t,sub){return '<div style="text-align:center;font-weight:700;font-size:15px;text-decoration:underline;margin:10px 0 2px">'+t+'</div>'+(sub?'<div style="text-align:center;font-weight:700;font-size:13px;margin:0 0 4px">'+sub+'</div>':'')}
+  function P(t){return '<p style="text-align:justify;text-indent:34px;font-size:13px;line-height:1.5;margin:6px 0">'+t+'</p>'}
+  function NOTE(t){return '<div style="font-size:11px;margin:-6px 0 8px">'+t+'</div>'}
+  function psSort(a,b){return (ENG2HI_PS[a]||a).localeCompare(ENG2HI_PS[b]||b)}
+
+  /* ---------- सारणी-निर्माता ---------- */
+  function tblMonthly(rows,y,m){
+    var pm=m>1?m-1:12, py=m>1?y:y-1, nm=MONTHS[m-1], A=nm+' '+(y-1), B=MONTHS[pm-1]+' '+py, C=nm+' '+y;
+    var h='<thead><tr>'+th('क्र.<br>सं.',' rowspan="2"')+th('शीर्षक',' rowspan="2"')+th('दर्ज अभियोग',' colspan="3"')+th('कमी / वृद्धि',' colspan="2"')+th('प्रतिशत',' colspan="2"')+'</tr><tr>'
+      +th(A)+th(B)+th(C)+th(A+'<br>से<br>'+C)+th(B+'<br>से<br>'+C)+th(A+'<br>से<br>'+C)+th(B+'<br>से<br>'+C)+'</tr></thead><tbody>';
+    rows.forEach(function(r,i){
+      var a=QR(r,ALLPS,y-1,m,m).n, b=QR(r,ALLPS,py,pm,pm).n, c=QR(r,ALLPS,y,m,m).n, bd=!!r.bold;
+      h+='<tr>'+td(i+1,bd)+tdl(r.label,bd)+td(a,bd)+td(b,bd)+td(c,bd)+td(c-a,bd)+td(c-b,bd)+td(f2(pc(a,c)),bd)+td(f2(pc(b,c)),bd)+'</tr>';
+    });
+    return tbl(h+'</tbody>');
+  }
+  function tblYearly(rows,y,m){
+    var h='<thead><tr>'+th('क्र.<br>सं.',' rowspan="2"')+th('शीर्षक',' rowspan="2"')+th('दर्ज अभियोग (माह '+MONTHS[m-1]+' तक)',' colspan="3"')+th('कमी / वृद्धि',' colspan="2"')+th('प्रतिशत',' colspan="2"')+'</tr><tr>'
+      +th(y-2)+th(y-1)+th(y)+th((y-2)+'<br>से<br>'+y)+th((y-1)+'<br>से<br>'+y)+th((y-2)+'<br>से<br>'+y)+th((y-1)+'<br>से<br>'+y)+'</tr></thead><tbody>';
+    rows.forEach(function(r,i){
+      var a=QR(r,ALLPS,y-2,1,m).n, b=QR(r,ALLPS,y-1,1,m).n, c=QR(r,ALLPS,y,1,m).n, bd=!!r.bold;
+      h+='<tr>'+td(i+1,bd)+tdl(r.label,bd)+td(a,bd)+td(b,bd)+td(c,bd)+td(c-a,bd)+td(c-b,bd)+td(f2(pc(a,c)),bd)+td(f2(pc(b,c)),bd)+'</tr>';
+    });
+    return tbl(h+'</tbody>');
+  }
+  function dispCells(z){
+    var oth=z.fr-z.av, base=z.n-z.pd, cb=oth+z.cs;
+    return {n:z.n,av:z.av,avp:base?f2(z.av/base*100):'0.00',oth:oth,fr:z.fr,cs:z.cs,csp:cb?f2(z.cs/cb*100):'0.00',pd:z.pd,pdp:z.n?f2(z.pd/z.n*100):'0.00'};
+  }
+  function tblDisposal(rows,y,m,title){
+    var h='<thead><tr>'+th('क्र.<br>सं.')+th('शीर्षक')+th('दर्ज<br>अभियोग')+th('एफ.आर.<br>अदम<br>वकू')+th('अदम<br>वकू<br>प्रतिशत*')+th('एफ.आर.<br>अन्य<br>○')+th('कुल<br>एफ.आर.<br>(4+6)')+th('चालान')+th('चालानी<br>प्रतिशत<br>#')+th('पेण्डिंग<br>अनुसंधान')+th('पेण्डिंग<br>प्रतिशत')+'</tr></thead><tbody>';
+    rows.forEach(function(r,i){
+      var c=dispCells(QR(r,ALLPS,y,1,m)), bd=!!r.bold;
+      h+='<tr>'+td(i+1,bd)+tdl(r.label,bd)+td(c.n,bd)+td(c.av,bd)+td(c.avp,bd)+td(c.oth,bd)+td(c.fr,bd)+td(c.cs,bd)+td(c.csp,bd)+td(c.pd,bd)+td(c.pdp,bd)+'</tr>';
+    });
+    return '<div style="text-align:center;font-weight:700;font-size:13px;text-decoration:underline;margin:8px 0 2px">'+title+'</div>'+tbl(h+'</tbody>');
+  }
+  var FOOT_DISP=NOTE('○ एफ.आर. अदम वकू – एफ.आर. मिथ्या / तथ्य की भूल / विधि की भूल / सिविल प्रकृति / असंज्ञेय; एफ.आर. अन्य – शेष एफ.आर. (अदमपता/अदमसबूत आदि)।<br>* एफ.आर. अदम वकू / (कुल दर्ज अभियोग – पेण्डिंग अभियोग) * 100<br># चालान / (एफ.आर. अन्य + चालान) * 100');
+
+  function stationRows(){
+    var by={}, out=[], all=[];
+    ALLPS.forEach(function(ps){var c=dispCircleOf(ps)||'अन्य / साइबर'; (by[c]=by[c]||[]).push(ps)});
+    DISP_CIRCLE_ORDER.forEach(function(c){
+      if(!by[c]) return; var list=by[c].slice().sort(psSort);
+      list.forEach(function(ps){out.push({t:'ps',label:ENG2HI_PS[ps]||ps,pss:[ps]}); all.push(ps)});
+      out.push({t:'c',label:(c==='अन्य / साइबर'?c:c+' वृत्त'),pss:list});
+    });
+    out.push({t:'d',label:'जिला योग',pss:all});
+    return out;
+  }
+  function stTitle(tag,line){return '<div style="text-align:center;font-weight:700;font-size:15px;margin:4px 0 2px">तालिका ‘'+tag+'’</div><div style="text-align:center;font-weight:700;font-size:12.5px;margin:0 0 6px">'+line+'</div>'}
+  function tblStationCmp(heads,y,m){
+    var h='<thead><tr>'+th('क्र.<br>सं.',' rowspan="2"')+th('थाना',' rowspan="2"');
+    heads.forEach(function(x){h+=th('<b>'+x.label+'</b>',' colspan="4"')});
+    h+='</tr><tr>'; heads.forEach(function(){h+=th(y-1)+th(y)+th('+/-')+th('+/- %')}); h+='</tr></thead><tbody>';
+    stationRows().forEach(function(s,i){
+      var bd=s.t!=='ps'; h+='<tr>'+td(i+1,bd)+tdl(s.label,bd);
+      heads.forEach(function(x){
+        var a=QR(x,s.pss,y-1,1,m).n, b=QR(x,s.pss,y,1,m).n;
+        h+=td(a,bd)+td(b,bd)+td(b-a,bd)+td(f2(pc(a,b)),bd);
+      });
+      h+='</tr>';
+    });
+    return tbl(h+'</tbody>',10);
+  }
+  function tblStationDisp(heads,y,m){
+    var h='<thead><tr>'+th('क्र.<br>सं.',' rowspan="2"')+th('थाना',' rowspan="2"');
+    heads.forEach(function(x){h+=th('<b>'+x.label+'</b>',' colspan="7"')});
+    h+='</tr><tr>'; heads.forEach(function(){h+=th('दर्ज<br>अपराध')+th('F.R<br>अ.व.')+th('अ.व.<br>प्रतिशत')+th('F.R<br>अन्य')+th('पेंडिंग')+th('चालान')+th('चालानी<br>प्रतिशत')}); h+='</tr></thead><tbody>';
+    stationRows().forEach(function(s,i){
+      var bd=s.t!=='ps'; h+='<tr>'+td(i+1,bd)+tdl(s.label,bd);
+      heads.forEach(function(x){var c=dispCells(QR(x,s.pss,y,1,m)); h+=td(c.n,bd)+td(c.av,bd)+td(c.avp,bd)+td(c.oth,bd)+td(c.pd,bd)+td(c.cs,bd)+td(c.csp,bd)});
+      h+='</tr>';
+    });
+    return tbl(h+'</tbody>',9);
+  }
+
+  /* ---------- पृष्ठ ---------- */
+  var PAGES=[];
+  function addPage(sec,html){PAGES.push({sec:sec,html:html})}
+  function wrapPage(inner,n){
+    return '<div class="mcr-book-page" style="width:794px;max-width:100%;min-height:1123px;box-sizing:border-box;padding:38px 34px 26px;background:#fff;page-break-after:always;position:relative;'+FONT+'">'+inner+'<div style="text-align:center;font-size:12px;margin-top:14px">'+n+'</div></div>';
+  }
+
+  window.mcrInitSelects=function(){
+    var sel=document.getElementById('mcrYear'), ms=document.getElementById('mcrMonth'); if(!sel) return;
+    function setMonthDefault(){
+      if(!ms) return; var y=parseInt(sel.value), mx=0;
+      dbRecords.forEach(function(r){ if(r.year===y&&r.month>mx) mx=r.month });
+      ms.value=mx||(y===CY?(new Date().getMonth()+1):12);
+    }
+    if(!sel.options.length){
+      var years=allYears(), latest=years.length?years[years.length-1]:CY;
+      years.slice().reverse().forEach(function(y){var o=document.createElement('option');o.value=y;o.textContent=y;sel.appendChild(o)});
+      sel.value=latest; sel.addEventListener('change',setMonthDefault);
+    }
+    if(ms&&!ms.options.length){
+      MONTHS.forEach(function(n,i){var o=document.createElement('option');o.value=i+1;o.textContent=n;ms.appendChild(o)});
+      setMonthDefault();
+    }
+  };
+
+  window.renderMcrBook=function(){
+    var sel=document.getElementById('mcrYear'), ms=document.getElementById('mcrMonth');
+    var y=sel?parseInt(sel.value):CY; if(!y) y=CY;
+    var m=ms?parseInt(ms.value):0; if(!m) m=(y===CY)?(new Date().getMonth()+1):12;
+    MCR_LAST_YEARS=[y-2,y-1,y];
+    IDX=mkIdx(); ALLPS=ALL_PS_EN.slice(); PAGES=[];
+    var nm=MONTHS[m-1], pm=m>1?m-1:12, py=m>1?y:y-1;
+    var mSub='(माह '+nm+' '+(y-1)+', '+MONTHS[pm-1]+' '+py+', '+nm+' '+y+')', ySub='वर्ष '+(y-2)+', '+(y-1)+' एवं '+y;
+    var DST='जिला डीडवाना-कुचामन में';
+    var todayStr=new Date().toLocaleDateString('hi-IN',{day:'2-digit',month:'long',year:'numeric'});
+
+    /* 1 — माह की तुलनात्मक स्थिति */
+    var S1=[T('भा.द.सं. / बी.एन.एस.',IPC_L,false),T('स्थानीय एवं विशेष अधिनियम',SLL_L,false),T('कुल योग',[IPC_TOT,SLL_TOT],true)];
+    addPage(1,H1('मासिक अपराध प्रतिवेदन '+nm+' –'+y)+
+      P('माह '+nm+', '+y+' में '+DST+' अपराध की स्थिति निम्नानुसार रही। आलोच्य माह, गत माह एवं वर्ष '+(y-1)+' के माह '+nm+' की तुलना में भारतीय दण्ड संहिता / भारतीय न्याय संहिता (भा.द.सं. / बी.एन.एस.) एवं स्थानीय विशेष अधिनियम के अन्तर्गत दर्ज अपराधों की तुलनात्मक स्थिति निम्न है–')+
+      H2('माहवार आपराधिक तुलनात्मक स्थिति',mSub)+tblMonthly(S1,y,m)+
+      P('वर्ष '+y+' में '+(y-2)+' एवं '+(y-1)+' की तुलना में (माह '+nm+' तक) भा.द.सं. / बी.एन.एस. एवं स्थानीय एवं विशेष अधिनियम के अन्तर्गत दर्ज अपराधों की तुलनात्मक स्थिति निम्न तालिका में वर्णित है–')+
+      H2('वर्षवार आपराधिक तुलनात्मक स्थिति','(वर्ष '+(y-2)+', '+(y-1)+' एवं '+y+')')+tblYearly(S1,y,m)+
+      P('आलोच्य वर्ष '+y+' (माह '+nm+' तक) भा.द.सं. / बी.एन.एस. एवं स्थानीय एवं विशेष अधिनियम के तहत दर्ज अपराधों के निस्तारण की स्थिति निम्नानुसार है–')+
+      tblDisposal(S1,y,m,'निस्तारण स्थिति वर्ष '+y+' (माह '+nm+' तक)')+FOOT_DISP);
+
+    /* 2 — भा.द.सं. वर्षवार/माहवार */
+    addPage(2,H2('माहवार आपराधिक तुलनात्मक स्थिति (भा.द.सं./बी.एन.एस.)',mSub)+tblMonthly(IPC_ROWS,y,m)+
+      P('वर्ष '+y+' एवं '+(y-2)+', '+(y-1)+' की तुलना में (माह '+nm+' तक) भा.द.सं. / बी.एन.एस. के अन्तर्गत दर्ज अपराधों की तुलनात्मक स्थिति निम्न तालिका में वर्णित है–')+
+      H2('वर्षवार आपराधिक तुलनात्मक स्थिति (भा.द.सं./बी.एन.एस.)',ySub)+tblYearly(IPC_ROWS,y,m)+
+      NOTE('नोट: “अन्य भा.द.सं./बी.एन.एस.” में चैन स्नेचिंग व दुष्कर्म (नाबालिग) के प्रकरण सम्मिलित हैं।'));
+
+    /* 3 — भा.द.सं. निस्तारण + सम्पत्ति सम्बन्धी प्रतिशत */
+    var propRows=[r_dac,r_rob,r_bur,r_the,IPC_TOT];
+    var ph='<thead><tr>'+th('क्र.<br>सं.',' rowspan="2"')+th('शीर्षक',' rowspan="2"')+th('अदम वकू प्रतिशत',' colspan="2"')+th('चालानी प्रतिशत',' colspan="2"')+'</tr><tr>'+th(y-1)+th(y)+th(y-1)+th(y)+'</tr></thead><tbody>';
+    propRows.forEach(function(r,i){
+      var a=dispCells(QR(r,ALLPS,y-1,1,m)), b=dispCells(QR(r,ALLPS,y,1,m)), bd=!!r.bold;
+      ph+='<tr>'+td(i+1,bd)+tdl(r.label,bd)+td(a.avp,bd)+td(b.avp,bd)+td(a.csp,bd)+td(b.csp,bd)+'</tr>';
+    });
+    addPage(3,H2('निस्तारण भा.द.सं./बी.एन.एस.')+
+      P('आलोच्य वर्ष '+y+' (माह '+nm+' तक) भारतीय दण्ड संहिता / भारतीय न्याय संहिता के तहत दर्ज अपराधों के निस्तारण की स्थिति निम्नानुसार है–')+
+      tblDisposal(IPC_ROWS,y,m,'निस्तारण स्थिति भा.द.सं./बी.एन.एस. वर्ष '+y+' (माह '+nm+' तक)')+FOOT_DISP+
+      P('वर्ष '+(y-1)+' एवं '+y+' (माह '+nm+' तक) सम्पत्ति सम्बन्धी अपराधों के अदम वकू एवं चालानी प्रतिशत की तुलनात्मक स्थिति निम्न है –')+
+      tbl(ph+'</tbody>'));
+
+    /* 4 — SLL */
+    addPage(4,H1('स्थानीय एवं विशेष अधिनियम')+
+      P('आलोच्य माह, गत माह एवं वर्ष '+(y-1)+' के (माह '+nm+') स्थानीय एवं विशेष अधिनियमों के तहत की गई कार्यवाही की तुलनात्मक स्थिति निम्न है –')+
+      H2('स्थानीय एवं विशेष अधिनियम– माहवार तुलनात्मक स्थिति',mSub)+tblMonthly(SLL_ROWS,y,m)+
+      H2('स्थानीय एवं विशेष अधिनियम– वर्षवार तुलनात्मक स्थिति',ySub)+tblYearly(SLL_ROWS,y,m)+
+      tblDisposal(SLL_ROWS,y,m,'निस्तारण स्थिति स्थानीय एवं विशेष अधिनियम, वर्ष '+y+' (माह '+nm+' तक)')+FOOT_DISP);
+
+    /* 5 — महिला अत्याचार / पोक्सो */
+    addPage(5,H1('महिला अत्याचार')+
+      P(DST+' महिला अत्याचार सम्बन्धी अपराधों की तुलनात्मक स्थिति निम्न है–')+
+      H2('महिला अत्याचार माहवार तुलनात्मक स्थिति',mSub)+tblMonthly(WA_ROWS,y,m)+
+      H2('महिला अत्याचार वर्षवार तुलनात्मक स्थिति',ySub)+tblYearly(WA_ROWS,y,m)+
+      tblDisposal(WA_ROWS,y,m,'निस्तारण स्थिति महिला अत्याचार वर्ष '+y+' (माह '+nm+' तक)')+FOOT_DISP);
+    addPage(5,H1('दुष्कर्म एवं पॉक्सो एक्ट')+
+      P(DST+' दुष्कर्म एवं पॉक्सो एक्ट के दर्ज प्रकरणों की तुलनात्मक स्थिति निम्न है–')+
+      H2('दुष्कर्म एवं पॉक्सो एक्ट के दर्ज प्रकरणों की वर्षवार तुलनात्मक स्थिति',ySub)+
+      tblYearly(RP1_ROWS,y,m)+tblYearly(RP2_ROWS,y,m)+
+      tblDisposal(RP1_ROWS,y,m,'निस्तारण स्थिति दुष्कर्म (धारा 4/6 पॉक्सो एक्ट के अलावा) वर्ष '+y+' (माह '+nm+' तक)')+
+      tblDisposal(RP2_ROWS,y,m,'निस्तारण स्थिति दुष्कर्म एवं पॉक्सो एक्ट के दर्ज प्रकरणों की वर्ष '+y+' (माह '+nm+' तक)')+FOOT_DISP);
+
+    /* 6 — अनुसूचित जाति / जनजाति */
+    addPage(6,H1('अनुसूचित जाति / जनजाति अत्याचार')+
+      P('आलोच्य माह, गत माह एवं वर्ष '+(y-1)+' के (माह '+nm+') अनुसूचित जाति / जनजाति पर अत्याचार सम्बन्धी पंजीबद्ध अभियोगों की तुलनात्मक स्थिति निम्न है–')+
+      H2('अनुसूचित जाति / जनजाति अत्याचार माहवार तुलनात्मक स्थिति',mSub)+tblMonthly(SC_ROWS,y,m)+
+      H2('अनुसूचित जाति / जनजाति अत्याचार वर्षवार तुलनात्मक स्थिति',ySub)+tblYearly(SC_ROWS,y,m)+
+      tblDisposal(SC_ROWS,y,m,'निस्तारण स्थिति अनुसूचित जाति / जनजाति अत्याचार वर्ष '+y+' (माह '+nm+' तक)')+FOOT_DISP+
+      NOTE('नोट: पोर्टल के SAS Export डेटा में अनुसूचित जाति व जनजाति का पृथक् विभाजन उपलब्ध न होने से संयुक्त स्थिति दर्शाई गई है।'));
+
+    /* 7 — थानावार तालिका ‘क’ (भा.द.सं. तुलनात्मक) */
+    var cmpLine='वर्ष '+(y-1)+' एवं '+y+' माह '+nm+' तक भा.द.सं./बी.एन.एस. के थानावार दर्ज अपराधों की तुलनात्मक स्थिति।';
+    var KA=[[r_mur,r_att,r_rap],[r_kid,r_rio],[r_dac,r_rob,r_bur],[r_the,PROP],[r_oth,IPC_TOT]];
+    KA.forEach(function(g){ addPage(7,stTitle('क',cmpLine)+tblStationCmp(g,y,m)) });
+    /* 8 — तालिका ‘ख’ (भा.द.सं. निस्तारण) */
+    var dspLine='वर्ष '+y+' माह '+nm+' तक भा.द.सं./बी.एन.एस. के प्रमुख शीर्षकों में दर्ज अपराधों की थानावार निस्तारण स्थिति।';
+    var KH=[[r_mur,r_att],[r_rap,r_kid],[r_rio,r_dac],[r_rob,r_bur],[r_the,PROP],[r_oth,IPC_TOT]];
+    KH.forEach(function(g){ addPage(8,stTitle('ख',dspLine)+tblStationDisp(g,y,m)) });
+    /* 9 — तालिका ‘ग’ (महिला / अनुसूचित जाति-जनजाति) */
+    addPage(9,stTitle('ग','जिले में वर्ष '+(y-1)+' एवं '+y+' (माह '+nm+' तक) महिला / अनुसूचित जाति / जनजाति अत्याचार के थानावार दर्ज अभियोगों की तुलनात्मक स्थिति।')+
+      tblStationCmp([{label:'महिला अत्याचार',children:WA_L},{label:'अनुसूचित जाति / जनजाति अत्याचार',children:SC_L}],y,m));
+    /* 10 — तालिका ‘घ’ (SLL) */
+    var sllLine='वर्ष '+(y-1)+' एवं '+y+' माह '+nm+' तक स्थानीय एवं विशेष अधिनियमों में की गई कार्यवाही की थानावार तुलनात्मक स्थिति।';
+    var SG=[[SLL_L[0],SLL_L[1],SLL_L[2]],[SLL_L[3],SLL_L[4],SLL_L[5]],[SLL_L[6],SLL_L[7],SLL_L[8]],[SLL_TOT]];
+    SG.forEach(function(g){ addPage(10,stTitle('घ',sllLine)+tblStationCmp(g,y,m)) });
+    /* 11 — तालिका ‘घ’ (पोक्सो) */
+    var PX1=T('पोक्सो एक्ट धारा 4 व 6',[RP2[0],RP2[1],RP2[2]]), PX2=R('अन्य पोक्सो एक्ट','pocso',['Other POCSO Act']), PXT=T('कुल पोक्सो एक्ट',RP2,true);
+    addPage(11,stTitle('घ','जिले में वर्ष '+(y-1)+' एवं '+y+' माह '+nm+' तक पोक्सो एक्ट में की गई कार्यवाही की थानावार तुलनात्मक स्थिति।')+tblStationCmp([PX1,PX2,PXT],y,m));
+
+    /* 12 — तालिका ‘छ’ (पेण्डिंग अभियोग — पेंडेंसी पेज की पद्धति) */
+    var pendHtml;
+    try{
+      var agg=aggregatePendency(buildPendencyRows('generic'),y), byC={}; agg.circles.forEach(function(c){byC[c.circle]=c});
+      var pr='<thead><tr>'+th('क्र.<br>सं.',' rowspan="2"')+th('थाना',' rowspan="2"')+th('<b>पेण्डिंग अभियोग</b>',' colspan="5"')+'</tr><tr>'+th('अनुसंधान')+th('173(8) द.प्र.सं./<br>193(9) BNSS')+th('री-ओपन')+th('कुल पेण्डिंग अभियोग')+th('पेण्डिंग प्रतिशत')+'</tr></thead><tbody>';
+      var n=0, cells=function(o,bd){return td(o.ui+o.uiOld,bd)+td(o.c173193,bd)+td(o.reopen,bd)+td(o.pend,bd)+td(f2(o.pct),bd)};
+      DISP_CIRCLE_ORDER.forEach(function(c){
+        var st=agg.stations.filter(function(x){return x.circle===c}).sort(function(a,b){return a.hi.localeCompare(b.hi)}); if(!st.length) return;
+        st.forEach(function(x){n++; pr+='<tr>'+td(n)+tdl(x.hi)+cells(x,false)+'</tr>'});
+        n++; pr+='<tr>'+td(n,true)+tdl((c==='अन्य / साइबर'?c:c+' वृत्त'),true)+cells(byC[c],true)+'</tr>';
+      });
+      n++; pr+='<tr>'+td(n,true)+tdl('जिला योग',true)+cells(agg.district,true)+'</tr>';
+      pendHtml=stTitle('छ','थानावार पेण्डिंग अभियोगों की स्थिति माह '+nm+' '+y+' तक (CCTNS जनित)')+tbl(pr+'</tbody>')+NOTE('पेण्डिंग प्रतिशत = कुल पेण्डिंग ÷ वर्ष '+y+' में दर्ज प्रकरण × 100 (पोर्टल के पेंडेंसी रैंकिंग पेज की पद्धति अनुसार)।');
+    }catch(e){
+      pendHtml=stTitle('छ','थानावार पेण्डिंग अभियोगों की स्थिति')+'<div style="font-size:12px">पेंडेंसी डेटा अभी उपलब्ध नहीं — पोर्टल का “पेंडेंसी रैंकिंग” पेज एक बार खोलकर देखें।</div>';
+    }
+    addPage(12,pendHtml);
+
+    /* 13 — 60/90 दिवस निस्तारण अनुपालन व वांछित अपराधी सारांश */
+    var sm='<thead><tr>'+th('श्रेणी')+th('कुल प्रकरण')+th('समय पर निस्तारित')+th('विलंबित')+th('पेण्डिंग (सीमा से अधिक)')+th('अनुपालन %')+'</tr></thead><tbody>';
+    [60,90].forEach(function(lim){
+      try{ var d=aggregateDisposal(buildRowsGeneric(lim,null),lim).district;
+        sm+='<tr>'+tdl(lim+' दिवस श्रेणी')+td(d.c1)+td(d.c2)+td(d.c3)+td(d.c5)+td(f2(d.compPct),true)+'</tr>';
+      }catch(e){ sm+='<tr><td colspan="6" style="'+S_L+'">'+lim+' दिवस — डेटा उपलब्ध नहीं</td></tr>'; }
+    });
+    sm+='</tbody>';
+    var wn=(typeof WANTED_DATA!=='undefined'&&WANTED_DATA)?WANTED_DATA.length:0;
+    addPage(13,H1('60/90 दिवस निस्तारण एवं वांछित अपराधी')+tbl(sm)+
+      P('कुल वर्तमान वांछित अपराधी: <b>'+wn.toLocaleString('en-IN')+'</b>। माहवार नए / निस्तारण / पेण्डिंग विश्लेषण हेतु पोर्टल के “वांछित अपराधी रजिस्टर” पेज का “माहवार विश्लेषण” सेक्शन देखें।')+
+      NOTE('नोट: निरोधात्मक कार्यवाही, सड़क दुर्घटना, माइनर एक्ट, भगोड़े/स्थायी वारंटी व माह की उपलब्धियां — नीचे के टेम्पलेट डाउनलोड कर अलग से तैयार करें।'));
+
+    /* ---- कवर + अनुक्रमणिका + पृष्ठ क्रमांक ---- */
+    var toc=[
+      [1,'माह '+nm+', '+y+' में अपराध की तुलनात्मक स्थिति'],
+      [2,'वर्ष '+(y-2)+', '+(y-1)+' एवं '+y+' की तुलनात्मक अपराध अन्तर्गत भा.द.सं.'],
+      [3,'निस्तारण अपराध अन्तर्गत भारतीय दण्ड संहिता'],
+      [4,'स्थानीय एवं विशेष अधिनियम'],
+      [5,'महिला अत्याचार / पोक्सो एक्ट'],
+      [6,'अनुसूचित जाति / जनजाति अत्याचार'],
+      [7,'थानावार भा.द.सं. के दर्ज अपराधों की तुलनात्मक स्थिति','तालिका ‘क’'],
+      [8,'थानावार भा.द.सं. के दर्ज अपराधों की निस्तारण स्थिति','तालिका ‘ख’'],
+      [9,'थानावार महिला / अनुसूचित जाति / जनजाति अत्याचार की तुलनात्मक स्थिति','तालिका ‘ग’'],
+      [10,'थानावार स्थानीय एवं विशेष अधिनियम अपराधों की तुलनात्मक स्थिति','तालिका ‘घ’'],
+      [11,'थानावार पोक्सो एक्ट की कार्यवाई की तुलनात्मक स्थिति','तालिका ‘घ’'],
+      [12,'थानावार पेण्डिंग अभियोग','तालिका ‘छ’'],
+      [13,'60/90 दिवस निस्तारण एवं वांछित अपराधी सारांश','']
+    ];
+    var first={}, last={};
+    PAGES.forEach(function(p,i){var no=i+3; if(first[p.sec]===undefined) first[p.sec]=no; last[p.sec]=no});
+    var tr='<thead><tr>'+th('<b>कसं</b>')+th('<b>शीर्षक</b>')+th('<b>पृष्ठ संख्या</b>')+'</tr></thead><tbody>';
+    toc.forEach(function(t){
+      var pg=(first[t[0]]===last[t[0]])?String(first[t[0]]):first[t[0]]+'–'+last[t[0]];
+      tr+='<tr><td style="'+S_T+'height:34px">'+t[0]+'</td><td style="'+S_L+'font-size:13px">'+t[1]+'</td><td style="'+S_T+'">'+(t[2]?t[2]+'<br>':'')+pg+'</td></tr>';
+    });
+    tr+='</tbody>';
+
+    var cover='<div class="mcr-book-page mcr-book-cover">'+
+      '<div class="mcr-k1">राजस्थान पुलिस</div><div class="mcr-badge">'+MCR_BOOK_BADGE_SVG+'</div>'+
+      '<h1>जिला मासिक अपराध प्रतिवेदन</h1><h2>(MCR बुक)</h2><div class="mcr-div-line"></div>'+
+      '<div class="mcr-k2">जिला</div><div class="mcr-k3">डीडवाना–कुचामन</div>'+
+      '<div class="mcr-k2">रिपोर्टिंग माह</div><div class="mcr-k3" style="margin-bottom:8px">'+nm+' '+y+'</div>'+
+      '<div class="mcr-foot">तैयार किया गया: <b>'+todayStr+'</b> &nbsp;•&nbsp; कार्यालय अधीक्षक पुलिस, डीडवाना-कुचामन — सांख्यिकी शाखा (पोर्टल के SAS Export डेटा से स्वतः)</div></div>';
+    var out=cover+wrapPage('<div style="text-align:center;font-weight:700;font-size:18px;margin:30px 0 14px">अनुक्रमणिका</div>'+tbl(tr),2);
+    PAGES.forEach(function(p,i){ out+=wrapPage(p.html,i+3) });
+    document.getElementById('mcrBookArea').innerHTML=out;
+    document.getElementById('mcrBookActions').style.display='';
+  };
 })();
 </script>
 <script>
