@@ -2344,6 +2344,7 @@ html #toast{border-radius:var(--r-pill);box-shadow:var(--sh-lg)}
       <div class="ctx-grid">
         <div><label>तुलना हेतु वर्ष (चालू)</label><select id="mcrYear"></select></div>
         <div><label>माह (तक)</label><select id="mcrMonth"></select></div>
+        <div><label>प्रारूप</label><select id="mcrStyle"><option value="att" selected>🎨 आकर्षक (अधिकारियों हेतु)</option><option value="plain">📄 सादा (राज्य PDF जैसा)</option></select></div>
       </div>
       <div class="note" style="margin-top:8px">नीचे हर सेक्शन में चयनित वर्ष व उससे पिछले 2 वर्षों की तुलना दिखेगी (पोर्टल में जितना डेटा उपलब्ध है)। यह रिपोर्ट पोर्टल के dbRecords (SAS Export से बना) से सीधे बनती है — अलग से CCTNS_BASED_MCR फाइल अपलोड करने की जरूरत नहीं।</div>
       <button class="btn-fill" style="margin-top:10px;background:linear-gradient(135deg,var(--navy),var(--navy2))" onclick="renderMcrBook()">🔍 रिपोर्ट बनाएं</button>
@@ -2354,6 +2355,7 @@ html #toast{border-radius:var(--r-pill);box-shadow:var(--sh-lg)}
     <div class="rowline" id="mcrBookActions" style="display:none;margin-top:16px">
       <button class="btn-gold" style="padding:10px 16px;border:none;border-radius:8px;font-weight:600;color:#fff;background:linear-gradient(135deg,#4F46E5,#3730A3);cursor:pointer" onclick="downloadMcrBookWord()">📄 Word रिपोर्ट डाउनलोड करें (.doc)</button>
       <button class="btn-ghost" style="padding:10px 16px;border:1.5px solid var(--line);border-radius:8px;background:#fff;cursor:pointer" onclick="printMcrBook()">🖨️ प्रिंट / PDF</button>
+      <button class="btn-gold" style="padding:10px 16px;border:none;border-radius:8px;font-weight:600;color:#fff;background:linear-gradient(135deg,#B45309,#92400E);cursor:pointer" onclick="downloadMcrBookPDF()">🖼️ आकर्षक PDF (अधिकारियों हेतु)</button>
     </div>
 
     <div class="card" style="margin-top:22px">
@@ -16745,22 +16747,31 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
       });
       return out.filter(function(r){ return r.reg; });
     }
-    var src = ($('aodSource')||{}).value || 'automerge';
-    var raw = buildRowsForSource(src, L, null);
+    /* 60/90 दिवस: "आज" वाला स्तंभ ठीक 60/90 दिवस निस्तारण पेज जैसा — वही स्रोत, वही अवधि, वही aggregateDisposal वर्गीकरण */
+    var src = limitCfg(L).src, raw = buildRowsForSource(src, L, limitCfg(L).df);
     raw.forEach(function(x){
       if(ALL_PS_EN.indexOf(x.ps)<0) return;
-      var reg = normDate(x.reg); if(!reg) return;
-      var cs = (x.disposed && x.dd!=null) ? addDays(reg, Math.round(x.dd)) : null;
+      var reg = normDate(x.reg) || null;
+      var cs = (reg && x.disposed && x.dd!=null) ? addDays(reg, Math.round(x.dd)) : null;
       var lbl = x.ctype==='CS' ? 'चालान' : (x.ctype==='FR' ? 'एफ.आर.' : (x.disposed ? 'अन्य निस्तारण' : '-'));
+      var cls0 = x.disposed ? ((x.dd!=null && x.dd<=L) ? 'c2' : 'c3') : ((x.rd!=null && x.rd<=L) ? 'c4' : 'c5');
       out.push({ps:x.ps, hi:hiPS(x.ps), circle:dispCircleOf(x.ps), fir:x.fir||'-', reg:reg, section:x.section||'-',
-                cats:'', csDate:cs, label:lbl, noDate:!!x.disposed && !cs, disposed:!!x.disposed, rd:(x.rd==null?null:x.rd), limitTab:true});
+                cats:'', csDate:cs, label:lbl, noDate:!!x.disposed && !cs, disposed:!!x.disposed, rd:(x.rd==null?null:x.rd), limitTab:true,
+                cls0:cls0, days0:(x.disposed ? x.dd : x.rd)});
     });
     return out;
+  }
+  function limitCfg(L){
+    var pf = (L===60) ? 'd60' : 'd90', se = $(pf+'Source'), fe = $(pf+'From'), te = $(pf+'To');
+    var fv = (fe && fe.value) || null, tv = (te && te.value) || null;
+    return {src:(se && se.value) || ($('aodSource')||{}).value || 'generic', df:(fv||tv) ? {from:fv, to:tv} : null, key:[(se&&se.value),fv,tv].join('~')};
   }
 
   /* ---------- किसी दिनांक D की स्थिति ---------- */
   function evalAt(rows, D, L){
+    var T0 = todayIso();
     return rows.map(function(r){
+      if(r.limitTab && D===T0) return {r:r, cls:r.cls0, days:r.days0, later:false, D:D, L:L};   /* आज = 60/90 पेज का वर्गीकरण, हूबहू */
       var F = fromD();
       if(!r.reg || r.reg > D || (F && r.reg < F)) return null;
       var cls, days, later = false;
@@ -16808,7 +16819,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   }
   function getData(tab){
     var ds = dates(), L = tabLimit(tab);
-    var key = [tab, L, ds.join(','), ($('aodSource')||{}).value, fromD()].join('|');
+    var key = [tab, L, ds.join(','), ($('aodSource')||{}).value, fromD(), (tab==='scst'?'':limitCfg(L).key)].join('|');
     if(ST.cache[key]) return ST.cache[key];
     var rows = baseRows(tab, L);
     var evs = ds.map(function(D){ return evalAt(rows, D, L); });
@@ -17800,10 +17811,11 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     if(typeof html2canvas==='undefined') throw new Error('इमेज लाइब्रेरी लोड नहीं हो पाई — इंटरनेट जांचें');
     if(document.fonts&&document.fonts.ready){try{await document.fonts.ready}catch(e){}}
     var doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'pt',format:'a4',compress:true});
-    var W=doc.internal.pageSize.getWidth(), H=doc.internal.pageSize.getHeight(), aw=W-MX*2, ah=H-MY*2;
+    var rw=opt.w||RW, rp=(opt.pad==null?RP:opt.pad), mx=(opt.mx==null?MX:opt.mx), my=(opt.my==null?MY:opt.my);
+    var W=doc.internal.pageSize.getWidth(), H=doc.internal.pageSize.getHeight(), aw=W-mx*2, ah=H-my*2;
     for(var k=0;k<pages.length;k++){
       var w=document.createElement('div');
-      w.style.cssText='position:fixed;left:-99999px;top:0;width:'+RW+'px;background:#fff;padding:'+RP+'px';
+      w.style.cssText='position:fixed;left:-99999px;top:0;width:'+rw+'px;background:#fff;padding:'+rp+'px';
       w.innerHTML=rv(pages[k]); document.body.appendChild(w);
       try{
         await new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r)})});
@@ -17813,7 +17825,8 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
         var cv=await html2canvas(w,{scale:s,backgroundColor:'#ffffff',logging:false});
         var sc=Math.min(aw/cv.width,ah/cv.height), iw=cv.width*sc, ih=cv.height*sc;
         if(k>0) doc.addPage();
-        doc.addImage(cv.toDataURL('image/png'),'PNG',(W-iw)/2,MY,iw,ih,undefined,'FAST');
+        if(opt.fmt==='jpeg') doc.addImage(cv.toDataURL('image/jpeg',0.93),'JPEG',(W-iw)/2,my,iw,ih,undefined,'FAST');
+        else doc.addImage(cv.toDataURL('image/png'),'PNG',(W-iw)/2,my,iw,ih,undefined,'FAST');
         cv.width=cv.height=0;
       }finally{document.body.removeChild(w)}
     }
@@ -17826,8 +17839,14 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
 /* ===== MCR Book — राज्य MCR Book (PDF) के अनुरूप अपराध-प्रारूप (जिला-स्तर: थाना/वृत्त) ===== */
 (function(){
   var FONT="font-family:'Mangal','Nirmala UI','Hind',serif;color:#000;";
-  var S_T='border:1px solid #000;padding:3px 3px;text-align:center;vertical-align:middle;font-size:11.5px;';
-  var S_L='border:1px solid #000;padding:3px 5px;text-align:left;vertical-align:middle;font-size:11.5px;';
+  var ATT=true, S_T='', S_L='', PERIOD='';
+  function setStyle(att){
+    ATT=att;
+    var bd=att?'1px solid #C7D0E2':'1px solid #000', col=att?'color:#0F172A;':'';
+    S_T='border:'+bd+';padding:'+(att?'3px 3px':'3px 3px')+';text-align:center;vertical-align:middle;font-size:11.5px;'+col;
+    S_L='border:'+bd+';padding:'+(att?'3px 6px':'3px 5px')+';text-align:left;vertical-align:middle;font-size:11.5px;'+col;
+  }
+  setStyle(true);
   var AV={FALSE:1,MOF:1,MOL:1,CIVIL:1,NONCOG:1};   /* एफ.आर. अदम वकू = मिथ्या/तथ्य की भूल/विधि की भूल/सिविल/असंज्ञेय */
   var IDX=null, ALLPS=[];
 
@@ -17900,14 +17919,24 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   /* ---------- सहायक ---------- */
   function f2(v){return (Math.round(v*100)/100).toFixed(2)}
   function pc(a,b){return a?((b-a)/a*100):(b?100:0)}
-  function td(v,b){return '<td style="'+S_T+(b?'font-weight:700;':'')+'">'+v+'</td>'}
-  function tdl(v,b){return '<td style="'+S_L+(b?'font-weight:700;':'')+'">'+v+'</td>'}
-  function th(v,attr){return '<th'+(attr||'')+' style="'+S_T+'font-weight:400">'+v+'</th>'}
-  function tbl(inner,fs){return '<table style="width:100%;border-collapse:collapse;margin:4px 0 12px;'+(fs?'font-size:'+fs+'px;':'')+'">'+inner+'</table>'}
-  function H1(t){return '<div style="text-align:center;font-weight:700;font-size:17px;text-decoration:underline;margin:2px 0 4px">'+t+'</div>'}
-  function H2(t,sub){return '<div style="text-align:center;font-weight:700;font-size:15px;text-decoration:underline;margin:10px 0 2px">'+t+'</div>'+(sub?'<div style="text-align:center;font-weight:700;font-size:13px;margin:0 0 4px">'+sub+'</div>':'')}
-  function P(t){return '<p style="text-align:justify;text-indent:34px;font-size:13px;line-height:1.5;margin:6px 0">'+t+'</p>'}
-  function NOTE(t){return '<div style="font-size:11px;margin:-6px 0 8px">'+t+'</div>'}
+  function td(v,b,bg){return '<td style="'+S_T+(b?'font-weight:700;':'')+(bg?'background:'+bg+';':'')+'">'+v+'</td>'}
+  function tdl(v,b,bg){return '<td style="'+S_L+(b?'font-weight:700;':'')+(bg?'background:'+bg+';':'')+'">'+v+'</td>'}
+  function th(v,attr){return '<th'+(attr||'')+' style="'+S_T+(ATT?'background:#1E2A45;color:#fff;border-color:#3B4A6B;font-weight:600;':'font-weight:400')+'">'+v+'</th>'}
+  function zebra(inner){
+    var i=inner.indexOf('<tbody>'); if(i<0) return inner;
+    var parts=inner.slice(i).split('</tr>'), n=0;
+    for(var k=0;k<parts.length;k++){
+      var j=parts[k].indexOf('<tr>'); if(j<0) continue;
+      n++; var tot=/<tr><td style="[^"]*font-weight:700/.test(parts[k]);
+      parts[k]=parts[k].replace('<tr>','<tr style="background:'+(tot?'#FFF1CC':(n%2?'#FFFFFF':'#F3F6FC'))+'">');
+    }
+    return inner.slice(0,i)+parts.join('</tr>');
+  }
+  function tbl(inner,fs){return '<table style="width:100%;border-collapse:collapse;margin:4px 0 '+(ATT?'8':'12')+'px;'+(fs?'font-size:'+fs+'px;':'')+(ATT?'border:1.5px solid #1E2A45;':'')+'">'+(ATT?zebra(inner):inner)+'</table>'}
+  function H1(t){return ATT?'<div style="font-weight:800;font-size:19px;color:#1E2A45;border-left:6px solid #F5C26B;padding:2px 0 2px 10px;margin:2px 0 8px">'+t+'</div>':'<div style="text-align:center;font-weight:700;font-size:17px;text-decoration:underline;margin:2px 0 4px">'+t+'</div>'}
+  function H2(t,sub){return ATT?'<div style="text-align:center;font-weight:700;font-size:15px;color:#1E2A45;margin:10px 0 2px"><span style="border-bottom:3px solid #F5C26B;padding:0 8px 2px">'+t+'</span></div>'+(sub?'<div style="text-align:center;font-weight:600;font-size:12.5px;color:#475569;margin:2px 0 4px">'+sub+'</div>':''):'<div style="text-align:center;font-weight:700;font-size:15px;text-decoration:underline;margin:10px 0 2px">'+t+'</div>'+(sub?'<div style="text-align:center;font-weight:700;font-size:13px;margin:0 0 4px">'+sub+'</div>':'')}
+  function P(t){return '<p style="text-align:justify;text-indent:34px;font-size:'+(ATT?'12.5':'13')+'px;line-height:'+(ATT?'1.4':'1.5')+';margin:'+(ATT?'4':'6')+'px 0">'+t+'</p>'}
+  function NOTE(t){return '<div style="font-size:11px;margin:-6px 0 8px'+(ATT?';color:#475569':'')+'">'+t+'</div>'}
   function psSort(a,b){return (ENG2HI_PS[a]||a).localeCompare(ENG2HI_PS[b]||b)}
 
   /* ---------- सारणी-निर्माता ---------- */
@@ -17985,8 +18014,79 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   /* ---------- पृष्ठ ---------- */
   var PAGES=[];
   function addPage(sec,html){PAGES.push({sec:sec,html:html})}
-  function wrapPage(inner,n){
-    return '<div class="mcr-book-page" style="width:794px;max-width:100%;min-height:1123px;box-sizing:border-box;padding:38px 34px 26px;background:#fff;page-break-after:always;position:relative;'+FONT+'">'+inner+'<div style="text-align:center;font-size:12px;margin-top:14px">'+n+'</div></div>';
+  function wrapPage(inner,n,title){
+    if(!ATT) return '<div class="mcr-book-page" style="width:794px;max-width:100%;min-height:1123px;box-sizing:border-box;padding:38px 34px 26px;background:#fff;page-break-after:always;position:relative;'+FONT+'">'+inner+'<div style="text-align:center;font-size:12px;margin-top:14px">'+n+'</div></div>';
+    return '<div class="mcr-book-page" style="width:794px;max-width:100%;min-height:1123px;box-sizing:border-box;padding:0 0 46px;background:#fff;page-break-after:always;position:relative;'+FONT+'">'+
+      '<div style="background:linear-gradient(90deg,#0F172A,#1E2A45 60%,#3730A3);color:#fff;padding:9px 28px;display:flex;justify-content:space-between;align-items:center;gap:16px">'+
+        '<div><div style="font-size:10px;letter-spacing:.2em;color:#F5C26B">जिला डीडवाना-कुचामन • MCR बुक</div><div style="font-size:17px;font-weight:700;margin-top:2px">'+(title||'')+'</div></div>'+
+        '<div style="font-size:11px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:4px 12px;white-space:nowrap">'+PERIOD+'</div></div>'+
+      '<div style="height:5px;background:linear-gradient(90deg,#FF9933 33%,#fff 33% 66%,#138808 66%)"></div>'+
+      '<div style="padding:14px 28px 0">'+inner+'</div>'+
+      '<div style="position:absolute;left:28px;right:28px;bottom:14px;display:flex;justify-content:space-between;font-size:10.5px;color:#64748B;border-top:1px dashed #CBD5E1;padding-top:6px"><span>सांख्यिकी शाखा, पुलिस अधीक्षक कार्यालय, डीडवाना-कुचामन</span><span>पृष्ठ '+n+'</span></div></div>';
+  }
+
+  /* ---------- 60/90 दिवस निस्तारण, दिनांक-अनुसार स्थिति, पेंडेंसी — नई सारणियाँ ---------- */
+  function limCfg(L){
+    var pf=(L===60)?'d60':'d90', se=document.getElementById(pf+'Source'), fe=document.getElementById(pf+'From'), te=document.getElementById(pf+'To');
+    var fv=(fe&&fe.value)||null, tv=(te&&te.value)||null;
+    return {src:(se&&se.value)||'generic', df:(fv||tv)?{from:fv,to:tv}:null};
+  }
+  function medal(r){var t=(r==null||r==='-')?'–':(r===1?'🥇 1':r===2?'🥈 2':r===3?'🥉 3':String(r)); return '<span style="white-space:nowrap">'+t+'</span>'}
+  function bgc(c){return ATT?c:null}
+  function cname(c){return c==='अन्य / साइबर'?c:c+' वृत्त'}
+  function circleList(stations){
+    var by={}; stations.forEach(function(x){(by[x.circle]=by[x.circle]||[]).push(x)});
+    return DISP_CIRCLE_ORDER.filter(function(c){return by[c]}).map(function(c){return {circle:c,list:by[c].slice().sort(function(a,b){return a.hi.localeCompare(b.hi)})}});
+  }
+  function tblLimit(L){
+    var cf=limCfg(L), agg=aggregateDisposal(buildRowsForSource(cf.src,L,cf.df),L), valid=agg.stations.filter(function(x){return x.c1>0});
+    var cc=makeColorScaler(valid,function(x){return x.compPct},false), dc=makeColorScaler(valid,function(x){return x.disposalPct},false);
+    var h='<thead><tr>'+th('क्र.<br>सं.')+th('थाना / इकाई')+th(L+' दिन में<br>निस्तारण योग्य')+th(L+' दिन में<br>निस्तारित')+th(L+' दिन बाद<br>निस्तारित')+th(L+' दिन से कम<br>पेंडिंग')+th(L+' दिन से अधिक<br>पेंडिंग')+th('निस्तारण %')+th('अनुपालना %')+th('रैंक')+'</tr></thead><tbody>', n=0;
+    function row(label,o,bd,isSt){
+      n++; var cb=(isSt&&o.c1>0)?bgc(cc(o.compPct)):null, db=(isSt&&o.c1>0)?bgc(dc(o.disposalPct)):null;
+      return '<tr>'+td(n,bd)+tdl(label,bd)+td(o.c1,bd)+td(o.c2,bd)+td(o.c3,bd)+td(o.c4,bd)+td(o.c5,bd)+td(f2(o.disposalPct),bd,db)+td(f2(o.compPct),bd,cb)+td(medal(o.rank),bd)+'</tr>';
+    }
+    var byC={}; agg.circles.forEach(function(c){byC[c.circle]=c});
+    circleList(agg.stations).forEach(function(g){
+      g.list.forEach(function(x){h+=row(x.hi,x,false,true)});
+      h+=row(cname(g.circle),byC[g.circle],true,false);
+    });
+    h+=row('जिला योग',agg.district,true,false);
+    return tbl(h+'</tbody>',11)+NOTE('अनुपालना % = समय पर निस्तारित ÷ (समय पर + सीमा बाद निस्तारित + सीमा पूर्ण पेंडिंग) × 100 &nbsp;|&nbsp; निस्तारण % = समय पर निस्तारित ÷ निस्तारण योग्य × 100 &nbsp;|&nbsp; रैंक: अनुपालना % के क्रम में'+(ATT?' &nbsp;|&nbsp; रंग: हरा = बेहतर, लाल = कमज़ोर':''));
+  }
+  function isoToday(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+  function tblAod(L){
+    var d=aodGetData(L===60?'l60':'l90'), ds=d.ds, idx=[], seen={}, T0=isoToday();
+    ds.forEach(function(x,i){ if(!seen[x]){seen[x]=1; idx.push(i)} });
+    var fm=function(iso){var p=String(iso).split('-'); return p[2]+'/'+p[1]+'/'+p[0]};
+    var A=d.aggs, last=idx[idx.length-1], first=idx[0], multi=idx.length>1;
+    var mS=idx.map(function(i){var m={}; A[i].stations.forEach(function(x){m[x.ps]=x}); return m});
+    var mC=idx.map(function(i){var m={}; A[i].circles.forEach(function(c){m[c.name]=c}); return m});
+    var valid=A[last].stations.filter(function(x){return x.c1>0&&x.comp!=null});
+    var cc=makeColorScaler(valid,function(x){return x.comp},false);
+    var h='<thead><tr>'+th('क्र.<br>सं.',' rowspan="2"')+th('थाना / इकाई',' rowspan="2"');
+    idx.forEach(function(i){h+=th('<b>'+(ds[i]===T0?'आज ':'')+fm(ds[i])+'</b>',' colspan="2"')});
+    if(multi) h+=th('अनुपालना<br>परिवर्तन',' rowspan="2"');
+    h+=th('<b>'+(ds[last]===T0?'आज':fm(ds[last]))+' की स्थिति</b>',' colspan="5"')+'</tr><tr>';
+    idx.forEach(function(){h+=th('अनुपालना %')+th('रैंक')});
+    h+=th('निस्तारण योग्य')+th('समय पर')+th('बाद निस्तारित')+th('पेंडिंग<br>(सीमा अंदर)')+th('पेंडिंग<br>(सीमा पूर्ण)')+'</tr></thead><tbody>';
+    var n=0;
+    function chg(a,b){ if(a==null||b==null) return '–'; var v=Math.round((b-a)*100)/100; return v>0?'<span style="color:#15803D;white-space:nowrap">▲ +'+v.toFixed(2)+'</span>':(v<0?'<span style="color:#B91C1C;white-space:nowrap">▼ '+v.toFixed(2)+'</span>':'● 0.00'); }
+    function row(label,pick,bd,isSt){
+      n++; var o=pick(last), r='<tr>'+td(n,bd)+tdl(label,bd);
+      idx.forEach(function(i){ var e=pick(i)||{}; var bg=(isSt&&i===last&&e.c1>0&&e.comp!=null)?bgc(cc(e.comp)):null;
+        r+=td(e.comp==null?'–':f2(e.comp),bd,bg)+td(medal(e.rank),bd); });
+      if(multi) r+=td(chg((pick(first)||{}).comp,(o||{}).comp),bd);
+      o=o||{c1:0,c2:0,c3:0,c4:0,c5:0};
+      return r+td(o.c1,bd)+td(o.c2,bd)+td(o.c3,bd)+td(o.c4,bd)+td(o.c5,bd)+'</tr>';
+    }
+    var k2i={}; idx.forEach(function(i,k){k2i[i]=k});
+    circleList(A[last].stations).forEach(function(g){
+      g.list.forEach(function(x){h+=row(x.hi,function(i){return mS[k2i[i]][x.ps]},false,true)});
+      h+=row(cname(g.circle),function(i){return mC[k2i[i]][g.circle]},true,false);
+    });
+    h+=row('जिला योग',function(i){return A[i].dist},true,false);
+    return tbl(h+'</tbody>',10);
   }
 
   window.mcrInitSelects=function(){
@@ -18012,8 +18112,29 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     var y=sel?parseInt(sel.value):CY; if(!y) y=CY;
     var m=ms?parseInt(ms.value):0; if(!m) m=(y===CY)?(new Date().getMonth()+1):12;
     MCR_LAST_YEARS=[y-2,y-1,y];
+    setStyle(((document.getElementById('mcrStyle')||{}).value)!=='plain');
     IDX=mkIdx(); ALLPS=ALL_PS_EN.slice(); PAGES=[];
     var nm=MONTHS[m-1], pm=m>1?m-1:12, py=m>1?y:y-1;
+    PERIOD='माह '+nm+' '+y;
+    var toc=[
+      [1,'माह '+nm+', '+y+' में अपराध की तुलनात्मक स्थिति'],
+      [2,'वर्ष '+(y-2)+', '+(y-1)+' एवं '+y+' की तुलनात्मक अपराध अन्तर्गत भा.द.सं.'],
+      [3,'निस्तारण अपराध अन्तर्गत भारतीय दण्ड संहिता'],
+      [4,'स्थानीय एवं विशेष अधिनियम'],
+      [5,'महिला अत्याचार / पोक्सो एक्ट'],
+      [6,'अनुसूचित जाति / जनजाति अत्याचार'],
+      [7,'थानावार भा.द.सं. के दर्ज अपराधों की तुलनात्मक स्थिति','तालिका ‘क’'],
+      [8,'थानावार भा.द.सं. के दर्ज अपराधों की निस्तारण स्थिति','तालिका ‘ख’'],
+      [9,'थानावार महिला / अनुसूचित जाति / जनजाति अत्याचार की तुलनात्मक स्थिति','तालिका ‘ग’'],
+      [10,'थानावार स्थानीय एवं विशेष अधिनियम अपराधों की तुलनात्मक स्थिति','तालिका ‘घ’'],
+      [11,'थानावार पोक्सो एक्ट की कार्यवाई की तुलनात्मक स्थिति','तालिका ‘घ’'],
+      [12,'थानावार पेण्डिंग अभियोग व पेंडेंसी प्रतिशत','तालिका ‘छ’'],
+      [13,'60 दिवस निस्तारण — थाना / वृत्त सारणी'],
+      [14,'90 दिवस निस्तारण — थाना / वृत्त सारणी'],
+      [15,'दिनांक-अनुसार स्थिति व रैंकिंग (60 / 90 दिवस)'],
+      [16,'वांछित अपराधी सारांश एवं अन्य सूचना']
+    ];
+    var TOCT={}; toc.forEach(function(t){TOCT[t[0]]=t[1]});
     var mSub='(माह '+nm+' '+(y-1)+', '+MONTHS[pm-1]+' '+py+', '+nm+' '+y+')', ySub='वर्ष '+(y-2)+', '+(y-1)+' एवं '+y;
     var DST='जिला डीडवाना-कुचामन में';
     var todayStr=new Date().toLocaleDateString('hi-IN',{day:'2-digit',month:'long',year:'numeric'});
@@ -18094,53 +18215,45 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     var PX1=T('पोक्सो एक्ट धारा 4 व 6',[RP2[0],RP2[1],RP2[2]]), PX2=R('अन्य पोक्सो एक्ट','pocso',['Other POCSO Act']), PXT=T('कुल पोक्सो एक्ट',RP2,true);
     addPage(11,stTitle('घ','जिले में वर्ष '+(y-1)+' एवं '+y+' माह '+nm+' तक पोक्सो एक्ट में की गई कार्यवाही की थानावार तुलनात्मक स्थिति।')+tblStationCmp([PX1,PX2,PXT],y,m));
 
-    /* 12 — तालिका ‘छ’ (पेण्डिंग अभियोग — पेंडेंसी पेज की पद्धति) */
+    /* 12 — तालिका ‘छ’ (पेण्डिंग अभियोग + पेंडेंसी प्रतिशत व रैंक — पेंडेंसी पेज की पद्धति) */
     var pendHtml;
     try{
       var agg=aggregatePendency(buildPendencyRows('generic'),y), byC={}; agg.circles.forEach(function(c){byC[c.circle]=c});
-      var pr='<thead><tr>'+th('क्र.<br>सं.',' rowspan="2"')+th('थाना',' rowspan="2"')+th('<b>पेण्डिंग अभियोग</b>',' colspan="5"')+'</tr><tr>'+th('अनुसंधान')+th('173(8) द.प्र.सं./<br>193(9) BNSS')+th('री-ओपन')+th('कुल पेण्डिंग अभियोग')+th('पेण्डिंग प्रतिशत')+'</tr></thead><tbody>';
-      var n=0, cells=function(o,bd){return td(o.ui+o.uiOld,bd)+td(o.c173193,bd)+td(o.reopen,bd)+td(o.pend,bd)+td(f2(o.pct),bd)};
+      var pr='<thead><tr>'+th('क्र.<br>सं.',' rowspan="2"')+th('थाना',' rowspan="2"')+th('<b>पेण्डिंग अभियोग</b>',' colspan="6"')+'</tr><tr>'+th('अनुसंधान')+th('173(8) द.प्र.सं./<br>193(9) BNSS')+th('री-ओपन')+th('कुल पेण्डिंग अभियोग')+th('पेंडेंसी प्रतिशत')+th('रैंक')+'</tr></thead><tbody>';
+      var n=0, cells=function(o,bd){return td(o.ui+o.uiOld,bd)+td(o.c173193,bd)+td(o.reopen,bd)+td(o.pend,bd)+td(f2(o.pct),bd,bgc(pendencyAbsColor(o.pct)))+td(medal(o.rank),bd)};
       DISP_CIRCLE_ORDER.forEach(function(c){
         var st=agg.stations.filter(function(x){return x.circle===c}).sort(function(a,b){return a.hi.localeCompare(b.hi)}); if(!st.length) return;
         st.forEach(function(x){n++; pr+='<tr>'+td(n)+tdl(x.hi)+cells(x,false)+'</tr>'});
-        n++; pr+='<tr>'+td(n,true)+tdl((c==='अन्य / साइबर'?c:c+' वृत्त'),true)+cells(byC[c],true)+'</tr>';
+        n++; pr+='<tr>'+td(n,true)+tdl(cname(c),true)+cells(byC[c],true)+'</tr>';
       });
       n++; pr+='<tr>'+td(n,true)+tdl('जिला योग',true)+cells(agg.district,true)+'</tr>';
-      pendHtml=stTitle('छ','थानावार पेण्डिंग अभियोगों की स्थिति माह '+nm+' '+y+' तक (CCTNS जनित)')+tbl(pr+'</tbody>')+NOTE('पेण्डिंग प्रतिशत = कुल पेण्डिंग ÷ वर्ष '+y+' में दर्ज प्रकरण × 100 (पोर्टल के पेंडेंसी रैंकिंग पेज की पद्धति अनुसार)।');
+      pendHtml=stTitle('छ','थानावार पेण्डिंग अभियोगों की स्थिति व पेंडेंसी प्रतिशत — माह '+nm+' '+y+' तक (CCTNS जनित)')+tbl(pr+'</tbody>')+
+        NOTE('पेंडेंसी प्रतिशत = कुल पेण्डिंग ÷ वर्ष '+y+' में दर्ज प्रकरण × 100 (पोर्टल के पेंडेंसी रैंकिंग पेज की पद्धति)। रैंक कम पेंडेंसी % के क्रम में।'+(ATT?' रंग: <span style="background:#A9E6B8;padding:0 6px">≤10% हरा</span> <span style="background:#FFC773;padding:0 6px">10–25% नारंगी</span> <span style="background:#FF9B9B;padding:0 6px">&gt;25% लाल</span>':''));
     }catch(e){
       pendHtml=stTitle('छ','थानावार पेण्डिंग अभियोगों की स्थिति')+'<div style="font-size:12px">पेंडेंसी डेटा अभी उपलब्ध नहीं — पोर्टल का “पेंडेंसी रैंकिंग” पेज एक बार खोलकर देखें।</div>';
     }
     addPage(12,pendHtml);
 
-    /* 13 — 60/90 दिवस निस्तारण अनुपालन व वांछित अपराधी सारांश */
-    var sm='<thead><tr>'+th('श्रेणी')+th('कुल प्रकरण')+th('समय पर निस्तारित')+th('विलंबित')+th('पेण्डिंग (सीमा से अधिक)')+th('अनुपालन %')+'</tr></thead><tbody>';
-    [60,90].forEach(function(lim){
-      try{ var d=aggregateDisposal(buildRowsGeneric(lim,null),lim).district;
-        sm+='<tr>'+tdl(lim+' दिवस श्रेणी')+td(d.c1)+td(d.c2)+td(d.c3)+td(d.c5)+td(f2(d.compPct),true)+'</tr>';
-      }catch(e){ sm+='<tr><td colspan="6" style="'+S_L+'">'+lim+' दिवस — डेटा उपलब्ध नहीं</td></tr>'; }
+    /* 13/14 — 60 / 90 दिवस निस्तारण सारणी (60/90 दिवस पेज के हूबहू स्रोत, अवधि व सूत्र) */
+    [60,90].forEach(function(L,k){
+      var body;
+      try{ body=tblLimit(L); }catch(e){ body='<div style="font-size:12px">'+L+' दिवस — डेटा उपलब्ध नहीं</div>'; }
+      addPage(13+k,H1(L+' दिवस निस्तारण — थाना / वृत्त / जिला')+P('जिले में '+L+' दिवस की समय-सीमा वाले अपराधों के निस्तारण की स्थिति, अनुपालना प्रतिशत व रैंक निम्नानुसार है–')+body);
     });
-    sm+='</tbody>';
+    /* 15 — दिनांक-अनुसार स्थिति व रैंकिंग */
+    [60,90].forEach(function(L){
+      var body;
+      try{ body=tblAod(L); }catch(e){ body='<div style="font-size:12px">डेटा उपलब्ध नहीं</div>'; }
+      addPage(15,H1(L+' दिवस — दिनांक-अनुसार स्थिति व रैंकिंग')+P('पोर्टल के “दिनांक-अनुसार स्थिति व रैंकिंग” पेज में चयनित तिथियों (तथा आज) की तुलनात्मक स्थिति–')+body+
+        NOTE('अनुपालना परिवर्तन = अंतिम दिनांक का अनुपालना % − प्रथम दिनांक का अनुपालना % (▲ सुधार, ▼ गिरावट)। “आज” वाला स्तम्भ 60/90 दिवस निस्तारण सारणी से मेल खाता है।'));
+    });
+    /* 16 — वांछित अपराधी सारांश + अन्य */
     var wn=(typeof WANTED_DATA!=='undefined'&&WANTED_DATA)?WANTED_DATA.length:0;
-    addPage(13,H1('60/90 दिवस निस्तारण एवं वांछित अपराधी')+tbl(sm)+
+    addPage(16,H1('वांछित अपराधी सारांश एवं अन्य सूचना')+
       P('कुल वर्तमान वांछित अपराधी: <b>'+wn.toLocaleString('en-IN')+'</b>। माहवार नए / निस्तारण / पेण्डिंग विश्लेषण हेतु पोर्टल के “वांछित अपराधी रजिस्टर” पेज का “माहवार विश्लेषण” सेक्शन देखें।')+
-      NOTE('नोट: निरोधात्मक कार्यवाही, सड़क दुर्घटना, माइनर एक्ट, भगोड़े/स्थायी वारंटी व माह की उपलब्धियां — नीचे के टेम्पलेट डाउनलोड कर अलग से तैयार करें।'));
+      NOTE('नोट: निरोधात्मक कार्यवाही, सड़क दुर्घटना, माइनर एक्ट, भगोड़े/स्थायी वारंटी व माह की उपलब्धियां — पेज पर दिए टेम्पलेट डाउनलोड कर अलग से तैयार करें।'));
 
     /* ---- कवर + अनुक्रमणिका + पृष्ठ क्रमांक ---- */
-    var toc=[
-      [1,'माह '+nm+', '+y+' में अपराध की तुलनात्मक स्थिति'],
-      [2,'वर्ष '+(y-2)+', '+(y-1)+' एवं '+y+' की तुलनात्मक अपराध अन्तर्गत भा.द.सं.'],
-      [3,'निस्तारण अपराध अन्तर्गत भारतीय दण्ड संहिता'],
-      [4,'स्थानीय एवं विशेष अधिनियम'],
-      [5,'महिला अत्याचार / पोक्सो एक्ट'],
-      [6,'अनुसूचित जाति / जनजाति अत्याचार'],
-      [7,'थानावार भा.द.सं. के दर्ज अपराधों की तुलनात्मक स्थिति','तालिका ‘क’'],
-      [8,'थानावार भा.द.सं. के दर्ज अपराधों की निस्तारण स्थिति','तालिका ‘ख’'],
-      [9,'थानावार महिला / अनुसूचित जाति / जनजाति अत्याचार की तुलनात्मक स्थिति','तालिका ‘ग’'],
-      [10,'थानावार स्थानीय एवं विशेष अधिनियम अपराधों की तुलनात्मक स्थिति','तालिका ‘घ’'],
-      [11,'थानावार पोक्सो एक्ट की कार्यवाई की तुलनात्मक स्थिति','तालिका ‘घ’'],
-      [12,'थानावार पेण्डिंग अभियोग','तालिका ‘छ’'],
-      [13,'60/90 दिवस निस्तारण एवं वांछित अपराधी सारांश','']
-    ];
     var first={}, last={};
     PAGES.forEach(function(p,i){var no=i+3; if(first[p.sec]===undefined) first[p.sec]=no; last[p.sec]=no});
     var tr='<thead><tr>'+th('<b>कसं</b>')+th('<b>शीर्षक</b>')+th('<b>पृष्ठ संख्या</b>')+'</tr></thead><tbody>';
@@ -18156,10 +18269,36 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
       '<div class="mcr-k2">जिला</div><div class="mcr-k3">डीडवाना–कुचामन</div>'+
       '<div class="mcr-k2">रिपोर्टिंग माह</div><div class="mcr-k3" style="margin-bottom:8px">'+nm+' '+y+'</div>'+
       '<div class="mcr-foot">तैयार किया गया: <b>'+todayStr+'</b> &nbsp;•&nbsp; कार्यालय अधीक्षक पुलिस, डीडवाना-कुचामन — सांख्यिकी शाखा (पोर्टल के SAS Export डेटा से स्वतः)</div></div>';
-    var out=cover+wrapPage('<div style="text-align:center;font-weight:700;font-size:18px;margin:30px 0 14px">अनुक्रमणिका</div>'+tbl(tr),2);
-    PAGES.forEach(function(p,i){ out+=wrapPage(p.html,i+3) });
+    var out=cover+wrapPage((ATT?'':'<div style="text-align:center;font-weight:700;font-size:18px;margin:30px 0 14px">अनुक्रमणिका</div>')+tbl(tr),2,'अनुक्रमणिका');
+    PAGES.forEach(function(p,i){ out+=wrapPage(p.html,i+3,TOCT[p.sec]) });
     document.getElementById('mcrBookArea').innerHTML=out;
     document.getElementById('mcrBookActions').style.display='';
+    /* जिस पृष्ठ की सामग्री A4 से बड़ी हो, उसे पृष्ठ में समाने हेतु छोटा (zoom) करते हैं */
+    if(!ATT) Array.prototype.forEach.call(document.querySelectorAll('#mcrBookArea .mcr-book-page'),function(pgEl){
+      var h=pgEl.offsetHeight; if(pgEl.classList.contains('mcr-book-cover')||h<=1126) return;
+      var z=1123/h; pgEl.style.zoom=z.toFixed(3); pgEl.style.width=(794/z).toFixed(0)+'px'; pgEl.style.minHeight='0';
+    });
+    if(ATT) Array.prototype.forEach.call(document.querySelectorAll('#mcrBookArea .mcr-book-page'),function(pgEl){
+      var kids=pgEl.children; if(kids.length!==4) return;
+      var c=kids[2], avail=1123-46-kids[0].offsetHeight-kids[1].offsetHeight-18;
+      if(c.offsetHeight>0 && avail>0 && c.offsetHeight>avail) c.style.zoom=(avail/c.offsetHeight).toFixed(3);
+    });
+  };
+  window.downloadMcrBookPDF=async function(){
+    var area=document.getElementById('mcrBookArea');
+    if(!area||!area.innerHTML.trim()){ toast('पहले “🔍 रिपोर्ट बनाएं” दबाएं'); return; }
+    if(!window.jspdf||!window.jspdf.jsPDF){ toast('PDF लाइब्रेरी लोड नहीं हो पाई'); return; }
+    if(typeof html2canvas==='undefined'){ toast('इमेज लाइब्रेरी लोड नहीं हो पाई — इंटरनेट कनेक्शन जांचें'); return; }
+    var prev=document.documentElement.getAttribute('data-theme');
+    document.documentElement.removeAttribute('data-theme');   /* PDF सदैव उजले रूप में */
+    try{
+      var pages=Array.prototype.map.call(area.querySelectorAll('.mcr-book-page'),function(e){var c=e.cloneNode(true); c.style.margin='0'; c.style.boxShadow='none'; return c.outerHTML});
+      toast('⏳ आकर्षक PDF तैयार हो रही है ('+pages.length+' पृष्ठ)…');
+      var doc=await window.dkPdfKit.pagesToPdf(pages,{w:794,pad:0,mx:0,my:0,scale:2.5,fmt:'jpeg'});
+      doc.save('MCR-Book-'+(MCR_LAST_YEARS?MCR_LAST_YEARS[2]:CY)+'-'+PERIOD.replace(/\s+/g,'-')+'.pdf');
+      toast('✅ आकर्षक PDF डाउनलोड हो गई');
+    }catch(e){ console.error(e); toast('⚠️ PDF नहीं बन सकी: '+(e&&e.message||e)); }
+    finally{ if(prev) document.documentElement.setAttribute('data-theme',prev); }
   };
 })();
 </script>
