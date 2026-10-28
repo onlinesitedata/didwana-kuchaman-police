@@ -17904,9 +17904,10 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
       r_kid=R('व्यपहरण / अपहरण','ipc',['Kidnapping & Abduction']), r_rap=R('दुष्कर्म (बालिग)','ipc',['Rape(Major)']),
       r_rio=R('बलवा','ipc',['Riots']), r_bur=R('नकबजनी','ipc',['Burglary']), r_the=R('चोरी','ipc',['Theft']),
       r_oth=R('अन्य भा.द.सं./बी.एन.एस.','ipc',['Other BNS/IPC','Snatching','Rape(Minor)']);
+  var r_snt=R('चैन स्नेचिंग','ipc',['Snatching']);
   var IPC_L=[r_mur,r_att,r_dac,r_rob,r_kid,r_rap,r_rio,r_bur,r_the,r_oth];
   var IPC_TOT=T('योग भा.द.सं./बी.एन.एस.',IPC_L,true), IPC_ROWS=IPC_L.concat([IPC_TOT]);
-  var PROP=T('कुल सम्पत्ति संबंधी अपराध',[r_dac,r_rob,r_bur,r_the],true);
+  var PROP=T('कुल सम्पत्ति संबंधी अपराध',[r_dac,r_rob,r_bur,r_the,r_snt],true);
 
   var SLL_L=[R('एक्साईज एक्ट','sll',['Excise Act']),R('जुआ अध्यादेश','sll',['Gambling Ordinance']),R('आर्म्स एक्ट','sll',['Arms Act']),
     R('एन.डी.पी.एस. एक्ट','sll',['NDPS Act']),R('एक्सप्लोजिव एक्ट','sll',['Explosive Act']),R('ई.सी.एक्ट','sll',['EC Act']),
@@ -18033,7 +18034,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   function rp(z){return z.sv>0?z.rv/z.sv*100:null}
   function hasPropValues(y,m){ var t=QR(PROP,ALLPS,y,1,m), t2=QR(PROP,ALLPS,y-1,1,m); return (t.sv+t2.sv)>0; }
   function tblPropHeads(y,m){
-    var rows=[r_dac,r_rob,r_bur,r_the,PROP];
+    var rows=[r_dac,r_rob,r_bur,r_the,r_snt,PROP];
     function grp(yy){return th('<b>'+yy+' (माह '+MONTHS[m-1]+' तक)</b>',' colspan="6"')}
     var h='<thead><tr>'+th('क्र.<br>सं.',' rowspan="2"')+th('शीर्षक',' rowspan="2"')+grp(y-1)+grp(y)+'</tr><tr>';
     [0,1].forEach(function(){h+=th('दर्ज')+th('चालान')+th('चालानी<br>%')+th('चोरी कीमत<br>(₹ लाख)')+th('बरामद कीमत<br>(₹ लाख)')+th('बरामदगी<br>%')});
@@ -18067,7 +18068,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     });
     return tbl(h+'</tbody>',10.5);
   }
-  var PROP_FOOT='संपत्ति सम्बन्धी अपराध = डकैती + लूट + नकबजनी + चोरी। चालानी % = चालान ÷ (एफ.आर. अन्य + चालान) × 100 (MCR बुक का सूत्र)। बरामदगी % = बरामद कीमत ÷ चोरी गई कीमत × 100 (SAS Export कॉलम “#Stolen Value.” व “#Recovered Value.”)। कुछ प्रकरणों में बरामद कीमत, चोरी-कीमत से अधिक दर्ज होने पर प्रतिशत 100 से अधिक आ सकता है।';
+  var PROP_FOOT='संपत्ति सम्बन्धी अपराध = डकैती + लूट + नकबजनी + चोरी + चैन स्नेचिंग। चालानी % = चालान ÷ (एफ.आर. अन्य + चालान) × 100 (MCR बुक का सूत्र)। बरामदगी % = बरामद कीमत ÷ चोरी गई कीमत × 100 (SAS Export कॉलम “#Stolen Value.” व “#Recovered Value.”)। कुछ प्रकरणों में बरामद कीमत, चोरी-कीमत से अधिक दर्ज होने पर प्रतिशत 100 से अधिक आ सकता है।';
 
   /* ---------- समीक्षा नोट: वृद्धि/कमी विश्लेषण + कारण हेतु संपादन-योग्य बॉक्स ---------- */
   var REM_Y=0, REM_M=0, NOTES=null, CSSOK=false;
@@ -18307,10 +18308,10 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     addPage(2,H2('माहवार आपराधिक तुलनात्मक स्थिति (भा.द.सं./बी.एन.एस.)',mSub)+tblMonthly(IPC_ROWS,y,m)+
       P('वर्ष '+y+' एवं '+(y-2)+', '+(y-1)+' की तुलना में (माह '+nm+' तक) भा.द.सं. / बी.एन.एस. के अन्तर्गत दर्ज अपराधों की तुलनात्मक स्थिति निम्न तालिका में वर्णित है–')+
       H2('वर्षवार आपराधिक तुलनात्मक स्थिति (भा.द.सं./बी.एन.एस.)',ySub)+tblYearly(IPC_ROWS,y,m)+
-      NOTE('नोट: “अन्य भा.द.सं./बी.एन.एस.” में चैन स्नेचिंग व दुष्कर्म (नाबालिग) के प्रकरण सम्मिलित हैं।'));
+      NOTE('नोट: “अन्य भा.द.सं./बी.एन.एस.” में चैन स्नेचिंग व दुष्कर्म (नाबालिग) के प्रकरण सम्मिलित हैं; चैन स्नेचिंग संपत्ति अपराधों में भी गिनी गई है।'));
 
     /* 3 — भा.द.सं. निस्तारण + सम्पत्ति सम्बन्धी प्रतिशत */
-    var propRows=[r_dac,r_rob,r_bur,r_the,IPC_TOT];
+    var propRows=[r_dac,r_rob,r_bur,r_the,r_snt,IPC_TOT];
     var ph='<thead><tr>'+th('क्र.<br>सं.',' rowspan="2"')+th('शीर्षक',' rowspan="2"')+th('अदम वकू प्रतिशत',' colspan="2"')+th('चालानी प्रतिशत',' colspan="2"')+'</tr><tr>'+th(y-1)+th(y)+th(y-1)+th(y)+'</tr></thead><tbody>';
     propRows.forEach(function(r,i){
       var a=dispCells(QR(r,ALLPS,y-1,1,m)), b=dispCells(QR(r,ALLPS,y,1,m)), bd=!!r.bold;
@@ -18327,7 +18328,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     var hasV=hasPropValues(y,m);
     var warnV=hasV?'':'<div style="font-size:12px;border:1px solid #B91C1C;background:#FEF2F2;padding:6px 10px;margin:6px 0;color:#7F1D1D">⚠️ बरामदगी % हेतु SAS Export फाइल में “#Stolen Value.” व “#Recovered Value.” कॉलम (W, X) का डेटा चाहिए। यह डेटा अभी पोर्टल में नहीं है — कृपया नई SAS Export फाइल “डेटा अपडेट” से अपलोड करें। चालानी % ऊपर दर्शाया गया है।</div>';
     NOTES=SN('संपत्ति अपराध — चालानी / बरामदगी (शीर्ष-वार)',function(){
-      var rows=[r_dac,r_rob,r_bur,r_the].map(function(r){var z=QR(r,ALLPS,y,1,m), c=dispCells(z); return {l:r.label,n:z.n,csp:parseFloat(c.csp),p:rp(z)}});
+      var rows=[r_dac,r_rob,r_bur,r_the,r_snt].map(function(r){var z=QR(r,ALLPS,y,1,m), c=dispCells(z); return {l:r.label,n:z.n,csp:parseFloat(c.csp),p:rp(z)}});
       var zt=QR(PROP,ALLPS,y,1,m), zt0=QR(PROP,ALLPS,y-1,1,m), ct=dispCells(zt), ct0=dispCells(zt0), pt=rp(zt), pt0=rp(zt0), fx=function(v){return v==null?'–':f2(v)};
       var withP=rows.filter(function(x){return x.p!=null}).sort(function(a,b){return a.p-b.p});
       var lines=['<b>कुल सम्पत्ति अपराध:</b> दर्ज '+zt0.n+' → '+zt.n+'; चालानी % '+ct0.csp+' → '+ct.csp+'; बरामदगी % '+fx(pt0)+' → '+fx(pt)+' (चोरी कीमत ₹ '+lakh(zt.sv)+' लाख, बरामद ₹ '+lakh(zt.rv)+' लाख)'];
@@ -18337,7 +18338,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
       return lines.filter(Boolean);
     });
     addPage(17,H1('संपत्ति सम्बन्धी अपराध — चालानी एवं बरामदगी प्रतिशत')+
-      P('जिले में संपत्ति सम्बन्धी अपराधों (डकैती, लूट, नकबजनी, चोरी) में चालानी प्रतिशत तथा चोरी गई/बरामद कीमत के आधार पर बरामदगी प्रतिशत की शीर्ष-वार तुलनात्मक स्थिति निम्न है–')+
+      P('जिले में संपत्ति सम्बन्धी अपराधों (डकैती, लूट, नकबजनी, चोरी, चैन स्नेचिंग) में चालानी प्रतिशत तथा चोरी गई/बरामद कीमत के आधार पर बरामदगी प्रतिशत की शीर्ष-वार तुलनात्मक स्थिति निम्न है–')+
       H2('शीर्ष-वार चालानी एवं बरामदगी प्रतिशत','वर्ष '+(y-1)+' एवं '+y+' (माह '+nm+' तक)')+tblPropHeads(y,m)+NOTE(PROP_FOOT)+warnV);
     NOTES=SN('संपत्ति अपराध — थाना / वृत्त-वार',function(){
       var d=propStationData(y,m), st=d.filter(function(x){return x.t==='ps'}), dist=d[d.length-1], fx=function(v){return v==null?'–':f2(v)};
