@@ -2358,6 +2358,20 @@ html #toast{border-radius:var(--r-pill);box-shadow:var(--sh-lg)}
       <button class="btn-gold" style="padding:10px 16px;border:none;border-radius:8px;font-weight:600;color:#fff;background:linear-gradient(135deg,#B45309,#92400E);cursor:pointer" onclick="downloadMcrBookPDF()">🖼️ आकर्षक PDF (अधिकारियों हेतु)</button>
     </div>
 
+    <div class="card" id="mcrSasCard" style="margin-top:22px">
+      <h2 style="font-size:15px">📊 SAS-शैली सारणी — दर्ज / निस्तारण / अदम वकू (तुलना सहित)</h2>
+      <div class="note">SAS Export की कच्ची FIR सारणी से: 1 जनवरी से रिपोर्ट दिनांक तक की FIR, रिपोर्ट दिनांक की स्थिति के अनुसार। पिछले वर्ष की सारणी उसी रिपोर्ट दिनांक (पिछला वर्ष) पर बनती है।</div>
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin:10px 0">
+        <div><label style="display:block;font-size:12px;margin-bottom:3px">रिपोर्ट दिनांक</label><input type="date" id="mcrSasDate" style="padding:8px;border:1.5px solid var(--line);border-radius:8px"></div>
+        <button class="btn-fill" style="background:linear-gradient(135deg,var(--navy),var(--navy2))" onclick="renderMcrSas()">📊 सारणी बनाएं</button>
+      </div>
+      <div id="mcrSasOut"></div>
+      <details style="margin-top:14px;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:12.5px;line-height:1.7">
+        <summary style="cursor:pointer;font-weight:700;color:var(--navy)">गणना का आधार</summary>
+        <div id="mcrSasBasis"></div>
+      </details>
+    </div>
+
     <div class="card" style="margin-top:22px">
       <h2 style="font-size:15px">⚠️ शेष सेक्शन — जिनका डेटा पोर्टल में अभी नहीं है</h2>
       <div class="note">भा.द.सं./बी.एन.एस., SLL, महिला अत्याचार, SC/ST, पोक्सो/दुष्कर्म, 60/90-दिवस निस्तारण, पेंडेंसी व वांछित अपराधी — ये सब पोर्टल के अपने डेटा से अपने-आप बनते हैं। निरोधात्मक कार्यवाही, सड़क दुर्घटना, माइनर एक्ट व माह की उपलब्धियां — ये पोर्टल में ट्रैक नहीं होते, इसलिए टेम्पलेट डाउनलोड करके अलग से तैयार करने होंगे।</div>
@@ -18103,7 +18117,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     var st=ALLPS.map(function(ps){var x=QR(tot,[ps],y-1,1,m).n, z=QR(tot,[ps],y,1,m).n; return {l:psLabel(ps),ps:ps,a:x,b:z,d:z-x}});
     var cm={}; st.forEach(function(x){var c=dispCircleOf(x.ps)||'अन्य / साइबर'; var o=cm[c]||(cm[c]={l:cname(c),a:0,b:0,d:0}); o.a+=x.a; o.b+=x.b; o.d+=x.d});
     var ci=DISP_CIRCLE_ORDER.filter(function(c){return cm[c]}).map(function(c){return cm[c]});
-    return {a:a,b:b,d:b-a,pct:pc(a,b),y:y,H:split(hs),S:split(st),C:split(ci)};
+    return {a:a,b:b,d:b-a,pct:pc(a,b),y:y,nh:heads.length,H:split(hs),S:split(st),C:split(ci)};
   }
   function remBox(key,lv){
     var v=''; try{ v=localStorage.getItem('dkMcrRem|'+REM_Y+'|'+REM_M+'|'+key)||'' }catch(e){}
@@ -18120,7 +18134,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
       '<div style="margin:2px 0"><b>कुल:</b> '+(y-1)+': <b>'+an.a+'</b> → '+y+': <b>'+an.b+'</b> (<b style="color:'+col+'">'+sgn(d)+', '+f2(an.pct)+'%</b>) — <b style="color:'+col+'">'+verdict+'</b></div>';
     if(lv>=1){
       var hn=lv>=3?4:(lv===2?3:2), sn=lv>=3?5:(lv===2?4:3);
-      if(lv>=2){ h+=ln('वृद्धि वाले शीर्ष',an.H.inc,incTag,incCol,hn)+ln('कमी वाले शीर्ष',an.H.dec,decTag,decCol,hn); }
+      if(lv>=2&&an.nh>1){ h+=ln('वृद्धि वाले शीर्ष',an.H.inc,incTag,incCol,hn)+ln('कमी वाले शीर्ष',an.H.dec,decTag,decCol,hn); }
       h+=ln('वृद्धि वाले थाने ['+an.S.inc.length+' थाने]',an.S.inc,incTag,incCol,sn)+ln('कमी वाले थाने ['+an.S.dec.length+' थाने]',an.S.dec,decTag,decCol,sn);
       if(lv>=3){
         h+=ln('वृद्धि वाले वृत्त',an.C.inc,incTag,incCol,4)+ln('कमी वाले वृत्त',an.C.dec,decTag,decCol,4);
@@ -18136,6 +18150,11 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     return out;
   }
   function CN(kind,heads,tot,scope,y,m){var an=null; return function(lv,key,nobox){ an=an||analyse(heads,tot,y,m); return noteHtml(an,kind,scope,lv,key,nobox) }}
+  /* हर शीर्ष का अलग समीक्षा नोट (एक पृष्ठ पर कई शीर्ष हों तो भी आँकड़े मिलाए नहीं जाते) */
+  function CNS(kind,g,y,m,sc){
+    var fns=g.map(function(x){var hs=(x.children&&x.children.length)?x.children:[x]; return CN(kind,hs,x,sc(x.label),y,m)});
+    return function(lv,key,nobox){return fns.map(function(f,i){return f(lv,key+'#'+i,nobox)}).join('')};
+  }
   /* रैंक/निस्तारण आधारित सरल नोट: lines = HTML पंक्तियाँ, प्राथमिकता-क्रम में */
   function SN(scope,linesFn){return function(lv,key){
     var lines=linesFn(); var k=lv>=3?lines.length:(lv===2?Math.min(3,lines.length):(lv===1?Math.min(2,lines.length):1));
@@ -18270,6 +18289,209 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     }
   };
 
+  /* ---------- धारा-वार समीक्षा: आर्म्स / आबकारी / एनडीपीएस (SAS 'Act & Sections' व FIR Current Status से) ---------- */
+  var DH={
+    arms:{cat:'Arms Act',hi:'आर्म्स एक्ट',kw:/arms/i,secs:[['3/25','धारा 3/25','आग्नेय आयुध / अवैध कृत्य'],['4/25','धारा 4/25','धारदार हथियार'],['27','धारा 27','आग्नेय आयुध का प्रयोग']]},
+    excise:{cat:'Excise Act',hi:'आबकारी एक्ट',kw:/excise/i,secs:[['16/54','धारा 16/54','हथकड़ शराब'],['19/54','धारा 19/54','अंग्रेजी / देशी शराब'],['20/54','धारा 20/54','शराब बिक्री'],['54A','धारा 54A','परिवहन वाहन जब्ती'],['54D','धारा 54D','शराब निर्माण']]},
+    ndps:{cat:'NDPS Act',hi:'एनडीपीएस एक्ट',kw:/ndps|narcotic/i,secs:[['15','धारा 15','पोस्त भूसी / डोडा'],['18','धारा 18','अफीम'],['20','धारा 20','गांजा / कैनाबिस'],['21','धारा 21','हेरोइन / स्मैक / कोकीन'],['22','धारा 22','मनःप्रभावी (MDMA आदि)'],['27','धारा 27','सेवन'],['25','धारा 25','स्थान / वाहन का उपयोग']]}
+  };
+  function dhSegs(t){
+    var out=[]; String(t||'').split(/\s\/\s|,,/).forEach(function(sg){
+      sg=sg.trim(); if(!sg) return;
+      var m=sg.match(/^(.*?)(?::-|-)\s*(\d[\w(),\s]*)$/);
+      out.push(m?{n:m[1].trim(),it:m[2].split(',').map(function(x){return x.trim()}).filter(Boolean)}:{n:sg,it:[]});
+    }); return out;
+  }
+  var DH_SHORT=[['BHARATIYA NYAYA SANHITA','BNS'],['BNS','BNS'],['IPC','IPC'],['DISASTER','आपदा प्रबंधन अधिनियम'],['COPY','कॉपी राइट एक्ट'],['WILD','वन्य जीव अधिनियम'],['ARMS','आर्म्स एक्ट'],['EXCISE','आबकारी एक्ट'],['NARCOTIC','NDPS एक्ट'],['NDPS','NDPS एक्ट'],['SMOKING','धूम्रपान निषेध अधिनियम'],['GAMBL','जुआ अध्यादेश'],['EXPLOSIVE','एक्सप्लोजिव एक्ट'],['INFORMATION','IT एक्ट'],['POCSO','पॉक्सो'],['MOTOR','मोटर वाहन अधिनियम'],['ESSENTIAL','EC एक्ट']];
+  function dhShort(n){ var u=String(n).toUpperCase(); for(var i=0;i<DH_SHORT.length;i++) if(u.indexOf(DH_SHORT[i][0])>-1) return DH_SHORT[i][1]; return String(n).slice(0,40); }
+  function dhKeys(act,items,keys){
+    var nm=items.map(function(i){return i.replace(/[()\s]/g,'').toUpperCase()}), has=function(x){return nm.indexOf(x)>-1};
+    if(act==='arms'){ if(has('3')&&has('25')) keys['3/25']=1; if(has('4')&&has('25')) keys['4/25']=1; if(has('27')) keys['27']=1; }
+    else if(act==='excise'){ if(has('54')) ['16','19','20'].forEach(function(n){ if(has(n)) keys[n+'/54']=1; }); if(has('54A')) keys['54A']=1; if(has('54D')) keys['54D']=1; }
+    else items.forEach(function(i){ var m=i.replace(/\s/g,'').match(/^(\d+)(\([^)]*\))*$/); if(m&&DH.ndps.secs.some(function(x){return x[0]===m[1]})) keys[m[1]]=1; });
+  }
+  function dhParse(act,txt){
+    var keys={}, sig={}, found=false, oth={}, D=DH[act];
+    dhSegs(txt).forEach(function(g){
+      if(D.kw.test(g.n)){ found=true; dhKeys(act,g.it,keys); g.it.forEach(function(i){ sig[i.replace(/[()\s]/g,'').toUpperCase()]=1; }); }
+      else { var sh=dhShort(g.n); oth[sh]=(oth[sh]||0)+1; }
+    });
+    return {keys:keys,sig:Object.keys(sig).sort().join(','),found:found,oth:oth};
+  }
+  function dhAgg(y,m){
+    var A={arms:{},excise:{},ndps:{}}, st={tot:0,rec:0,samp:[]}, X={};
+    Object.keys(DH).forEach(function(a){ X[a]={inN:[0,0],inNames:{},outN:[0,0],outNames:{}}; });
+    dbRecords.forEach(function(r){
+      if(!r.year||r.month>m||(r.year!==y&&r.year!==y-1)) return;
+      var yi=r.year===y?1:0, cat=awMatchCat(r.sll), a=null;
+      Object.keys(DH).forEach(function(k){ if(DH[k].cat===cat) a=k; });
+      if(!a){ /* श्रेणी भिन्न, पर धारा में यह एक्ट */
+        Object.keys(DH).forEach(function(k){ if(DH[k].kw.test(String(r.sections||'')) && dhParse(k,r.sections).found){ X[k].outN[yi]++; var lb=r.ipc||r.sll||'अन्य'; X[k].outNames[lb]=(X[k].outNames[lb]||0)+1; } });
+        return;
+      }
+      var P=A[a][r.ps]||(A[a][r.ps]={}); (P._t||(P._t=[0,0]))[yi]++;
+      var pr=dhParse(a,r.sections), ks=Object.keys(pr.keys); st.tot++;
+      var on=Object.keys(pr.oth); if(on.length){ X[a].inN[yi]++; on.forEach(function(n){ X[a].inNames[n]=(X[a].inNames[n]||0)+1; }); }
+      if(ks.length) st.rec++; else if(st.samp.length<3&&r.sections&&st.samp.indexOf(r.sections)<0) st.samp.push(r.sections);
+      if(!ks.length) ks=['_o'];
+      ks.forEach(function(k){ (P[k]||(P[k]=[0,0]))[yi]++; });
+    });
+    A.st=st; A.x=X; return A;
+  }
+  function dhNames(o){ return Object.keys(o).sort(function(p,q){return o[q]-o[p]}).map(function(k){return k+' '+o[k]}).join(', '); }
+  function dhWarn(A,a,y){
+    var s=A.st; if(!s.tot) return '<div style="font-size:12px;color:#B91C1C">इस अवधि हेतु SAS डेटा उपलब्ध नहीं।</div>';
+    var pcr=Math.round(s.rec/s.tot*100), x=A.x[a], hi=DH[a].hi;
+    var t='धारा-पहचान: SAS “Act & Sections” से '+s.rec+' / '+s.tot+' प्रकरणों ('+pcr+'%) में सूचीबद्ध धारा पहचानी गई; शेष “अन्य / अपहचानी” में। एक FIR में एकाधिक धाराएँ होने पर वह प्रत्येक धारा में गिनी जाती है।';
+    if(x.inN[0]+x.inN[1]) t+='<br><b>अन्य एक्ट सहित:</b> '+hi+' श्रेणी के '+x.inN[0]+' ('+(y-1)+') व '+x.inN[1]+' ('+y+') प्रकरणों की धाराओं में अन्य एक्ट भी हैं — '+dhNames(x.inNames)+'।';
+    if(x.outN[0]+x.outN[1]) t+='<br><b>श्रेणी भिन्न, धारा में '+hi+':</b> '+x.outN[0]+' ('+(y-1)+') व '+x.outN[1]+' ('+y+') प्रकरण अन्य श्रेणी (जैसे '+dhNames(x.outNames)+') में दर्ज हैं, अतः उपरोक्त गिनती में सम्मिलित नहीं।';
+    return NOTE(t);
+  }
+  function dhWomen(y,m){
+    var o={t:[0,0],c:[0,0],ps:{}};
+    dbRecords.forEach(function(r,i){
+      if(r.wa!=='Women Harassment'||!r.year||r.month>m||(r.year!==y&&r.year!==y-1)) return;
+      var yi=r.year===y?1:0, ct=/court/i.test(String((RAW[i]||[])[14]||''));
+      o.t[yi]++; if(ct) o.c[yi]++;
+      var P=o.ps[r.ps]||(o.ps[r.ps]={t:0,c:0}); if(yi===1){ P.t++; if(ct) P.c++; }
+    }); return o;
+  }
+  function dhWomenNote(y,m,nm){
+    return SN('महिला उत्पीड़न — न्यायालय (Court) से दर्ज प्रकरण (INFORMATION_SOURCE)',function(){
+      var w=dhWomen(y,m), p0=w.t[0]?w.c[0]/w.t[0]*100:0, p1=w.t[1]?w.c[1]/w.t[1]*100:0;
+      var L=['<b>वर्ष '+(y-1)+':</b> कुल महिला उत्पीड़न '+w.t[0]+', न्यायालय से दर्ज '+w.c[0]+' (<b>'+f2(p0)+'%</b>); <b>वर्ष '+y+' (माह '+nm+' तक):</b> कुल '+w.t[1]+', न्यायालय से दर्ज '+w.c[1]+' (<b>'+f2(p1)+'%</b>); अन्तर '+(p1-p0>=0?'+':'')+f2(p1-p0)+' प्रतिशत अंक'];
+      var st=Object.keys(w.ps).map(function(ps){var v=w.ps[ps];return {l:psLabel(ps),c:v.c,t:v.t,p:v.t?v.c/v.t*100:0}}).filter(function(x){return x.t>=5}).sort(function(a,b){return b.p-a.p});
+      L.push(rankLine('न्यायालय से दर्ज का सर्वाधिक प्रतिशत वाले थाने (वर्ष '+y+')',st,function(x){return x.l+' ('+x.c+'/'+x.t+', '+f2(x.p)+'%)'},4,'#B91C1C'));
+      return L.filter(Boolean);
+    });
+  }
+  function dhSum(M,pss,k,yi){ var t=0; pss.forEach(function(ps){ var o=M[ps]; if(o&&o[k]) t+=o[k][yi]; }); return t; }
+  function dhD(d){ return d<0?'<span style="color:#B91C1C;font-weight:700">'+d+'</span>':(d>0?'<span style="color:#15803D;font-weight:700">+'+d+'</span>':'0'); }
+  function dhDistTbl(a,A,y){
+    var D=DH[a], rows=D.secs.map(function(s){return {k:s[0],l:s[1]+' — '+s[2]}}).concat([{k:'_o',l:'अन्य / अपहचानी धाराएँ'},{k:'_t',l:'कुल प्रकरण (अद्वितीय FIR)',b:1}]);
+    var h='<thead><tr>'+th('क्र.<br>सं.')+th('धारा / विवरण')+th(y-1)+th(y)+th('+/-')+th('प्रतिशत')+th('स्थिति')+'</tr></thead><tbody>';
+    rows.forEach(function(r,i){
+      var p=dhSum(A[a],ALLPS,r.k,0), q=dhSum(A[a],ALLPS,r.k,1), d=q-p, bd=!!r.b;
+      h+='<tr>'+td(i+1,bd)+tdl(r.l,bd)+td(p,bd)+td(q,bd)+td(dhD(d),bd)+td(f2(pc(p,q)),bd)+td(d<0?'<b style="color:#B91C1C">▼ कम कार्रवाई</b>':(d>0?'<b style="color:#15803D">▲ वृद्धि</b>':'—'),bd)+'</tr>';
+    });
+    return tbl(h+'</tbody>',11);
+  }
+  function dhStTbl(A,cols,y){
+    var h='<thead><tr>'+th('क्र.<br>सं.',' rowspan="2"')+th('थाना',' rowspan="2"');
+    cols.forEach(function(c){h+=th('<b>'+c.l+'</b>',' colspan="3"')}); h+='</tr><tr>';
+    cols.forEach(function(){h+=th(y-1)+th(y)+th('+/-')}); h+='</tr></thead><tbody>';
+    stationRows().forEach(function(s,i){
+      var bd=s.t!=='ps'; h+='<tr>'+td(i+1,bd)+tdl(s.label,bd);
+      cols.forEach(function(c){ var p=dhSum(A[c.a],s.pss,c.k,0), q=dhSum(A[c.a],s.pss,c.k,1); h+=td(p,bd)+td(q,bd)+td(dhD(q-p),bd); });
+      h+='</tr>';
+    });
+    return tbl(h+'</tbody>',cols.length>4?9:10);
+  }
+  function dhCols(a,keys){ var lab={_o:'अन्य',_t:'कुल'}; DH[a].secs.forEach(function(s){lab[s[0]]=s[1]}); return keys.map(function(k){return {a:a,k:k,l:lab[k]}}); }
+  function dhNote(a,A,y,nm){
+    var D=DH[a];
+    return SN('समीक्षा — '+D.hi+' (वर्ष '+(y-1)+' बनाम '+y+', माह '+nm+' तक)',function(){
+      var T0=dhSum(A[a],ALLPS,'_t',0), T1=dhSum(A[a],ALLPS,'_t',1);
+      var secs=D.secs.map(function(s){var p=dhSum(A[a],ALLPS,s[0],0),q=dhSum(A[a],ALLPS,s[0],1);return {k:s[0],l:s[1],p:p,q:q,d:q-p,pct:pc(p,q)}});
+      var dec=secs.filter(function(x){return x.d<0}).sort(function(u,v){return u.d-v.d}), inc=secs.filter(function(x){return x.d>0}).sort(function(u,v){return v.d-u.d});
+      var st=ALLPS.map(function(ps){var p=dhSum(A[a],[ps],'_t',0),q=dhSum(A[a],[ps],'_t',1);return {l:psLabel(ps),p:p,q:q,d:q-p}}).filter(function(x){return x.d<0}).sort(function(u,v){return u.d-v.d});
+      var f=function(x){return x.l+' ('+x.p+'→'+x.q+', '+f2(x.pct)+'%)'};
+      var L=['<b>कुल '+D.hi+':</b> '+T0+' → '+T1+' ('+sgn(T1-T0)+', '+f2(pc(T0,T1))+'%) — '+(T1<T0?'<b style="color:#B91C1C">कार्रवाई में कमी — नकारात्मक</b>':(T1>T0?'<b style="color:#15803D">कार्रवाई में वृद्धि — सकारात्मक</b>':'कोई परिवर्तन नहीं'))];
+      L.push(rankLine('कम कार्रवाई वाली धाराएँ (कारण-समीक्षा हेतु)',dec,f,6,'#B91C1C'));
+      L.push(rankLine('वृद्धि वाली धाराएँ',inc,f,6,'#15803D'));
+      L.push(rankLine('कुल कार्रवाई में कमी वाले थाने',st,function(x){return x.l+' ('+x.p+'→'+x.q+')'},6,'#B91C1C'));
+      dec.slice(0,2).forEach(function(x){
+        var w=ALLPS.map(function(ps){var p=dhSum(A[a],[ps],x.k,0),q=dhSum(A[a],[ps],x.k,1);return {l:psLabel(ps),p:p,q:q,d:q-p}}).filter(function(z){return z.d<0}).sort(function(u,v){return u.d-v.d});
+        L.push(rankLine(x.l+' में सर्वाधिक कमी वाले थाने',w,function(z){return z.l+' ('+z.p+'→'+z.q+')'},4,'#B91C1C'));
+      });
+      return L.filter(Boolean);
+    });
+  }
+  function dhId(v){ return String(v==null?'':v).trim().replace(/\.0+$/,''); }
+  function dhMis(y,m){
+    var out={rows:[],by:{},fdc:!!(typeof FDC!=='undefined'&&FDC.rows&&FDC.rows.length)};
+    Object.keys(DH).forEach(function(a){out.by[a]={}});
+    if(!out.fdc) return out;
+    var fm={}; FDC.rows.forEach(function(r){ var k=dhId(r[11]); if(k&&!(k in fm)) fm[k]=r; });
+    dbRecords.forEach(function(r,i){
+      if(!r.year||r.month>m||(r.year!==y&&r.year!==y-1)) return;
+      var cat=awMatchCat(r.sll), a=null; if(!cat) return; Object.keys(DH).forEach(function(k){ if(DH[k].cat===cat) a=k; }); if(!a) return;
+      var ps=String(r.ps||'').trim().toUpperCase(), o=out.by[a][ps]||(out.by[a][ps]={n:0,sf:0,fc:0,nf:0});
+      var fr=fm[dhId(RAW[i][15])];
+      if(!fr){ o.nf++; return; }
+      o.n++;
+      var s1=dhParse(a,r.sections), t1=FDC.act1[fr[4]]||'', s2=dhParse(a,t1), t2=FDC.act2[fr[9]]||'';
+      var cs=normStatusKey(FDC.cst[fr[10]])==='chargesheet';
+      if(s1.sig!==s2.sig){ o.sf++; out.rows.push([DH[a].hi,psLabel(ps),r.fir||'',r.date||'','SAS ≠ FIR दर्ज धारा',r.sections||'',t1,t2]); }
+      if(cs&&t2&&s2.sig!==dhParse(a,t2).sig){ o.fc++; out.rows.push([DH[a].hi,psLabel(ps),r.fir||'',r.date||'','FIR दर्ज धारा ≠ चालान धारा',r.sections||'',t1,t2]); }
+    });
+    return out;
+  }
+  function dhActs(t){
+    var d={IPC:{},BNS:{},IT:{}};
+    String(t||'').split(',,').forEach(function(sg){
+      sg=sg.trim().replace(/,$/,''); var m=sg.match(/^(.*?):-(.*)$/); if(!m) return;
+      var n=m[1].toUpperCase(), k=(n.indexOf('NYAYA')>-1||n.indexOf('BNS')===0)?'BNS':((n.indexOf('IPC')>-1||n.indexOf('PENAL')>-1)?'IPC':(n.indexOf('INFORMATION TECH')>-1?'IT':null));
+      if(!k) return; m[2].split(',').forEach(function(x){ var b=x.match(/^\s*(\d+)/); if(b) d[k][b[1]]=1; });
+    }); return d;
+  }
+  function dhHasMur(a){ return !!(a.IPC['302']||a.BNS['103']); }
+  function dhHasBl(a){ return !!(a.IPC['384']||a.IPC['385']||a.IPC['386']||a.IPC['387']||a.IPC['388']||a.IPC['389']||a.BNS['308']); }
+  function dhHasIt(a){ return Object.keys(a.IT).length>0; }
+  function dhChg(y,m){
+    var o={fdc:!!(typeof FDC!=='undefined'&&FDC.rows&&FDC.rows.length),mur:{t:[0,0],cat:{}},w:{cs:[0,0],cat:{}},rows:[]};
+    if(!o.fdc) return o;
+    var fm={}; FDC.rows.forEach(function(r){ var k=dhId(r[11]); if(k&&!(k in fm)) fm[k]=r; });
+    function W(c){ return o.w.cat[c]||(o.w.cat[c]={cs:[0,0],bl:[0,0],bla:[0,0],it:[0,0],ita:[0,0]}); }
+    dbRecords.forEach(function(r,i){
+      if(!r.year||r.month>m||(r.year!==y&&r.year!==y-1)) return;
+      var fr=fm[dhId(RAW[i][15])]; if(!fr) return;
+      var t2=FDC.act2[fr[9]]||''; if(!t2.trim()||normStatusKey(FDC.cst[fr[10]])!=='chargesheet') return;
+      var yi=r.year===y?1:0, t1=FDC.act1[fr[4]]||'', a1=dhActs(t1), a2=dhActs(t2), ps=psLabel(String(r.ps||'').trim().toUpperCase());
+      function R(lbl){ o.rows.push([lbl,ps,r.fir||'',r.date||'','',r.sections||'',t1,t2]); }
+      if(!dhHasMur(a1)&&dhHasMur(a2)){ var c=r.ipc||r.sll||'अन्य'; o.mur.t[yi]++; (o.mur.cat[c]||(o.mur.cat[c]=[0,0]))[yi]++; R('चालान में हत्या की धारा जुड़ी (FIR में नहीं) — FIR श्रेणी: '+c); }
+      if(r.wa){
+        var w=W(r.wa); o.w.cs[yi]++; w.cs[yi]++;
+        if(dhHasBl(a1)) w.bl[yi]++; else if(dhHasBl(a2)){ w.bla[yi]++; R('महिला अपराध ('+r.wa+'): चालान में ब्लैकमेलिंग/जबरन वसूली धारा जुड़ी'); }
+        if(dhHasIt(a1)) w.it[yi]++; else if(dhHasIt(a2)){ w.ita[yi]++; R('महिला अपराध ('+r.wa+'): चालान में IT एक्ट जुड़ा'); }
+      }
+    });
+    return o;
+  }
+  function dhChgHtml(CH,y,per){
+    if(!CH.fdc) return '<div style="font-size:12px;color:#B91C1C">FIR Current Status डेटा लोड नहीं है।</div>';
+    var h='<thead><tr>'+th('क्र.<br>सं.')+th('FIR की श्रेणी (अन्य धारा में दर्ज)')+th(y-1)+th(y)+'</tr></thead><tbody>', n=0;
+    Object.keys(CH.mur.cat).sort(function(a,b){return (CH.mur.cat[b][0]+CH.mur.cat[b][1])-(CH.mur.cat[a][0]+CH.mur.cat[a][1])}).forEach(function(c){ n++; h+='<tr>'+td(n)+tdl(c)+td(CH.mur.cat[c][0])+td(CH.mur.cat[c][1])+'</tr>'; });
+    h+='<tr>'+td('',true)+tdl('योग — चालान में हत्या की धारा (IPC 302 / BNS 103) जुड़ी',true)+td(CH.mur.t[0],true)+td(CH.mur.t[1],true)+'</tr>';
+    var t1=tbl(h+'</tbody>',11);
+    var g='<thead><tr>'+th('क्र.<br>सं.',' rowspan="3"')+th('महिला अपराध श्रेणी',' rowspan="3"')+th('चालान<br>वाले<br>प्रकरण',' rowspan="3"')+th('<b>ब्लैकमेलिंग / जबरन वसूली (IPC 384-389, BNS 308)</b>',' colspan="4"')+th('<b>IT एक्ट</b>',' colspan="4"')+'</tr><tr>'+th('FIR में दर्ज',' colspan="2"')+th('चालान में जुड़ी',' colspan="2"')+th('FIR में दर्ज',' colspan="2"')+th('चालान में जुड़ी',' colspan="2"')+'</tr><tr>';
+    for(var q=0;q<4;q++) g+=th(y-1)+th(y); g+='</tr></thead><tbody>';
+    var T={cs:0,bl:[0,0],bla:[0,0],it:[0,0],ita:[0,0]}; n=0;
+    Object.keys(CH.w.cat).sort().forEach(function(c){ var w=CH.w.cat[c]; n++;
+      g+='<tr>'+td(n)+tdl(c)+td(w.cs[0]+' / '+w.cs[1])+td(w.bl[0])+td(w.bl[1])+td(w.bla[0])+td(w.bla[1])+td(w.it[0])+td(w.it[1])+td(w.ita[0])+td(w.ita[1])+'</tr>';
+      ['bl','bla','it','ita'].forEach(function(k){T[k][0]+=w[k][0];T[k][1]+=w[k][1]}); T.cs+=w.cs[0]+w.cs[1]; });
+    g+='<tr>'+td('',true)+tdl('योग',true)+td(CH.w.cs[0]+' / '+CH.w.cs[1],true)+td(T.bl[0],true)+td(T.bl[1],true)+td(T.bla[0],true)+td(T.bla[1],true)+td(T.it[0],true)+td(T.it[1],true)+td(T.ita[0],true)+td(T.ita[1],true)+'</tr>';
+    return H2('(अ) अन्य धाराओं में दर्ज प्रकरण, जिनके चालान में हत्या की धारा जुड़ी',per)+t1+H2('(ब) बलात्कार एवं अन्य महिला अपराध — ब्लैकमेलिंग / IT एक्ट की धारा',per)+tbl(g+'</tbody>',10)+
+      NOTE('केवल चालान (Charge Sheet) हो चुके प्रकरण गिने गए; मिलान: SAS “FIR REG NUM (1)” = FIR Current Status “FIR Code”। “चालान में जुड़ी” = FIR में दर्ज धाराओं में नहीं, पर चालान की धाराओं में है। “चालान वाले प्रकरण” स्तम्भ में '+(y-1)+' / '+y+'।');
+  }
+  function dhMisTbl(M){
+    var acts=Object.keys(DH), h='<thead><tr>'+th('क्र.<br>सं.',' rowspan="2"')+th('थाना',' rowspan="2"');
+    acts.forEach(function(a){h+=th('<b>'+DH[a].hi+'</b>',' colspan="4"')}); h+='</tr><tr>';
+    acts.forEach(function(){h+=th('मिलान<br>योग्य')+th('SAS≠FIR')+th('FIR≠चालान')+th('FDC में<br>नहीं')}); h+='</tr></thead><tbody>';
+    stationRows().forEach(function(s,i){
+      var bd=s.t!=='ps'; h+='<tr>'+td(i+1,bd)+tdl(s.label,bd);
+      acts.forEach(function(a){ var t={n:0,sf:0,fc:0,nf:0}; s.pss.forEach(function(ps){var o=M.by[a][ps]; if(o){t.n+=o.n;t.sf+=o.sf;t.fc+=o.fc;t.nf+=o.nf}});
+        h+=td(t.n,bd)+td(t.sf?'<b style="color:#B91C1C">'+t.sf+'</b>':0,bd)+td(t.fc?'<b style="color:#B91C1C">'+t.fc+'</b>':0,bd)+td(t.nf,bd); });
+      h+='</tr>';
+    });
+    return tbl(h+'</tbody>',9);
+  }
+  window.dhDharaExcel=function(){
+    var R=window.__dhMisRows||[]; if(!R.length){ toast('कोई धारा-विसंगति सूची उपलब्ध नहीं'); return; }
+    var ws=XLSX.utils.aoa_to_sheet([['एक्ट','थाना','FIR','दिनांक','विसंगति','SAS धारा','FIR दर्ज धारा (Current Status)','चालान धारा']].concat(R));
+    var wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'धारा विसंगति'); XLSX.writeFile(wb,'धारा-विसंगति-सूची.xlsx');
+  };
+
   window.renderMcrBook=function(){
     var sel=document.getElementById('mcrYear'), ms=document.getElementById('mcrMonth');
     var y=sel?parseInt(sel.value):CY; if(!y) y=CY;
@@ -18296,7 +18518,13 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
       [13,'60 दिवस निस्तारण — थाना / वृत्त सारणी'],
       [14,'90 दिवस निस्तारण — थाना / वृत्त सारणी'],
       [15,'दिनांक-अनुसार स्थिति व रैंकिंग (60 / 90 दिवस)'],
-      [16,'वांछित अपराधी सारांश एवं अन्य सूचना']
+      [16,'वांछित अपराधी सारांश एवं अन्य सूचना'],
+      [18,'आर्म्स एक्ट — धारा 3/25, 4/25, 27 की तुलनात्मक समीक्षा'],
+      [19,'आबकारी एक्ट — धारा 16/54, 19/54, 20/54, 54A, 54D की तुलनात्मक समीक्षा'],
+      [20,'एनडीपीएस एक्ट — धारा 15, 18, 20, 21, 22, 27, 25 की तुलनात्मक समीक्षा'],
+      [21,'समग्र समीक्षा एवं अनुपालना (आर्म्स / आबकारी / एनडीपीएस)'],
+      [22,'SAS Export व FIR Current Status धारा-मिलान (विसंगति परीक्षण)'],
+      [23,'चालान में जुड़ी धाराएँ — हत्या; महिला अपराधों में ब्लैकमेलिंग / IT एक्ट']
     ];
     var TOCT={}; toc.forEach(function(t){TOCT[t[0]]=t[1]});
     ensureCss(); REM_Y=y; REM_M=m; NOTES=null;
@@ -18392,7 +18620,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
       tblDisposal(SLL_ROWS,y,m,'निस्तारण स्थिति स्थानीय एवं विशेष अधिनियम, वर्ष '+y+' (माह '+nm+' तक)')+FOOT_DISP);
 
     /* 5 — महिला अत्याचार / पोक्सो */
-    NOTES=CN('crime',WA_L,WA_TOT,sc('महिला अत्याचार'),y,m);
+    var nWA=CN('crime',WA_L,WA_TOT,sc('महिला अत्याचार'),y,m), nWC=dhWomenNote(y,m,nm); NOTES=function(lv,key){return nWA(lv,key)+nWC(lv,key+'w')};
     addPage(5,H1('महिला अत्याचार')+
       P(DST+' महिला अत्याचार सम्बन्धी अपराधों की तुलनात्मक स्थिति निम्न है–')+
       H2('महिला अत्याचार माहवार तुलनात्मक स्थिति',mSub)+tblMonthly(WA_ROWS,y,m)+
@@ -18419,22 +18647,22 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     /* 7 — थानावार तालिका ‘क’ (भा.द.सं. तुलनात्मक) */
     var cmpLine='वर्ष '+(y-1)+' एवं '+y+' माह '+nm+' तक भा.द.सं./बी.एन.एस. के थानावार दर्ज अपराधों की तुलनात्मक स्थिति।';
     var KA=[[r_mur,r_att,r_rap],[r_kid,r_rio],[r_dac,r_rob,r_bur],[r_the,PROP],[r_oth,IPC_TOT]];
-    KA.forEach(function(g){ NOTES=CN('crime',g,totOf(g),sc(namesOf(g)),y,m); addPage(7,stTitle('क',cmpLine)+tblStationCmp(g,y,m)) });
+    KA.forEach(function(g){ NOTES=CNS('crime',g,y,m,sc); addPage(7,stTitle('क',cmpLine)+tblStationCmp(g,y,m)) });
     /* 8 — तालिका ‘ख’ (भा.द.सं. निस्तारण) */
     var dspLine='वर्ष '+y+' माह '+nm+' तक भा.द.सं./बी.एन.एस. के प्रमुख शीर्षकों में दर्ज अपराधों की थानावार निस्तारण स्थिति।';
     var KH=[[r_mur,r_att],[r_rap,r_kid],[r_rio,r_dac],[r_rob,r_bur],[r_the,PROP],[r_oth,IPC_TOT]];
-    KH.forEach(function(g){ NOTES=dispNoteFor(totOf(g),'निस्तारण — '+namesOf(g)); addPage(8,stTitle('ख',dspLine)+tblStationDisp(g,y,m)) });
+    KH.forEach(function(g){ NOTES=(function(g){return function(lv,key){return g.map(function(x,i){return dispNoteFor(x,'निस्तारण — '+x.label)(lv,key+'#'+i)}).join('')}})(g); addPage(8,stTitle('ख',dspLine)+tblStationDisp(g,y,m)) });
     /* 9 — तालिका ‘ग’ (महिला / अनुसूचित जाति-जनजाति) */
-    NOTES=CN('crime',[WA_TOT,SC_TOT],T('',[WA_TOT,SC_TOT]),sc('महिला / अनुसूचित जाति-जनजाति अत्याचार'),y,m);
+    NOTES=CNS('crime',[WA_TOT,SC_TOT],y,m,sc);
     addPage(9,stTitle('ग','जिले में वर्ष '+(y-1)+' एवं '+y+' (माह '+nm+' तक) महिला / अनुसूचित जाति / जनजाति अत्याचार के थानावार दर्ज अभियोगों की तुलनात्मक स्थिति।')+
       tblStationCmp([{label:'महिला अत्याचार',children:WA_L},{label:'अनुसूचित जाति / जनजाति अत्याचार',children:SC_L}],y,m));
     /* 10 — तालिका ‘घ’ (SLL) */
     var sllLine='वर्ष '+(y-1)+' एवं '+y+' माह '+nm+' तक स्थानीय एवं विशेष अधिनियमों में की गई कार्यवाही की थानावार तुलनात्मक स्थिति।';
     var SG=[[SLL_L[0],SLL_L[1],SLL_L[2]],[SLL_L[3],SLL_L[4],SLL_L[5]],[SLL_L[6],SLL_L[7],SLL_L[8]],[SLL_TOT]];
-    SG.forEach(function(g){ NOTES=CN('sll',g,totOf(g),sc(namesOf(g)),y,m); addPage(10,stTitle('घ',sllLine)+tblStationCmp(g,y,m)) });
+    SG.forEach(function(g){ NOTES=CNS('sll',g,y,m,sc); addPage(10,stTitle('घ',sllLine)+tblStationCmp(g,y,m)) });
     /* 11 — तालिका ‘घ’ (पोक्सो) */
     var PX1=T('पोक्सो एक्ट धारा 4 व 6',[RP2[0],RP2[1],RP2[2]]), PX2=R('अन्य पोक्सो एक्ट','pocso',['Other POCSO Act']), PXT=T('कुल पोक्सो एक्ट',RP2,true);
-    NOTES=CN('crime',[PX1,PX2],PXT,sc('पोक्सो एक्ट'),y,m);
+    NOTES=CNS('crime',[PX1,PX2,PXT],y,m,sc);
     addPage(11,stTitle('घ','जिले में वर्ष '+(y-1)+' एवं '+y+' माह '+nm+' तक पोक्सो एक्ट में की गई कार्यवाही की थानावार तुलनात्मक स्थिति।')+tblStationCmp([PX1,PX2,PXT],y,m));
 
     /* 12 — तालिका ‘छ’ (पेण्डिंग अभियोग + पेंडेंसी प्रतिशत व रैंक — पेंडेंसी पेज की पद्धति) */
@@ -18506,6 +18734,69 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
       P('कुल वर्तमान वांछित अपराधी: <b>'+wn.toLocaleString('en-IN')+'</b>। माहवार नए / निस्तारण / पेण्डिंग विश्लेषण हेतु पोर्टल के “वांछित अपराधी रजिस्टर” पेज का “माहवार विश्लेषण” सेक्शन देखें।')+
       NOTE('नोट: निरोधात्मक कार्यवाही, सड़क दुर्घटना, माइनर एक्ट, भगोड़े/स्थायी वारंटी व माह की उपलब्धियां — पेज पर दिए टेम्पलेट डाउनलोड कर अलग से तैयार करें।'));
 
+    /* ---- 18-22 — धारा-वार समीक्षा नोट: आर्म्स / आबकारी / एनडीपीएस, समग्र समीक्षा, SAS–FIR धारा-मिलान ---- */
+    var DHA=dhAgg(y,m), per='वर्ष '+(y-1)+' एवं '+y+' (माह '+nm+' तक)';
+    var DHI={arms:'धारा 3/25 (आग्नेय आयुध रखने अथवा संबंधित अवैध कृत्य), धारा 4/25 (धारदार हथियार) एवं धारा 27 (आग्नेय आयुध के प्रयोग)',
+      excise:'धारा 16/54 (हथकड़ शराब), 19/54 (अंग्रेजी एवं देशी शराब), 20/54 (शराब की बिक्री), 54A (परिवहन वाहनों की जब्ती) एवं 54D (शराब निर्माण / फैक्ट्री)',
+      ndps:'धारा 15 (डोडा-पोस्त), 18 (अफीम), 20 (गांजा/कैनाबिस), 21 (हेरोइन, स्मैक, कोकीन, मॉर्फिन), 22 (मनःप्रभावी पदार्थ), 27 (सेवन) एवं 25 (स्थान/वाहन का जानबूझकर उपयोग)'};
+    [['arms',18,[['3/25','4/25','27','_o','_t']]],['excise',19,[['16/54','19/54','20/54'],['54A','54D','_o','_t']]],['ndps',20,[['15','18','20','21'],['22','27','25','_o','_t']]]].forEach(function(c){
+      var a=c[0], D=DH[a];
+      NOTES=dhNote(a,DHA,y,nm);
+      addPage(c[1],H1(D.hi+' के प्रकरणों की धारा-वार तुलनात्मक समीक्षा')+
+        P(per+' में '+D.hi+' के अन्तर्गत दर्ज प्रकरणों की तुलनात्मक समीक्षा कर '+DHI[a]+' के प्रकरणों की संख्या का पृथक-पृथक विवरण निम्नानुसार है। जिन धाराओं में गत वर्ष की तुलना में कम कार्रवाई हुई है, उनका विशेष विश्लेषण कर कारणों की समीक्षा एवं आवश्यक कार्रवाई सुनिश्चित की जावे–')+
+        H2('धारा-वार तुलनात्मक स्थिति (जिला)',per)+dhDistTbl(a,DHA,y)+dhWarn(DHA,a,y));
+      c[2].forEach(function(keys,j){
+        NOTES=j===0?SN('थानावार कम कार्रवाई — '+D.hi,function(){
+          var L=[]; D.secs.forEach(function(s){ var w=ALLPS.map(function(ps){var p=dhSum(DHA[a],[ps],s[0],0),q=dhSum(DHA[a],[ps],s[0],1);return {l:psLabel(ps),p:p,q:q,d:q-p}}).filter(function(z){return z.d<0}).sort(function(u,v){return u.d-v.d});
+            L.push(rankLine(s[1]+' में कमी',w,function(z){return z.l+' ('+z.p+'→'+z.q+')'},4,'#B91C1C')); });
+          return L.filter(Boolean);
+        }):null;
+        addPage(c[1],stTitle('धारा',D.hi+' — थानावार धारा-वार तुलनात्मक स्थिति, '+per)+dhStTbl(DHA,dhCols(a,keys),y));
+      });
+    });
+    /* 21 — समग्र समीक्षा एवं अनुपालना */
+    var DHT=Object.keys(DH).map(function(a){return {a:a,k:'_t',l:DH[a].hi}});
+    NOTES=SN('समग्र समीक्षा — आर्म्स / आबकारी / एनडीपीएस ('+per+')',function(){
+      var L=[], all=[];
+      Object.keys(DH).forEach(function(a){ var p=dhSum(DHA[a],ALLPS,'_t',0), q=dhSum(DHA[a],ALLPS,'_t',1); L.push('<b>'+DH[a].hi+':</b> '+p+' → '+q+' ('+sgn(q-p)+', '+f2(pc(p,q))+'%)');
+        DH[a].secs.forEach(function(s){ var p2=dhSum(DHA[a],ALLPS,s[0],0), q2=dhSum(DHA[a],ALLPS,s[0],1); if(q2<p2) all.push({l:DH[a].hi+' '+s[1],p:p2,q:q2,d:q2-p2,pct:pc(p2,q2)}); }); });
+      all.sort(function(u,v){return u.pct-v.pct});
+      L.push(rankLine('सर्वाधिक कमी वाली धाराएँ (प्रतिशत में)',all,function(x){return x.l+' ('+x.p+'→'+x.q+', '+f2(x.pct)+'%)'},5,'#B91C1C'));
+      var st=ALLPS.map(function(ps){var p=0,q=0; Object.keys(DH).forEach(function(a){p+=dhSum(DHA[a],[ps],'_t',0);q+=dhSum(DHA[a],[ps],'_t',1)}); return {l:psLabel(ps),p:p,q:q,d:q-p}}).filter(function(z){return z.d<0}).sort(function(u,v){return u.d-v.d});
+      L.push(rankLine('तीनों एक्ट में कुल कमी वाले थाने',st,function(x){return x.l+' ('+x.p+'→'+x.q+')'},6,'#B91C1C'));
+      return L.filter(Boolean);
+    });
+    addPage(21,H1('समग्र समीक्षा एवं अनुपालना — आर्म्स, आबकारी एवं एनडीपीएस एक्ट')+
+      P('उपरोक्त तीनों अधिनियमों के अन्तर्गत '+per+' के तुलनात्मक आँकड़ों के आधार पर कम कार्रवाई वाले क्षेत्रों, धाराओं एवं पुलिस थानों की स्थिति निम्नानुसार है। सम्बन्धित थानों द्वारा कमी के कारण प्रस्तुत कर आवश्यक सुधारात्मक कार्रवाई सुनिश्चित की जावे तथा सभी आँकड़े SAS Export एवं FIR Current Status फाइल से सत्यापित हों–')+
+      stTitle('समग्र','तीनों एक्ट में दर्ज प्रकरणों की थानावार तुलनात्मक स्थिति, '+per)+dhStTbl(DHA,DHT,y));
+    /* 22 — SAS Export बनाम FIR Current Status: धारा-मिलान */
+    var DHM=dhMis(y,m); window.__dhMisRows=DHM.rows;
+    NOTES=SN('धारा-मिलान समीक्षा (SAS Export बनाम FIR Current Status)',function(){
+      if(!DHM.fdc) return ['<b style="color:#B91C1C">FIR Current Status (FDC) डेटा लोड नहीं है — लोड होने पर रिपोर्ट पुनः बनाएँ।</b>'];
+      var t={n:0,sf:0,fc:0,nf:0}, w=[]; Object.keys(DHM.by).forEach(function(a){ Object.keys(DHM.by[a]).forEach(function(ps){ var o=DHM.by[a][ps]; t.n+=o.n;t.sf+=o.sf;t.fc+=o.fc;t.nf+=o.nf; w.push({l:psLabel(ps)+' ('+DH[a].hi.split(' ')[0]+')',d:o.sf+o.fc}); }); });
+      w=w.filter(function(x){return x.d>0}).sort(function(u,v){return v.d-u.d});
+      return ['<b>मिलान योग्य प्रकरण:</b> '+t.n+'; दर्ज धारा में अन्तर (SAS≠FIR): <b style="color:#B91C1C">'+t.sf+'</b>; चालान की धारा में अन्तर: <b style="color:#B91C1C">'+t.fc+'</b>; FDC में न मिले: '+t.nf,
+        rankLine('सर्वाधिक विसंगति वाले थाने (जाँच व स्पष्टीकरण हेतु)',w,function(x){return x.l+' ('+x.d+')'},6,'#B91C1C'),
+        'विसंगति वाले प्रत्येक प्रकरण की जाँच कर आवश्यक सुधार / स्पष्टीकरण प्राप्त किया जावे; पूरी सूची “धारा-विसंगति Excel” बटन से डाउनलोड करें।'].filter(Boolean);
+    });
+    addPage(22,H1('SAS Export एवं FIR Current Status — धारा-मिलान (विसंगति परीक्षण)')+
+      P('प्रकरण में दर्ज धाराओं (SAS Export), FIR Current Status में दर्ज धाराओं तथा चालान में अंकित धाराओं का परस्पर मिलान किया गया है। विसंगति पाए जाने पर सम्बन्धित प्रकरण की जाँच कर सुधार एवं स्पष्टीकरण प्राप्त किया जावे–')+
+      stTitle('मिलान','आर्म्स / आबकारी / एनडीपीएस — थानावार धारा-विसंगति, '+per)+(DHM.fdc?dhMisTbl(DHM):'<div style="font-size:12px;color:#B91C1C">FIR Current Status डेटा लोड नहीं है।</div>')+
+      NOTE('मिलान की कुंजी: SAS Export का “FIR REG NUM (1)” = FIR Current Status फाइल का “FIR Code”। केवल सम्बन्धित एक्ट की धाराओं की तुलना की गई है। एनडीपीएस में जब्त मात्रा का कॉलम पोर्टल में लोड नहीं होता, अतः मात्रा का मिलान इस सारणी में शामिल नहीं; मादक पदार्थ-प्रकार का मिलान धारा (15/18/20/21/22) के आधार पर ही किया जा सकता है।'));
+
+    /* 23 — चालान में धाराओं का जुड़ना: हत्या; महिला अपराधों में ब्लैकमेलिंग / IT एक्ट */
+    var DHC=dhChg(y,m); window.__dhMisRows=(window.__dhMisRows||[]).concat(DHC.rows);
+    NOTES=SN('धारा-परिवर्तन समीक्षा — चालान में जुड़ी धाराएँ ('+per+')',function(){
+      if(!DHC.fdc) return ['<b style="color:#B91C1C">FIR Current Status (FDC) डेटा लोड नहीं है।</b>'];
+      var w={bl:[0,0],bla:[0,0],it:[0,0],ita:[0,0]}, cs=DHC.w.cs; Object.keys(DHC.w.cat).forEach(function(c){ ['bl','bla','it','ita'].forEach(function(k){ w[k][0]+=DHC.w.cat[c][k][0]; w[k][1]+=DHC.w.cat[c][k][1]; }); });
+      var mc=Object.keys(DHC.mur.cat).map(function(c){return {l:c,d:DHC.mur.cat[c][0]+DHC.mur.cat[c][1]}}).sort(function(a,b){return b.d-a.d});
+      return ['<b>हत्या की धारा:</b> अन्य धाराओं में दर्ज '+(DHC.mur.t[0]+DHC.mur.t[1])+' प्रकरणों के चालान में हत्या की धारा (IPC 302 / BNS 103) जुड़ी — '+(y-1)+': '+DHC.mur.t[0]+', '+y+': '+DHC.mur.t[1]+(mc.length?' (FIR श्रेणी: '+mc.map(function(x){return x.l+' '+x.d}).join(', ')+')':''),
+        '<b>ब्लैकमेलिंग / जबरन वसूली (महिला अपराध):</b> FIR में दर्ज '+w.bl[0]+' ('+(y-1)+') व '+w.bl[1]+' ('+y+'); चालान में नई जुड़ी '+w.bla[0]+' ('+(y-1)+') व '+w.bla[1]+' ('+y+') — कुल चालान वाले महिला प्रकरण '+cs[0]+' / '+cs[1],
+        '<b>IT एक्ट (महिला अपराध):</b> FIR में दर्ज '+w.it[0]+' ('+(y-1)+') व '+w.it[1]+' ('+y+'); चालान में नई जुड़ी '+w.ita[0]+' ('+(y-1)+') व '+w.ita[1]+' ('+y+')',
+        'जुड़ी धाराओं के प्रत्येक प्रकरण में अनुसंधान अधिकारी से कारण / साक्ष्य आधार प्राप्त किया जावे; सूची “धारा-विसंगति Excel” में उपलब्ध है।'];
+    });
+    addPage(23,H1('चालान में जुड़ी धाराएँ — हत्या एवं महिला अपराधों में ब्लैकमेलिंग / IT एक्ट')+
+      P('अन्य धाराओं में दर्ज प्रकरणों में अनुसंधान उपरान्त चालान में हत्या की धारा जुड़ने तथा बलात्कार एवं अन्य महिला अपराधों में ब्लैकमेलिंग व IT एक्ट की धाराएँ दर्ज / चालान में जुड़ने की स्थिति निम्नानुसार है–')+dhChgHtml(DHC,y,per));
     /* ---- कवर + अनुक्रमणिका + पृष्ठ क्रमांक ---- */
     var first={}, last={};
     PAGES.forEach(function(p,i){var no=i+3; if(first[p.sec]===undefined) first[p.sec]=no; last[p.sec]=no});
@@ -18527,6 +18818,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     document.getElementById('mcrBookArea').innerHTML=out;
     document.getElementById('mcrBookActions').style.display='';
     window.__mcrPages=PAGES;
+    (function(){var bx=document.getElementById('mcrBookActions'); if(bx&&!document.getElementById('dhXlsBtn')){var b=document.createElement('button'); b.id='dhXlsBtn'; b.className='btn-fill'; b.style.marginLeft='6px'; b.textContent='📊 धारा-विसंगति Excel'; b.onclick=function(){window.dhDharaExcel()}; bx.appendChild(b);}})();
     placeNotes();
     var ar=document.getElementById('mcrBookArea');
     if(ar&&!ar._remBound){ ar._remBound=1; ar.addEventListener('input',function(ev){ var t=ev.target; if(t&&t.classList&&t.classList.contains('mcr-rem')){ var v=(t.innerText||'').trim(); try{ if(v) localStorage.setItem(t.getAttribute('data-k'),v); else localStorage.removeItem(t.getAttribute('data-k')); }catch(x){} } }); }
@@ -18881,6 +19173,165 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
 
   // भारी इमेज देर से लोड हों
   document.querySelectorAll('img:not([loading])').forEach(function(i){i.loading='lazy';i.decoding='async'});
+})();
+</script>
+<script>
+/* ===== MCR Book — SAS-शैली सारणी (दर्ज/निस्तारण/अदम वकू) + तुलना + गणना का आधार ===== */
+(function(){
+  function p2(n){ return (n<10?'0':'')+n; }
+  function lc(v){ return String(v==null?'':v).trim().toLowerCase(); }
+  function leap(y){ return (y%4===0&&y%100!==0)||y%400===0; }
+  function shiftYear(iso, delta){
+    var y=parseInt(iso.slice(0,4),10)+delta, m=iso.slice(5,7), d=iso.slice(8,10);
+    if(m==='02' && d==='29' && !leap(y)) d='28';
+    return y+'-'+m+'-'+d;
+  }
+  function Z(){ return {fir:0,cs:0,fr:0,av:0,ui:0}; }
+  function hiDate(iso){
+    var M=['जनवरी','फ़रवरी','मार्च','अप्रैल','मई','जून','जुलाई','अगस्त','सितंबर','अक्टूबर','नवंबर','दिसंबर'];
+    return parseInt(iso.slice(8,10),10)+' '+M[parseInt(iso.slice(5,7),10)-1]+' '+iso.slice(0,4);
+  }
+  function hiLabel(c){ return (typeof mcrHi==='function') ? mcrHi(c) : c; }
+
+  /* गणना: खंड ख, ग, घ के नियम */
+  function calc(reportISO){
+    var y=reportISO.slice(0,4), from=y+'-01-01';
+    var out={BNS:Z(), SLL:Z(), TOT:Z(), cat:{}, unclassified:0};
+    (IPC_CATS||[]).forEach(function(c){ out.cat[c]=Z(); });
+    dbRecords.forEach(function(r){
+      var d=r.date; if(!d || d<from || d>reportISO) return;
+      var g = r.ipc ? 'BNS' : (r.sll ? 'SLL' : null);
+      if(!g){ out.unclassified++; return; }
+      var t=[out[g], out.TOT];
+      if(g==='BNS'){ if(!out.cat[r.ipc]) out.cat[r.ipc]=Z(); t.push(out.cat[r.ipc]); }
+      var dt=lc(r.disposal), done = !!r.csDate && r.csDate<=reportISO;
+      var kind = (done && dt==='chargesheet') ? 'cs' : (done && dt==='f.r.') ? 'fr' : 'ui';
+      var av = (kind==='fr') && lc(r.fft).indexOf('unoccur')===0;
+      t.forEach(function(o){ o.fir++; o[kind]++; if(av) o.av++; });
+    });
+    return out;
+  }
+  function derive(o){
+    var fro=o.fr-o.av;
+    return {
+      fir:o.fir, cs:o.cs, fr:o.fr, av:o.av, fro:fro, ui:o.ui,
+      pui: o.fir ? o.ui/o.fir*100 : null,
+      pcs: (o.cs+fro) ? o.cs/(o.cs+fro)*100 : null,
+      pav: (o.cs+o.fr) ? o.av/(o.cs+o.fr)*100 : null,
+      ok: o.fir===o.cs+o.fr+o.ui
+    };
+  }
+  var TD='border:1px solid #999;padding:4px 6px;text-align:center;white-space:nowrap';
+  var TH='border:1px solid #999;padding:4px 6px;background:var(--navy);color:#fff;text-align:center;font-weight:600';
+  var TL='border:1px solid #999;padding:4px 6px;text-align:left;position:sticky;left:0;background:#fff;white-space:nowrap';
+  function fp(v){ return v==null ? '' : v.toFixed(1); }
+  function rowList(A){
+    var rows=[['BNS/IPC',A.BNS],['SLL',A.SLL],['कुल',A.TOT]];
+    var cats=(IPC_CATS||[]).slice();
+    Object.keys(A.cat).forEach(function(c){ if(cats.indexOf(c)<0) cats.push(c); });
+    return {top:rows, cats:cats.map(function(c){ return [hiLabel(c), A.cat[c]]; })};
+  }
+  var CNT=[['fir','#FIR दर्ज'],['cs','#चालान'],['fr','#FR कुल'],['av','#FR (अदम वकू)'],['fro','#FR (अन्य)'],['ui','#अनुसंधान में']];
+  var PCT=[['pui','%अनुसंधान में'],['pcs','%चालान'],['pav','%FR (अदम वकू)']];
+
+  function mainTable(A, title){
+    var L=rowList(A);
+    var h='<h4 style="font-size:13px;margin:12px 0 6px;color:var(--navy)">'+title+'</h4><div style="overflow-x:auto"><table class="data-tbl" style="border-collapse:collapse;font-size:12px"><thead><tr><th style="'+TH+';text-align:left;position:sticky;left:0">शीर्षक</th>';
+    CNT.concat(PCT).forEach(function(c){ h+='<th style="'+TH+'">'+c[1]+'</th>'; });
+    h+='</tr></thead><tbody>';
+    function row(lbl,o,bold){
+      var d=derive(o);
+      h+='<tr'+(bold?' style="font-weight:700;background:#F1F3F8"':'')+'><td style="'+TL+(bold?';background:#F1F3F8':'')+'">'+lbl+(d.ok?'':' ⚠')+'</td>';
+      CNT.forEach(function(c){ h+='<td style="'+TD+'">'+d[c[0]]+'</td>'; });
+      PCT.forEach(function(c){ h+='<td style="'+TD+'">'+fp(d[c[0]])+'</td>'; });
+      h+='</tr>';
+    }
+    L.top.forEach(function(r){ row(r[0],r[1],r[0]==='कुल'); });
+    h+='<tr><td colspan="10" style="'+TD+';background:#E8ECF5;font-weight:700;text-align:left">अपराध-वर्ग (केवल BNS/IPC)</td></tr>';
+    L.cats.forEach(function(r){ row(r[0],r[1],false); });
+    return h+'</tbody></table></div>';
+  }
+  function cmpTable(A, B, ya, yb){
+    var LA=rowList(A), LB=rowList(B);
+    var h='<h4 style="font-size:13px;margin:16px 0 6px;color:var(--navy)">तुलना — '+ya+' बनाम '+yb+' (अंतर = '+ya+' − '+yb+')</h4><div style="overflow-x:auto"><table class="data-tbl" style="border-collapse:collapse;font-size:11.5px"><thead><tr><th rowspan="2" style="'+TH+';text-align:left;position:sticky;left:0">शीर्षक</th>';
+    CNT.forEach(function(c){ h+='<th colspan="4" style="'+TH+'">'+c[1]+'</th>'; });
+    PCT.forEach(function(c){ h+='<th colspan="3" style="'+TH+'">'+c[1]+'</th>'; });
+    h+='</tr><tr>';
+    CNT.forEach(function(){ h+=[ya,yb,'अंतर','परिवर्तन %'].map(function(t){ return '<th style="'+TH+';background:#3B4A6B">'+t+'</th>'; }).join(''); });
+    PCT.forEach(function(){ h+=[ya,yb,'अंतर (अंक)'].map(function(t){ return '<th style="'+TH+';background:#3B4A6B">'+t+'</th>'; }).join(''); });
+    h+='</tr></thead><tbody>';
+    function row(lbl,a,b,bold){
+      var da=derive(a), db=derive(b), bg=bold?';background:#F1F3F8':'';
+      h+='<tr'+(bold?' style="font-weight:700;background:#F1F3F8"':'')+'><td style="'+TL+bg+'">'+lbl+'</td>';
+      CNT.forEach(function(c){
+        var x=da[c[0]], y=db[c[0]], df=x-y, pc=y? (df/y*100) : null;
+        h+='<td style="'+TD+'">'+x+'</td><td style="'+TD+'">'+y+'</td><td style="'+TD+'">'+(df>0?'+':'')+df+'</td><td style="'+TD+'">'+(pc==null?'':(pc>0?'+':'')+pc.toFixed(1))+'</td>';
+      });
+      PCT.forEach(function(c){
+        var x=da[c[0]], y=db[c[0]], df=(x!=null&&y!=null)?x-y:null;
+        h+='<td style="'+TD+'">'+fp(x)+'</td><td style="'+TD+'">'+fp(y)+'</td><td style="'+TD+'">'+(df==null?'':(df>0?'+':'')+df.toFixed(1))+'</td>';
+      });
+      h+='</tr>';
+    }
+    LA.top.forEach(function(r,i){ row(r[0],r[1],LB.top[i][1],r[0]==='कुल'); });
+    h+='<tr><td colspan="34" style="'+TD+';background:#E8ECF5;font-weight:700;text-align:left">अपराध-वर्ग (केवल BNS/IPC)</td></tr>';
+    var names={}; LA.cats.concat(LB.cats).forEach(function(r){ names[r[0]]=1; });
+    LA.cats.forEach(function(r,i){
+      var other=LB.cats.filter(function(x){ return x[0]===r[0]; })[0];
+      row(r[0], r[1], other?other[1]:Z(), false);
+    });
+    LB.cats.forEach(function(r){
+      if(!LA.cats.some(function(x){ return x[0]===r[0]; })) row(r[0], Z(), r[1], false);
+    });
+    return h+'</tbody></table></div>';
+  }
+
+  window.renderMcrSas = function(){
+    var out=document.getElementById('mcrSasOut'); if(!out) return;
+    var inp=document.getElementById('mcrSasDate');
+    var rep=inp && inp.value;
+    if(!rep){ out.innerHTML='<div class="note">रिपोर्ट दिनांक चुनें।</div>'; return; }
+    if(typeof dbRecords==='undefined' || !dbRecords || !dbRecords.length){
+      out.innerHTML='<div class="note">SAS Export डेटा उपलब्ध नहीं — लाइव सिंक पूर्ण होने का इंतज़ार करें।</div>'; return;
+    }
+    var prev=shiftYear(rep,-1), ya=rep.slice(0,4), yb=prev.slice(0,4);
+    var A=calc(rep), B=calc(prev);
+    var span='1 जनवरी से '+hiDate(rep).replace(/ \d{4}$/,'');
+    var h='<div class="note">अवधि: '+span+' • रिपोर्ट दिनांक: '+hiDate(rep)+' (पिछला वर्ष: '+hiDate(prev)+')</div>';
+    h+=mainTable(A, 'वर्ष '+ya+' — '+span);
+    h+=mainTable(B, 'वर्ष '+yb+' — '+span+' (रिपोर्ट दिनांक '+hiDate(prev)+' की स्थिति)');
+    h+=cmpTable(A,B,ya,yb);
+    var warn=[];
+    if(A.unclassified||B.unclassified) warn.push('कुछ FIR न BNS/IPC में न SLL में आ सकीं ('+ya+': '+A.unclassified+', '+yb+': '+B.unclassified+') — ये गिनती से बाहर हैं।');
+    h+= '<div class="note" style="margin-top:8px">⚠ चिह्न का मतलब: दर्ज ≠ चालान + FR + अनुसंधान में (जाँच-सूत्र मेल नहीं खा रहा)। '+warn.join(' ')+'</div>';
+    out.innerHTML=h;
+  };
+
+  /* गणना का आधार (दस्तावेज़ अनुसार; "बिंदु 6/7" की जगह खंड ग का संदर्भ) */
+  var basis=''
+  +'<p><b>क. डाटा का स्रोत</b><br>सारा डाटा SAS Export की कच्ची फ़ाइल (सभी FIR की सारणी) से लिया जाता है। प्रत्येक पंक्ति एक FIR है। इस्तेमाल होने वाले कॉलम:</p>'
+  +'<table class="data-tbl" style="border-collapse:collapse;font-size:12px;margin-bottom:8px"><tr><th style="'+TH+'">कॉलम</th><th style="'+TH+'">उपयोग</th></tr>'
+  +[['FIR Reg Date','अवधि का चयन'],['IPC/LSLD','BNS/IPC और SLL का विभाजन'],['IPC^.','अपराध-वर्ग (हत्या, लूट, चोरी आदि)'],['Disposal Status','निस्तारण का प्रकार'],['chargesheet_dt','निस्तारण दिनांक'],['FINAL_FORM_TYPE','FR का कारण']].map(function(r){ return '<tr><td style="'+TD+'">'+r[0]+'</td><td style="'+TD+';text-align:left">'+r[1]+'</td></tr>'; }).join('')
+  +'</table>'
+  +'<p><b>ख. FIR का चयन</b><br>केवल वे FIR गिनी जाती हैं जिनका पंजीयन दिनांक चुनी हुई अवधि (जैसे 1 जनवरी से रिपोर्ट दिनांक तक) में हो। IPC/LSLD = BNS/IPC वाली FIR “BNS/IPC” में और = SLL वाली “SLL” में जाती हैं। कुल पंक्ति दोनों का योग है। अपराध-वर्ग वाली सारणी में केवल BNS/IPC की FIR ली जाती है, और उन्हें IPC^. के अनुसार बाँटा जाता है।</p>'
+  +'<p><b>ग. रिपोर्ट दिनांक पर FIR की स्थिति</b><br>• जिस FIR का chargesheet_dt (निस्तारण दिनांक) रिपोर्ट दिनांक तक या उससे पहले है, वह निस्तारित मानी जाती है। उसका प्रकार Disposal Status से लिया जाता है, यानी Chargesheet या F.R.<br>• जिस FIR का निस्तारण दिनांक रिपोर्ट दिनांक के बाद का है या खाली है, वह Under Investigation (Pending) मानी जाती है।<br>पुराने वर्ष की तुलना में यही नियम पुरानी रिपोर्ट दिनांक पर लगाया जाता है। इससे वह वर्ष वैसा ही दिखता है जैसा उस दिन दिखता था। 31 अक्टूबर 2025 की सारणी इसी नियम से हूबहू मिल गई।</p>'
+  +'<p><b>घ. कॉलमों की गिनती</b></p>'
+  +'<table class="data-tbl" style="border-collapse:collapse;font-size:12px;margin-bottom:8px"><tr><th style="'+TH+'">कॉलम</th><th style="'+TH+'">गिनती</th></tr>'
+  +[['#FIR Regd.','चयनित अवधि की कुल FIR'],['#Chargesheet','खंड ग के अनुसार निस्तारित और Disposal Status = Chargesheet'],['#FR Total','खंड ग के अनुसार निस्तारित और Disposal Status = F.R.'],['#FR (Adam Vaku)','FR में से FINAL_FORM_TYPE = UNOCCURED'],['#FR (Others)','FR Total − FR (Adam Vaku), यानी UNTRACED, UNDETECTED, साक्ष्य के अभाव आदि'],['#Under Investigation','खंड ग के अनुसार लंबित']].map(function(r){ return '<tr><td style="'+TD+'">'+r[0]+'</td><td style="'+TD+';text-align:left;white-space:normal">'+r[1]+'</td></tr>'; }).join('')
+  +'</table><p>जाँच सूत्र: FIR Regd. = Chargesheet + FR Total + Under Investigation।</p>'
+  +'<p><b>ङ. प्रतिशत के सूत्र</b></p>'
+  +'<table class="data-tbl" style="border-collapse:collapse;font-size:12px;margin-bottom:8px"><tr><th style="'+TH+'">प्रतिशत</th><th style="'+TH+'">सूत्र</th></tr>'
+  +[['%Under Investigation','Under Investigation ÷ कुल FIR'],['%Chargesheet','Chargesheet ÷ (Chargesheet + FR Others)'],['%FR (Adam Vaku)','FR Adam Vaku ÷ (Chargesheet + FR Total)']].map(function(r){ return '<tr><td style="'+TD+'">'+r[0]+'</td><td style="'+TD+';text-align:left">'+r[1]+'</td></tr>'; }).join('')
+  +'</table><p>जहाँ हर (denominator) शून्य हो, जैसे Dacoity में, वहाँ प्रतिशत खाली छोड़ा जाता है। %Chargesheet में हर में FR Total की जगह FR Others है, यानी Adam Vaku (unoccurred) वाली FIR इसमें नहीं गिनी जातीं। यह SAS की अपनी परिभाषा है।</p>'
+  +'<p><b>च. तुलना के लिए</b><br>दोनों वर्षों की अवधि और रिपोर्ट दिनांक एक ही रखी जाती है, जैसे 1 जनवरी से 26 अक्टूबर। संख्या वाले कॉलम: अंतर = 2026 − 2025, और परिवर्तन % = (2026 − 2025) ÷ 2025 × 100। प्रतिशत वाले कॉलम: प्रतिशत-अंक का अंतर = 2026 का % − 2025 का %। दोनों वर्षों की सारणी एक ही कच्ची फ़ाइल और एक ही नियम से बनती है, इसलिए अंतर केवल वास्तविक बदलाव का होता है, गणना-पद्धति का नहीं।</p>'
+  +'<p style="color:#8A93A8;font-size:11.5px">पोर्टल में अमल: BNS/IPC और SLL का विभाजन IPC^. / SLL^. कॉलम की प्रविष्टि से, और अदम वकू की पहचान FINAL_FORM_TYPE = UNOCCURED से की जाती है।</p>';
+
+  function init(){
+    var b=document.getElementById('mcrSasBasis'); if(b) b.innerHTML=basis;
+    var i=document.getElementById('mcrSasDate');
+    if(i && !i.value){ var d=new Date(); i.value=d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate()); }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
 </script>
 </body>
