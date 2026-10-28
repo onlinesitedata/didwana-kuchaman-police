@@ -2354,7 +2354,7 @@ html #toast{border-radius:var(--r-pill);box-shadow:var(--sh-lg)}
 
     <div class="rowline" id="mcrBookActions" style="display:none;margin-top:16px">
       <button class="btn-gold" style="padding:10px 16px;border:none;border-radius:8px;font-weight:600;color:#fff;background:linear-gradient(135deg,#4F46E5,#3730A3);cursor:pointer" onclick="downloadMcrBookWord()">📄 Word रिपोर्ट डाउनलोड करें (.doc)</button>
-      <button class="btn-ghost" style="padding:10px 16px;border:1.5px solid var(--line);border-radius:8px;background:#fff;cursor:pointer" onclick="printMcrBook()">🖨️ प्रिंट / PDF</button>
+      <button class="btn-ghost" style="padding:10px 16px;border:1.5px solid var(--line);border-radius:8px;background:#fff;cursor:pointer" onclick="printMcrBook()">🖨️ प्रिंट / वेक्टर PDF (सबसे साफ़)</button>
       <button class="btn-gold" style="padding:10px 16px;border:none;border-radius:8px;font-weight:600;color:#fff;background:linear-gradient(135deg,#B45309,#92400E);cursor:pointer" onclick="downloadMcrBookPDF()">🖼️ आकर्षक PDF (अधिकारियों हेतु)</button>
     </div>
 
@@ -6692,15 +6692,29 @@ function downloadMcrBookWord(){
   URL.revokeObjectURL(url);
   toast('✅ Word फाइल डाउनलोड हो गई');
 }
+function mcrPrintDocHTML(){
+  let css='';
+  try{
+    Array.from(document.styleSheets).forEach(sh=>{ try{ Array.from(sh.cssRules).forEach(r=>{ if(r.cssText && r.cssText.indexOf('mcr-')>-1 && r.type===1) css+=r.cssText+'\n'; }); }catch(e){} });
+  }catch(e){}
+  const PRINT_CSS='@page{size:A4 portrait;margin:0}html,body{margin:0;padding:0;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+    '.mcr-book-page{width:210mm!important;max-width:none!important;height:297mm!important;min-height:0!important;margin:0!important;box-shadow:none!important;border-radius:0!important;overflow:hidden!important;box-sizing:border-box!important;page-break-after:always;break-after:page;page-break-inside:avoid}'+
+    '.mcr-book-page:last-child{page-break-after:auto;break-after:auto}.mcr-fit{will-change:auto}table{page-break-inside:avoid}';
+  return '<!DOCTYPE html><html lang="hi"><head><meta charset="utf-8"><title>MCR Book</title>'+
+    '<link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet">'+
+    '<style>body{font-family:\'Hind\',\'Nirmala UI\',\'Mangal\',sans-serif}'+css+PRINT_CSS+'</style></head><body>'+(window.mcrCleanHTML?mcrCleanHTML():document.getElementById('mcrBookArea').innerHTML)+'</body></html>';
+}
 function printMcrBook(){
   const area = document.getElementById('mcrBookArea');
   if(!area || !area.innerHTML.trim()){ toast('पहले "🔍 रिपोर्ट बनाएं" दबाएं'); return; }
   const w = window.open('', '_blank');
-  w.document.write(`<html><head><meta charset="utf-8"><title>MCR Book Print</title>
-    <style>body{font-family:'Nirmala UI','Mangal',sans-serif;padding:20px}@media print{body{padding:0}}</style>
-    </head><body>${window.mcrCleanHTML?mcrCleanHTML():area.innerHTML}</body></html>`);
+  if(!w){ toast('पॉप-अप ब्लॉक है — कृपया इस साइट के लिए पॉप-अप की अनुमति दें'); return; }
+  w.document.write(mcrPrintDocHTML());
   w.document.close();
-  setTimeout(()=>w.print(), 400);
+  const go=()=>{ try{ w.focus(); w.print(); }catch(e){} };
+  let done=false; const once=()=>{ if(done) return; done=true; setTimeout(go,300); };
+  try{ if(w.document.fonts && w.document.fonts.ready) w.document.fonts.ready.then(once); }catch(e){}
+  setTimeout(once,2500);
 }
 function downloadMcrTemplate(kind){
   let headers=[], sample=[], filename='';
@@ -17836,7 +17850,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
         var cv=await html2canvas(w,{scale:s,backgroundColor:'#ffffff',logging:false});
         var sc=Math.min(aw/cv.width,ah/cv.height), iw=cv.width*sc, ih=cv.height*sc;
         if(k>0) doc.addPage();
-        if(opt.fmt==='jpeg') doc.addImage(cv.toDataURL('image/jpeg',0.93),'JPEG',(W-iw)/2,my,iw,ih,undefined,'FAST');
+        if(opt.fmt==='jpeg') doc.addImage(cv.toDataURL('image/jpeg',opt.q||0.93),'JPEG',(W-iw)/2,my,iw,ih,undefined,'FAST');
         else doc.addImage(cv.toDataURL('image/png'),'PNG',(W-iw)/2,my,iw,ih,undefined,'FAST');
         cv.width=cv.height=0;
       }finally{document.body.removeChild(w)}
@@ -17876,7 +17890,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
         o.n++;
         if(F[i]==='ipc'){ if(r.sv) o.sv+=r.sv; if(r.rv) o.rv+=r.rv; }
         if(r.disposal==='Chargesheet') o.cs++;
-        else if(r.disposal==='F.R.'){ o.fr++; if(AV[frSubKey(r)]) o.av++; }
+        else if(r.disposal==='F.R.'){ o.fr++; if(r.fru && String(r.fru).trim()) o.av++; }   /* अदम वकू = SAS कॉलम Q (FR_UNOCCUR) में प्रविष्टि वाली एफ.आर. */
         else o.pd++;
       }
     });
@@ -17986,7 +18000,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     });
     return '<div style="text-align:center;font-weight:700;font-size:13px;text-decoration:underline;margin:8px 0 2px">'+title+'</div>'+tbl(h+'</tbody>');
   }
-  var FOOT_DISP=NOTE('○ एफ.आर. अदम वकू – एफ.आर. मिथ्या / तथ्य की भूल / विधि की भूल / सिविल प्रकृति / असंज्ञेय; एफ.आर. अन्य – शेष एफ.आर. (अदमपता/अदमसबूत आदि)।<br>* एफ.आर. अदम वकू / (कुल दर्ज अभियोग – पेण्डिंग अभियोग) * 100<br># चालान / (एफ.आर. अन्य + चालान) * 100');
+  var FOOT_DISP=NOTE('○ एफ.आर. अदम वकू – SAS Export के कॉलम FR_UNOCCUR में प्रविष्टि वाली एफ.आर. (मिथ्या / सिविल प्रकृति / तथ्य की भूल / विधि की भूल / असंज्ञेय आदि); एफ.आर. अन्य – शेष एफ.आर. (अदमपता/अदमसबूत आदि)।<br>* एफ.आर. अदम वकू / (कुल दर्ज अभियोग – पेण्डिंग अभियोग) * 100<br># चालान / (एफ.आर. अन्य + चालान) * 100');
 
   function stationRows(){
     var by={}, out=[], all=[];
@@ -18129,17 +18143,28 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     return boxWrap('#1E2A45',h+(lv>=1?remBox(key,lv):''));
   }}
   function rankLine(label,list,fmt,n,c){ return list.length?'<b style="color:'+c+'">'+label+':</b> '+list.slice(0,n).map(fmt).join(', '):'' }
+  function availOf(el){
+    var k=el.children;
+    if(ATT) return 1123-46-k[0].offsetHeight-k[1].offsetHeight-18-14;
+    return 1123-64-k[k.length-1].offsetHeight-14-2;
+  }
+  function fitBox(box,avail){
+    var f=box.firstElementChild, h0=f.offsetHeight; if(!h0||avail<=0||h0<=avail) return;
+    var z=avail/h0, h1=h0;
+    for(var i=0;i<5;i++){
+      f.style.transformOrigin='0 0'; f.style.transform='scale('+z.toFixed(4)+')'; f.style.width=(100/z).toFixed(2)+'%';
+      h1=f.offsetHeight; if(h1*z<=avail) break; z*=0.97;
+    }
+    box.style.height=Math.ceil(h1*z)+'px'; box.style.overflow='hidden';
+  }
   function placeNotes(){
     var pgs=document.querySelectorAll('#mcrBookArea .mcr-book-page');
     PAGES.forEach(function(p,i){
       if(!p.notes) return; var el=pgs[i+2]; if(!el) return;
-      var host=ATT?el.children[2]:el, holder=document.createElement('div');
-      if(ATT) host.appendChild(holder); else el.insertBefore(holder,el.lastElementChild);
+      var host=el.querySelector('.mcr-fit'), holder=document.createElement('div');
+      host.appendChild(holder);
       if(!el.offsetHeight){ holder.innerHTML=p.notes(2,p.key); return; }
-      var fit=function(){
-        if(ATT){ var k=el.children, avail=1123-46-k[0].offsetHeight-k[1].offsetHeight-18; return host.offsetHeight<=avail; }
-        return el.offsetHeight<=1126;
-      };
+      var fit=function(){ return host.offsetHeight<=availOf(el); };
       for(var lv=3;lv>=0;lv--){ holder.innerHTML=p.notes(lv,p.key); if(fit()) break; }
     });
   }
@@ -18153,13 +18178,13 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   };
 
   function wrapPage(inner,n,title){
-    if(!ATT) return '<div class="mcr-book-page" style="width:794px;max-width:100%;min-height:1123px;box-sizing:border-box;padding:38px 34px 26px;background:#fff;page-break-after:always;position:relative;'+FONT+'">'+inner+'<div style="text-align:center;font-size:12px;margin-top:14px">'+n+'</div></div>';
+    if(!ATT) return '<div class="mcr-book-page" style="width:794px;max-width:100%;min-height:1123px;box-sizing:border-box;padding:38px 34px 26px;background:#fff;page-break-after:always;position:relative;'+FONT+'"><div class="mcr-fitbox"><div class="mcr-fit">'+inner+'</div></div><div style="text-align:center;font-size:12px;margin-top:14px">'+n+'</div></div>';
     return '<div class="mcr-book-page" style="width:794px;max-width:100%;min-height:1123px;box-sizing:border-box;padding:0 0 46px;background:#fff;page-break-after:always;position:relative;'+FONT+'">'+
       '<div style="background:linear-gradient(90deg,#0F172A,#1E2A45 60%,#3730A3);color:#fff;padding:9px 28px;display:flex;justify-content:space-between;align-items:center;gap:16px">'+
         '<div><div style="font-size:10px;letter-spacing:.2em;color:#F5C26B">जिला डीडवाना-कुचामन • MCR बुक</div><div style="'+HFONT+'font-size:18px;font-weight:700;margin-top:2px">'+(title||'')+'</div></div>'+
         '<div style="font-size:11px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:4px 12px;white-space:nowrap">'+PERIOD+'</div></div>'+
       '<div style="height:5px;background:linear-gradient(90deg,#FF9933 33%,#fff 33% 66%,#138808 66%)"></div>'+
-      '<div style="padding:14px 28px 0">'+inner+'</div>'+
+      '<div class="mcr-fitbox" style="padding:14px 28px 0"><div class="mcr-fit">'+inner+'</div></div>'+
       '<div style="position:absolute;left:28px;right:28px;bottom:14px;display:flex;justify-content:space-between;font-size:10.5px;color:#64748B;border-top:1px dashed #CBD5E1;padding-top:6px"><span>सांख्यिकी शाखा, पुलिस अधीक्षक कार्यालय, डीडवाना-कुचामन</span><span>पृष्ठ '+n+'</span></div></div>';
   }
 
@@ -18505,15 +18530,10 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     placeNotes();
     var ar=document.getElementById('mcrBookArea');
     if(ar&&!ar._remBound){ ar._remBound=1; ar.addEventListener('input',function(ev){ var t=ev.target; if(t&&t.classList&&t.classList.contains('mcr-rem')){ var v=(t.innerText||'').trim(); try{ if(v) localStorage.setItem(t.getAttribute('data-k'),v); else localStorage.removeItem(t.getAttribute('data-k')); }catch(x){} } }); }
-    /* जिस पृष्ठ की सामग्री A4 से बड़ी हो, उसे पृष्ठ में समाने हेतु छोटा (zoom) करते हैं */
-    if(!ATT) Array.prototype.forEach.call(document.querySelectorAll('#mcrBookArea .mcr-book-page'),function(pgEl){
-      var h=pgEl.offsetHeight; if(pgEl.classList.contains('mcr-book-cover')||h<=1126) return;
-      var z=1123/h; pgEl.style.zoom=z.toFixed(3); pgEl.style.width=(794/z).toFixed(0)+'px'; pgEl.style.minHeight='0';
-    });
-    if(ATT) Array.prototype.forEach.call(document.querySelectorAll('#mcrBookArea .mcr-book-page'),function(pgEl){
-      var kids=pgEl.children; if(kids.length!==4) return;
-      var c=kids[2], avail=1123-46-kids[0].offsetHeight-kids[1].offsetHeight-18;
-      if(c.offsetHeight>0 && avail>0 && c.offsetHeight>avail) c.style.zoom=(avail/c.offsetHeight).toFixed(3);
+    /* जिस पृष्ठ की सामग्री A4 से बड़ी हो, उसे पृष्ठ में समाने हेतु छोटा करते हैं (transform:scale — PDF/प्रिंट दोनों में सुरक्षित) */
+    Array.prototype.forEach.call(document.querySelectorAll('#mcrBookArea .mcr-book-page'),function(pgEl){
+      var box=pgEl.querySelector('.mcr-fitbox'); if(!box||!pgEl.offsetHeight) return;
+      fitBox(box,availOf(pgEl));
     });
   };
   window.downloadMcrBookPDF=async function(){
@@ -18525,9 +18545,9 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     document.documentElement.removeAttribute('data-theme');   /* PDF सदैव उजले रूप में */
     try{
       var tmp=document.createElement('div'); tmp.innerHTML=window.mcrCleanHTML();
-      var pages=Array.prototype.map.call(tmp.querySelectorAll('.mcr-book-page'),function(e){var c=e.cloneNode(true); c.style.margin='0'; c.style.boxShadow='none'; return c.outerHTML});
+      var pages=Array.prototype.map.call(tmp.querySelectorAll('.mcr-book-page'),function(e){var c=e.cloneNode(true); c.style.margin='0'; c.style.boxShadow='none'; c.style.width='794px'; c.style.maxWidth='none'; c.style.height='1123px'; c.style.minHeight='0'; c.style.overflow='hidden'; return c.outerHTML});
       toast('⏳ आकर्षक PDF तैयार हो रही है ('+pages.length+' पृष्ठ)…');
-      var doc=await window.dkPdfKit.pagesToPdf(pages,{w:794,pad:0,mx:0,my:0,scale:2.5,fmt:'jpeg'});
+      var doc=await window.dkPdfKit.pagesToPdf(pages,{w:794,pad:0,mx:0,my:0,scale:3,fmt:'jpeg',q:0.95});
       doc.save('MCR-Book-'+(MCR_LAST_YEARS?MCR_LAST_YEARS[2]:CY)+'-'+PERIOD.replace(/\s+/g,'-')+'.pdf');
       toast('✅ आकर्षक PDF डाउनलोड हो गई');
     }catch(e){ console.error(e); toast('⚠️ PDF नहीं बन सकी: '+(e&&e.message||e)); }
