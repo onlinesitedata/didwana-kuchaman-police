@@ -7996,7 +7996,7 @@ function buildRowsGeneric(limit, df){
     if(df && !inRange(r[3], df)) return;
     const sc=r[5]; // 0 pending,1 CS,2 FR,3 193(9)
     const disposed = sc!==0;
-    out.push({ps:r[0], fir:r[2], section:r[9]||'', disposed, dd:r[6], rd:r[7], ctype: sc===1?'CS':sc===2?'FR':sc===3?'OTHER':null, reg:r[3], io:r[8]||''});
+    out.push({ps:String(r[0]||'').trim().toUpperCase(), fir:r[2], section:r[9]||'', disposed, dd:r[6], rd:r[7], ctype: sc===1?'CS':sc===2?'FR':sc===3?'OTHER':null, reg:r[3], io:r[8]||''});
   });
   return out;
 }
@@ -8055,7 +8055,7 @@ function buildRowsAutoMerge(limit, df){
       if(r[1]!==limit) return;
       if(df && !inRange(r[3], df)) return;
       const sc=r[5]; const disposed=sc!==0;
-      out.push({ps:r[0], fir:r[2], section:r[9]||'', disposed, dd:r[6], rd:r[7], ctype: sc===1?'CS':sc===2?'FR':sc===3?'OTHER':null, reg:r[3]});
+      out.push({ps:String(r[0]||'').trim().toUpperCase(), fir:r[2], section:r[9]||'', disposed, dd:r[6], rd:r[7], ctype: sc===1?'CS':sc===2?'FR':sc===3?'OTHER':null, reg:r[3]});
     } else if(src==='fdc'){
       const ps=FDC.ps[r[1]]; const act1=FDC.act1[r[4]];
       if(classifyLimitFromText(act1)!==limit) return;
@@ -9671,9 +9671,10 @@ function regYearOf(dstr){ if(!dstr) return null; const y=parseInt(String(dstr).s
 // pendency status categories: 'ui'=UNDER INVESTIGATION, '173193'=173(8)CrPC/193(9)BNSS, 'reopen'=RE-OPEN
 function genCatOf(code){ if(code===0) return 'ui'; if(code===3) return '173193'; return null; }
 function fdcCatOf(cst){
-  if(cst==='UNDER INVESTIGATION') return 'ui';
-  if(cst==='173(8) CrPC/193(9) BNSS') return '173193';
-  if(cst==='REOPEN') return 'reopen';
+  const c=String(cst||'').trim().toUpperCase().replace(/\s+/g,' ');
+  if(c==='UNDER INVESTIGATION') return 'ui';
+  if(/173\(8\)|193\(9\)/.test(c)) return '173193';
+  if(/^RE-?OPEN/.test(c)) return 'reopen';
   return null;
 }
 function sasCatOf(status){
@@ -9684,11 +9685,11 @@ function sasCatOf(status){
   return null;
 }
 function buildPendencyRowsGeneric(){
-  return GEN.map(r=>{ const cat=genCatOf(r[5]); return {ps:r[0], fir:r[2], reg:r[3], section:r[9]||'', cat, pendingLike:cat!=null, regYear:regYearOf(r[3])}; });
+  return GEN.map(r=>{ const cat=genCatOf(r[5]); return {ps:String(r[0]||'').trim().toUpperCase(), fir:r[2], reg:r[3], section:r[9]||'', cat, pendingLike:cat!=null, regYear:regYearOf(r[3])}; });
 }
 function buildPendencyRowsFDC(){
   return FDC.rows.map(r=>{
-    const ps=FDC.ps[r[1]]; const cst=FDC.cst[r[10]];
+    const ps=String(FDC.ps[r[1]]||'').trim().toUpperCase(); const cst=FDC.cst[r[10]];
     const cat = fdcCatOf(cst);
     return {ps, fir:r[2], reg:r[3], section:FDC.act1[r[4]]||'', cat, pendingLike:cat!=null, regYear:regYearOf(r[3])};
   });
@@ -9701,7 +9702,7 @@ function sasCatOfRaw(r){
 function buildPendencyRowsSAS(){
   return RAW.map(r=>{
     const cat = sasCatOfRaw(r);
-    return {ps:r[0], fir:r[2], reg:r[1], section:r[10]||'', cat, pendingLike:cat!=null, regYear:regYearOf(r[1])};
+    return {ps:String(r[0]||'').trim().toUpperCase(), fir:r[2], reg:r[1], section:r[10]||'', cat, pendingLike:cat!=null, regYear:regYearOf(r[1])};
   });
 }
 function buildPendencyRowsCombined(){
@@ -9710,9 +9711,9 @@ function buildPendencyRowsCombined(){
 function buildPendencyRowsAutoMerge(){
   const map=new Map();
   function keyOf(ps,fir){ return ps+'|'+String(fir||'').trim(); }
-  GEN.forEach(r=>{ const cat=genCatOf(r[5]); map.set(keyOf(r[0],r[2]), {ps:r[0], fir:r[2], reg:r[3], section:r[9]||'', cat, pendingLike:cat!=null, regYear:regYearOf(r[3])}); });
+  GEN.forEach(r=>{ const cat=genCatOf(r[5]); map.set(keyOf(r[0],r[2]), {ps:String(r[0]||'').trim().toUpperCase(), fir:r[2], reg:r[3], section:r[9]||'', cat, pendingLike:cat!=null, regYear:regYearOf(r[3])}); });
   FDC.rows.forEach(r=>{ const ps=FDC.ps[r[1]]; const k=keyOf(ps,r[2]); if(!map.has(k)){ const cat=fdcCatOf(FDC.cst[r[10]]); map.set(k,{ps, fir:r[2], reg:r[3], section:FDC.act1[r[4]]||'', cat, pendingLike:cat!=null, regYear:regYearOf(r[3])}); } });
-  RAW.forEach(r=>{ const k=keyOf(r[0],r[2]); if(!map.has(k)){ const cat=sasCatOfRaw(r); map.set(k,{ps:r[0], fir:r[2], reg:r[1], section:r[10]||'', cat, pendingLike:cat!=null, regYear:regYearOf(r[1])}); } });
+  RAW.forEach(r=>{ const k=keyOf(r[0],r[2]); if(!map.has(k)){ const cat=sasCatOfRaw(r); map.set(k,{ps:String(r[0]||'').trim().toUpperCase(), fir:r[2], reg:r[1], section:r[10]||'', cat, pendingLike:cat!=null, regYear:regYearOf(r[1])}); } });
   return Array.from(map.values());
 }
 function buildPendencyRows(source){
@@ -11048,9 +11049,19 @@ function pad2(n){ return String(n).padStart(2,'0'); }
 // order: 'dmy' (दिनांक/माह/वर्ष — FIR Detail-Current Status व sasExport फ़ाइलों का प्रारूप) या
 //        'mdy' (माह/दिनांक/वर्ष — Generic फ़ाइल का प्रारूप, जैसे M/D/YYYY)
 // दोनों ही मामलों में यदि पहला/दूसरा भाग 12 से बड़ा हो तो वह स्वतः महीना नहीं हो सकता, इसलिए अदला-बदली सुरक्षा-जाल के रूप में बनी रहती है।
+var __dateHint=null;
+/* फ़ाइल के वास्तविक दिनांक-प्रारूप की पहचान: जिस कॉलम में 4-अंकीय वर्ष वाली दिनांकों में पहला भाग 12 से बड़ा मिले तो dmy, दूसरा भाग 12 से बड़ा मिले तो mdy */
+function detectDateOrder(aoa, colNames){
+  const idx=buildHeaderIndex(aoa[0]||[]); let ci;
+  for(const n of colNames){ if(idx[normHeader(n)]!==undefined){ ci=idx[normHeader(n)]; break; } }
+  if(ci===undefined) return null; let dmy=0, mdy=0;
+  for(let i=1;i<aoa.length;i++){ const v=String((aoa[i]&&aoa[i][ci]!=null)?aoa[i][ci]:'').trim(); const m=v.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/); if(!m) continue; if(+m[1]>12&&+m[2]<=12) dmy++; else if(+m[2]>12&&+m[1]<=12) mdy++; }
+  return dmy>mdy?'dmy':(mdy>dmy?'mdy':null);
+}
+function __withDateHint(aoa, cols, fn){ let h=null; try{ h=detectDateOrder(aoa,cols); }catch(e){} __dateHint=h; try{ return fn(aoa); } finally{ __dateHint=null; } }
 function normalizeDateStr(v, order){
   if(v==null || v==='') return null;
-  order = order || 'dmy';
+  order = __dateHint || order || 'dmy';
   const s = String(v).trim();
   let m;
   if(m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)) return `${m[1]}-${pad2(m[2])}-${pad2(m[3])}`;
@@ -11059,6 +11070,13 @@ function normalizeDateStr(v, order){
     let d, mo;
     if(order==='mdy'){ mo=a; d=b; } else { d=a; mo=b; }
     // सुरक्षा-जाल: यदि निर्धारित प्रारूप के अनुसार महीना 12 से बड़ा निकले, तो दिन/महीना अदला-बदली करें
+    if(mo>12 && d<=12){ const t=d; d=mo; mo=t; }
+    if(mo>=1 && mo<=12 && d>=1 && d<=31) return `${y}-${pad2(mo)}-${pad2(d)}`;
+  }
+  if(m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2})$/)){
+    /* 2-अंकीय वर्ष (SheetJS का m/d/yy रूप) — फ़ाइल का पहचाना गया प्रारूप लें; पहचान न हो तो m/d/yy */
+    let a=+m[1], b=+m[2], y=2000+(+m[3]), d, mo; const o2=__dateHint||'mdy';
+    if(o2==='mdy'){ mo=a; d=b; } else { d=a; mo=b; }
     if(mo>12 && d<=12){ const t=d; d=mo; mo=t; }
     if(mo>=1 && mo<=12 && d>=1 && d<=31) return `${y}-${pad2(mo)}-${pad2(d)}`;
   }
@@ -11084,7 +11102,8 @@ async function fetchSheetAOA(id, tabName){
   return XLSX.utils.sheet_to_json(ws, {header:1, raw:false, defval:''});
 }
 
-function parseLiveGeneric(aoa){
+function parseLiveGeneric(aoa){ return __withDateHint(aoa,['reg date'],parseLiveGeneric_raw); }
+function parseLiveGeneric_raw(aoa){
   if(!aoa || aoa.length<2) throw new Error('empty sheet');
   const idx = buildHeaderIndex(aoa[0]);
   const out = [];
@@ -11119,7 +11138,8 @@ function parseLiveGeneric(aoa){
   return out;
 }
 
-function parseLiveFDC(aoa){
+function parseLiveFDC(aoa){ return __withDateHint(aoa,['fir regd. dt.','fir reg. dt.'],parseLiveFDC_raw); }
+function parseLiveFDC_raw(aoa){
   if(!aoa || aoa.length<2) throw new Error('empty sheet');
   const idx = buildHeaderIndex(aoa[0]);
   const ffillCols = ['district','circle office','police station'];
@@ -11156,7 +11176,8 @@ function parseLiveFDC(aoa){
   return {circles:dicts.circles, ps:dicts.ps, src:dicts.src, fft:dicts.fft, cst:dicts.cst, act1:dicts.act1, act2:dicts.act2, rows};
 }
 
-function parseLiveSAS(aoa){
+function parseLiveSAS(aoa){ return __withDateHint(aoa,['fir reg date'],parseLiveSAS_raw); }
+function parseLiveSAS_raw(aoa){
   if(!aoa || aoa.length<2) throw new Error('empty sheet');
   const idx = buildHeaderIndex(aoa[0]);
   const out = [];
@@ -11671,10 +11692,15 @@ function mergeFDC(oldF, newF){
   const maps = {};
   Object.keys(dicts).forEach(k=>{ maps[k]={}; dicts[k].forEach((v,i)=>maps[k][v]=i); });
   function enc(val,key){ const arr=dicts[key], mp=maps[key]; if(!(val in mp)){ mp[val]=arr.length; arr.push(val); } return mp[val]; }
-  const rows = oldF.rows.slice();
+  /* एक ही FIR (FIR Code, अन्यथा थाना+FIR संख्या) दोबारा जुड़ने पर पुरानी पंक्ति बदलें — दोहरी गिनती न हो */
+  function keyOf(F,r){ const c=String(r[11]||'').trim(); if(c) return 'C|'+c; const f=String(r[2]||'').trim(); return f? ('P|'+String(F.ps[r[1]]||'').trim().toUpperCase()+'|'+f) : null; }
+  const rows = [], pos = new Map();
+  oldF.rows.forEach(r=>{ const k=keyOf(oldF,r); if(k) pos.set(k, rows.length); rows.push(r); });
   newF.rows.forEach(r=>{
     const circle=newF.circles[r[0]], ps=newF.ps[r[1]], act1=newF.act1[r[4]], src=newF.src[r[5]], fft=newF.fft[r[6]], act2=newF.act2[r[9]], cst=newF.cst[r[10]];
-    rows.push([enc(circle,'circles'), enc(ps,'ps'), r[2], r[3], enc(act1,'act1'), enc(src,'src'), enc(fft,'fft'), r[7], r[8], enc(act2,'act2'), enc(cst,'cst')]);
+    const nr=[enc(circle,'circles'), enc(ps,'ps'), r[2], r[3], enc(act1,'act1'), enc(src,'src'), enc(fft,'fft'), r[7], r[8], enc(act2,'act2'), enc(cst,'cst'), r[11]||''];
+    const k=keyOf(newF,r);
+    if(k && pos.has(k)) rows[pos.get(k)]=nr; else { if(k) pos.set(k, rows.length); rows.push(nr); }
   });
   return {circles:dicts.circles, ps:dicts.ps, src:dicts.src, fft:dicts.fft, cst:dicts.cst, act1:dicts.act1, act2:dicts.act2, rows};
 }
@@ -18610,18 +18636,31 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     }); o.years=Object.keys(o.yrs).map(Number).sort(); return o;
   }
 function dhQ4(){
-    var o={fdc:!!(typeof FDC!=='undefined'&&FDC.rows&&FDC.rows.length),tot:0,rows:[],yrs:{}};
-    if(!o.fdc) return o; var now=new Date(), smap={};
+    var o={fdc:!!(typeof FDC!=='undefined'&&FDC.rows&&FDC.rows.length),tot:0,rows:[],yrs:{},list:[],amb:0,ui:0};
+    var cd=new Date(Date.now()-365*864e5); o.cut=cd.getFullYear()+'-'+('0'+(cd.getMonth()+1)).slice(-2)+'-'+('0'+cd.getDate()).slice(-2);
+    if(!o.fdc) return o; var smap={};
     dbRecords.forEach(function(r,i){ var k=dhId(RAW[i][15]); if(k) smap[k]=r; });
     FDC.rows.forEach(function(r){
-      var cst=String(FDC.cst[r[10]]||'').toUpperCase(), reg=r[3]?new Date(r[3]):null;
-      if(!(cst.indexOf('UNDER INVESTIGATION')>-1&&reg&&(now-reg)/86400000>365)) return;
+      /* केवल FCS फ़ाइल का कॉलम Q — “Current Status of FIR” = UNDER INVESTIGATION */
+      var cst=String(FDC.cst[r[10]]||'').trim().toUpperCase(); if(cst!=='UNDER INVESTIGATION') return;
+      o.ui++; var rd=r[3]?String(r[3]).slice(0,10):'', old=regOlderThan1Yr(rd), amb=false, sw='';
+      var mm=rd.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if(mm&&mm[2]!==mm[3]&&+mm[3]<=12){ sw=mm[1]+'-'+mm[3]+'-'+mm[2]; amb=(sw<o.cut)!==(rd<o.cut); }
+      if(!old&&!amb) return;
       var ps=String(FDC.ps[r[1]]||'').trim().toUpperCase(), t=FDC.act1[r[4]]||'', sr=smap[dhId(r[11])], c;
       if(sr) c=sr.ipc?['BNS/IPC',sr.ipc]:['SLL',sr.sll||'Other SLL']; else c=dhCatOfText(t);
-      var yr=reg.getFullYear(); o.tot++;
-      o.rows.push({ps:ps,circle:ps?dhCircOf(ps):(FDC.circles[r[0]]||'थाना अंकित नहीं'),yr:yr,cat:c[0],sub:c[1],inSas:!!sr,fir:r[2]||'',t:t}); o.yrs[yr]=1;
+      var yr=rd?+rd.slice(0,4):0, cir=ps?dhCircOf(ps):(FDC.circles[r[0]]||'थाना अंकित नहीं');
+      o.list.push([psLabel(ps)||ps,cname(cir),r[2]||'',rd,mcrHi(c[1]),t,old?'हाँ':'नहीं',amb?('संदिग्ध — दिन/माह बदलने पर '+sw):'']);
+      if(amb) o.amb++;
+      if(!old) return;
+      o.tot++; o.rows.push({ps:ps,circle:cir,yr:yr,cat:c[0],sub:c[1],inSas:!!sr,fir:r[2]||'',t:t}); o.yrs[yr]=1;
     }); o.years=Object.keys(o.yrs).map(Number).sort(); return o;
   }
+  window.dhOldPendExcel=function(){
+    var Q=window.__q4||{list:[]}; if(!Q.list.length){ toast('सूची उपलब्ध नहीं (FIR Current Status डेटा लोड करें)'); return; }
+    var ws=XLSX.utils.aoa_to_sheet([['थाना','वृत्त','FIR संख्या / वर्ष','FIR पंजीकरण दिनांक (पोर्टल में पढ़ी गई)','उपश्रेणी','Act & Section','1 वर्ष से अधिक (गिना गया)','दिनांक जाँच']].concat(Q.list));
+    var wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'1 वर्ष+ UNDER INVESTIGATION'); XLSX.writeFile(wb,'1-varsh-se-adhik-pending-suchi.xlsx');
+  };
   /* Q3 */
   function dhQ3(){
     var o={fdc:!!(typeof FDC!=='undefined'&&FDC.rows&&FDC.rows.length),tot:0,inSas:0,rows:[],yrs:{},st:{}};
@@ -19060,7 +19099,16 @@ function dhQ4(){
     if(!Q2.rows.length) q2h='<div style="font-size:12px;color:#B91C1C">Generic डेटा में BNS धारा 111 / 112 वाला कोई प्रकरण नहीं मिला (या Generic डेटा लोड नहीं है)।</div>';
     else{
       var yC=Q2.years.map(function(y){return {y:y,l:String(y)}});
-      var mk=function(keyFn,lblFn,rowLbl){ var o=dhYT(Q2.rows,Q2.years,keyFn,lblFn); return dhPv(rowLbl,o.R,o.C,o.cnt); };
+      var mk=function(kf,lf,rl){
+        var keys={}; Q2.rows.forEach(function(r){ var k=kf(r); keys[k]=(keys[k]||0)+1; });
+        var R=Object.keys(keys).sort(function(a,b){return keys[b]-keys[a]}), Y=Q2.years, SC=['111','112'];
+        var cnt=function(k,sc,yr){ var n=0; Q2.rows.forEach(function(x){ if((k===null||kf(x)===k)&&x.sec===sc&&(yr===0||x.yr===yr)) n++; }); return n; };
+        var h='<thead><tr>'+th('क्र.<br>सं.',' rowspan="2"')+th(rl,' rowspan="2"')+th('<b>धारा 111 (संगठित अपराध)</b>',' colspan="'+(Y.length+1)+'"')+th('<b>धारा 112 (छोटे संगठित अपराध)</b>',' colspan="'+(Y.length+1)+'"')+th('कुल<br>(111+112)',' rowspan="2"')+'</tr><tr>'+Y.map(function(y){return th(y)}).join('')+th('योग')+Y.map(function(y){return th(y)}).join('')+th('योग')+'</tr></thead><tbody>';
+        var row=function(k,lbl,i,bd){ var t='<tr>'+(bd?td('',true):td(i))+(bd?tdl('<b>'+lbl+'</b>'):tdl(lbl)), tot=0;
+          SC.forEach(function(sc){ Y.forEach(function(y){ t+=td(cnt(k,sc,y),bd); }); var z=cnt(k,sc,0); tot+=z; t+=td(z,true,bgc(sc==='111'?'#FFF1D6':'#E8F0FF')); });
+          return t+td(tot,true)+'</tr>'; };
+        R.forEach(function(k,i){ h+=row(k,lf(k),i+1,false); }); h+=row(null,'कुल योग',0,true);
+        return tbl(h+'</tbody>',10); };
       var sec=dhPv('धारा',[{k:'111',l:'धारा 111 (संगठित अपराध)'},{k:'112',l:'धारा 112 (छोटे संगठित अपराध)'}],yC,function(r,c){return Q2.rows.filter(function(x){return x.sec===r.k&&x.yr===c.y}).length});
       q2h=H2('धारा 111 / 112 — वर्षवार','INV. BASE ACT & SECTION')+sec+H2('अपराध की श्रेणी / उपश्रेणी (SAS Export) एवं वर्ष','')+mk(function(r){return r.cat+'|'+r.sub},function(k){var p=k.split('|'); return (p[0]==='SLL'?'स्थानीय एवं विशेष अधिनियम':'भा.द.सं./बी.एन.एस.')+' — '+mcrHi(p[1])},'श्रेणी — उपश्रेणी')+
         H2('वृत्तवार तुलनात्मक स्थिति','')+mk(function(r){return dhCircOf(r.ps)},function(k){return cname(k)},'वृत्त')+H2('थानावार तुलनात्मक स्थिति','')+mk(function(r){return r.ps},function(k){return psLabel(k)},'थाना')+
@@ -19071,14 +19119,15 @@ function dhQ4(){
       var T=Q2.rows.length, c={}, p={}, cr={}, yy={}; Q2.rows.forEach(function(x){ var k=mcrHi(x.sub); c[k]=(c[k]||0)+1; var q=psLabel(x.ps); p[q]=(p[q]||0)+1; var z=cname(dhCircOf(x.ps)); cr[z]=(cr[z]||0)+1; yy[x.yr]=(yy[x.yr]||0)+1; });
       var top=function(o,n){return Object.keys(o).sort(function(a,b){return o[b]-o[a]}).slice(0,n).map(function(k){return k+' '+o[k]}).join(', ')};
       var n111=Q2.rows.filter(function(x){return x.sec==='111'}).length, notS=Q2.rows.filter(function(x){return !x.inSas}).length;
-      return ['<b>कुल:</b> '+T+' प्रकरणों में BNS धारा 111 ('+n111+') / 112 ('+(T-n111)+') अंकित; वर्षवार — '+Q2.years.map(function(y){return y+': '+yy[y]}).join(', ')+((yy[y]!==undefined&&yy[y-1]!==undefined)?'; '+(y-1)+' से '+y+' में '+sgn(yy[y]-yy[y-1]):''),
+      var byY=function(sc){return Q2.years.map(function(yr){return yr+': '+Q2.rows.filter(function(x){return x.sec===sc&&x.yr===yr}).length}).join(', ')}, topS=function(sc){var o={}; Q2.rows.forEach(function(x){ if(x.sec===sc){var q=psLabel(x.ps); o[q]=(o[q]||0)+1;} }); return Object.keys(o).sort(function(a,b){return o[b]-o[a]}).slice(0,3).map(function(k){return k+' '+o[k]}).join(', ')||'—'};
+      return ['<b style="color:#B45309">धारा 111 (संगठित अपराध):</b> कुल <b>'+n111+'</b> — वर्षवार '+byY('111')+' — थाने: '+topS('111'),'<b style="color:#1D4ED8">धारा 112 (छोटे संगठित अपराध):</b> कुल <b>'+(T-n111)+'</b> — वर्षवार '+byY('112')+' — थाने: '+topS('112'),'<b>कुल:</b> '+T+' प्रकरणों में BNS धारा 111 ('+n111+') / 112 ('+(T-n111)+') अंकित; वर्षवार — '+Q2.years.map(function(y){return y+': '+yy[y]}).join(', ')+((yy[y]!==undefined&&yy[y-1]!==undefined)?'; '+(y-1)+' से '+y+' में '+sgn(yy[y]-yy[y-1]):''),
         '<b>उपश्रेणी (अपराध शीर्ष):</b> '+top(c,6),'<b>वृत्तवार:</b> '+top(cr,5),'<b>थानावार सर्वाधिक:</b> '+top(p,6),
         notS?notS+' प्रकरण SAS में नहीं मिले (श्रेणी धारा से निर्धारित)।':'सभी प्रकरण SAS Export से मिलान हुए।',
         'धारा 111 / 112 के प्रकरणों में संगठित गिरोह / अभ्यस्त अपराधी के साक्ष्य की समीक्षा कर पर्यवेक्षण सुनिश्चित किया जावे।'];
     });
     addPage(25,H1('BNS धारा 111 / 112 — अपराध की श्रेणी, उपश्रेणी, वर्ष, वृत्त व थानावार तुलनात्मक सारणी')+P('Generic फाइल के “INV. BASE ACT & SECTION” में BNS की धारा 111 (संगठित अपराध) अथवा 112 (छोटे संगठित अपराध) वाले प्रकरणों की स्थिति SAS Export की श्रेणी / उपश्रेणी के साथ निम्नानुसार है–')+q2h);
     /* 26 — एक वर्ष से अधिक पेंडिंग प्रकरण: अपराध श्रेणी / उपश्रेणी, वृत्तवार, थानावार */
-    var Q4=dhQ4(); var q4h='';
+    var Q4=dhQ4(); window.__q4=Q4; var q4h='';
     if(!Q4.fdc) q4h='<div style="font-size:12px;color:#B91C1C">FIR Current Status डेटा लोड नहीं है।</div>';
     else if(!Q4.rows.length) q4h='<div style="font-size:12.5px">एक वर्ष से अधिक पेंडिंग कोई प्रकरण नहीं है।</div>';
     else{
@@ -19091,17 +19140,21 @@ function dhQ4(){
       if(!Q4.rows.length) return ['एक वर्ष से अधिक पेंडिंग कोई प्रकरण नहीं।'];
       var T=Q4.rows.length, c={}, p={}, cr={}, yy={}; Q4.rows.forEach(function(x){ var k=mcrHi(x.sub); c[k]=(c[k]||0)+1; var q=psLabel(x.ps)||'(अंकित नहीं)'; p[q]=(p[q]||0)+1; var z=cname(x.circle); cr[z]=(cr[z]||0)+1; yy[x.yr]=(yy[x.yr]||0)+1; });
       var top=function(o,n){return Object.keys(o).sort(function(a,b){return o[b]-o[a]}).slice(0,n).map(function(k){return k+' '+o[k]+' ('+Math.round(o[k]/T*100)+'%)'}).join(', ')};
-      return ['<b>कुल:</b> एक वर्ष से अधिक पुरानी पेंडिंग जाँच <b style="color:#B91C1C">'+T+'</b> प्रकरण',
+      return ['<b>कुल:</b> एक वर्ष से अधिक पुरानी पेंडिंग जाँच <b style="color:#B91C1C">'+T+'</b> प्रकरण (कुल UNDER INVESTIGATION '+Q4.ui+')',
         '<b>उपश्रेणी (अपराध शीर्ष) — सर्वाधिक:</b> '+top(c,6),'<b>वृत्तवार:</b> '+top(cr,5),'<b>थानावार सर्वाधिक पुराने प्रकरण:</b> '+top(p,6),
         '<b>पंजीकरण वर्षवार:</b> '+Object.keys(yy).sort().map(function(k){return k+': '+yy[k]}).join(', '),
         '<b>निर्देश:</b> सर्वाधिक प्रकरण वाले थानों में पुराने अनुसंधान की साप्ताहिक समीक्षा कर शीघ्र निस्तारण (चालान / एफ.आर.) सुनिश्चित किया जावे।'];
     });
-    addPage(26,H1('एक वर्ष से अधिक पेंडिंग प्रकरण — अपराध श्रेणी / उपश्रेणी, वृत्तवार व थानावार सारणी')+P('FIR Current Status में “Under Investigation” स्थिति के वे प्रकरण, जिनका पंजीकरण एक वर्ष से अधिक पूर्व हुआ है, उनकी अपराध श्रेणी / उपश्रेणी (SAS Export से; उपलब्ध न होने पर धारा से निर्धारित) FIR पंजीकरण वर्षवार निम्नानुसार है–')+q4h);
+    addPage(26,H1('एक वर्ष से अधिक पेंडिंग प्रकरण — अपराध श्रेणी / उपश्रेणी, वृत्तवार व थानावार सारणी')+P('गणना आधार: FIR Current Status फ़ाइल के कॉलम “Current Status of FIR” = UNDER INVESTIGATION (कुल '+Q4.ui+' में से) तथा FIR Regd. Dt. '+Q4.cut.split('-').reverse().join('/')+' से पूर्व की (एक वर्ष से अधिक) — कुल <b>'+Q4.tot+'</b> प्रकरण। अपराध श्रेणी / उपश्रेणी SAS Export से (उपलब्ध न होने पर धारा से निर्धारित) FIR पंजीकरण वर्षवार निम्नानुसार है–')+q4h);
 
     /* 27 — वृताधिकारी हेतु वृत्तवार विश्लेषण नोट: सकारात्मक / नकारात्मक बिन्दु, थानावार सुधार, आगामी माह के अंत तक लक्ष्य */
     try{
       var nxt=m<12?m+1:null, nxtN=nxt?MONTHS[nxt-1]:'', PA=null;
       try{ var pr2=buildPendencyRows('fdc'); if(!pr2.some(function(r){return r.regYear===y-1})) pr2=buildPendencyRows('generic'); PA=aggregatePendency(pr2,y-1); }catch(e){}
+      try{ if(PA&&Q4&&Q4.fdc){ var cp={}; Q4.rows.forEach(function(x){cp[x.ps]=(cp[x.ps]||0)+1});
+          PA.stations.forEach(function(st){ var n=cp[st.ps]||0; st.ui=Math.max(0,st.ui+st.uiOld-n); st.uiOld=n; });
+          PA.circles.forEach(function(ci){ var a=0,u=0; PA.stations.forEach(function(st){ if(st.circle===ci.circle){a+=st.uiOld;u+=st.ui;} }); ci.uiOld=a; ci.ui=u; });
+          var da=0,du=0; PA.stations.forEach(function(st){da+=st.uiOld;du+=st.ui}); PA.district.uiOld=da; PA.district.ui=du; } }catch(e){}
       var CRH=[[r_mur,'हत्या'],[r_att,'हत्या का प्रयास'],[r_rap,'दुष्कर्म'],[r_kid,'व्यपहरण/अपहरण'],[r_rio,'बलवा'],[r_dac,'डकैती'],[r_rob,'लूट'],[r_bur,'नकबजनी'],[r_the,'चोरी'],[r_oth,'अन्य भा.द.सं.'],[WA_TOT,'महिला अत्याचार'],[SC_TOT,'अनु.जाति/जनजाति अत्याचार']];
       var SLH=SLL_L.map(function(h){return [h,h.label]});
       var cnt=function(h,pss,yr,mm){return QR(h,pss,yr,1,mm).n};
@@ -19243,7 +19296,7 @@ function dhQ4(){
     document.getElementById('mcrBookArea').innerHTML=out;
     document.getElementById('mcrBookActions').style.display='';
     window.__mcrPages=PAGES;
-    (function(){var bx=document.getElementById('mcrBookActions'); if(bx&&!document.getElementById('dhXlsBtn')){var b=document.createElement('button'); b.id='dhXlsBtn'; b.className='btn-fill'; b.style.marginLeft='6px'; b.textContent='📊 धारा-विसंगति Excel'; b.onclick=function(){window.dhDharaExcel()}; bx.appendChild(b);}})();
+    (function(){var bx=document.getElementById('mcrBookActions'); if(bx&&!document.getElementById('dhXlsBtn')){var b=document.createElement('button'); b.id='dhXlsBtn'; b.className='btn-fill'; b.style.marginLeft='6px'; b.textContent='📊 धारा-विसंगति Excel'; b.onclick=function(){window.dhDharaExcel()}; bx.appendChild(b); var b2=document.createElement('button'); b2.id='dhOldBtn'; b2.className='btn-fill'; b2.style.marginLeft='6px'; b2.textContent='📋 1 वर्ष+ पेंडिंग सूची Excel'; b2.onclick=function(){window.dhOldPendExcel()}; bx.appendChild(b2);}})();
     placeNotes();
     var ar=document.getElementById('mcrBookArea');
     if(ar&&!ar._remBound){ ar._remBound=1; ar.addEventListener('input',function(ev){ var t=ev.target; if(t&&t.classList&&t.classList.contains('mcr-rem')){ var v=(t.innerText||'').trim(); try{ if(v) localStorage.setItem(t.getAttribute('data-k'),v); else localStorage.removeItem(t.getAttribute('data-k')); }catch(x){} } }); }
