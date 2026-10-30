@@ -9665,7 +9665,9 @@ go = function(id){
 // PENDENCY RANKING PAGE
 // पेंडेंसी % = कुल पेंडिंग (सभी वर्ष, pending+reopen+193(9)/173(3)) ÷ चयनित वर्ष में दर्ज कुल प्रकरण
 // ============================================================
-function regOlderThan1Yr(dstr){ if(!dstr) return false; const d=new Date(String(dstr).slice(0,10)); if(isNaN(d)) return false; return (Date.now()-d.getTime())>365*864e5; }
+/* "1 वर्ष से अधिक" = FIR पंजीकरण दिनांक, आज की तारीख से ठीक एक वर्ष पूर्व की तारीख से पहले की हो (दिनांक-स्तर पर, टाइमज़ोन/घंटों से अप्रभावित) */
+function oneYearCutoffISO(){ const t=new Date(); const c=new Date(t.getFullYear()-1,t.getMonth(),t.getDate()); return c.getFullYear()+'-'+String(c.getMonth()+1).padStart(2,'0')+'-'+String(c.getDate()).padStart(2,'0'); }
+function regOlderThan1Yr(dstr){ if(!dstr) return false; const d=String(dstr).slice(0,10); if(!/^\d{4}-\d{2}-\d{2}$/.test(d)) return false; return d<oneYearCutoffISO(); }
 function regYearOf(dstr){ if(!dstr) return null; const y=parseInt(String(dstr).slice(0,4),10); return isNaN(y)?null:y; }
 
 // pendency status categories: 'ui'=UNDER INVESTIGATION, '173193'=173(8)CrPC/193(9)BNSS, 'reopen'=RE-OPEN
@@ -11049,7 +11051,6 @@ function pad2(n){ return String(n).padStart(2,'0'); }
 // order: 'dmy' (दिनांक/माह/वर्ष — FIR Detail-Current Status व sasExport फ़ाइलों का प्रारूप) या
 //        'mdy' (माह/दिनांक/वर्ष — Generic फ़ाइल का प्रारूप, जैसे M/D/YYYY)
 // दोनों ही मामलों में यदि पहला/दूसरा भाग 12 से बड़ा हो तो वह स्वतः महीना नहीं हो सकता, इसलिए अदला-बदली सुरक्षा-जाल के रूप में बनी रहती है।
-var __dateHint=null;
 /* फ़ाइल के वास्तविक दिनांक-प्रारूप की पहचान: जिस कॉलम में 4-अंकीय वर्ष वाली दिनांकों में पहला भाग 12 से बड़ा मिले तो dmy, दूसरा भाग 12 से बड़ा मिले तो mdy */
 function detectDateOrder(aoa, colNames){
   const idx=buildHeaderIndex(aoa[0]||[]); let ci;
@@ -11058,10 +11059,10 @@ function detectDateOrder(aoa, colNames){
   for(let i=1;i<aoa.length;i++){ const v=String((aoa[i]&&aoa[i][ci]!=null)?aoa[i][ci]:'').trim(); const m=v.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/); if(!m) continue; if(+m[1]>12&&+m[2]<=12) dmy++; else if(+m[2]>12&&+m[1]<=12) mdy++; }
   return dmy>mdy?'dmy':(mdy>dmy?'mdy':null);
 }
-function __withDateHint(aoa, cols, fn){ let h=null; try{ h=detectDateOrder(aoa,cols); }catch(e){} __dateHint=h; try{ return fn(aoa); } finally{ __dateHint=null; } }
-function normalizeDateStr(v, order){
+/* hint = इसी कॉलम की दिनांकों से पहचाना गया वास्तविक प्रारूप ('dmy'/'mdy'/null) — प्रत्येक कॉलम के लिए अलग */
+function normalizeDateStr(v, order, hint){
   if(v==null || v==='') return null;
-  order = __dateHint || order || 'dmy';
+  order = hint || order || 'dmy';
   const s = String(v).trim();
   let m;
   if(m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)) return `${m[1]}-${pad2(m[2])}-${pad2(m[3])}`;
@@ -11075,7 +11076,7 @@ function normalizeDateStr(v, order){
   }
   if(m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2})$/)){
     /* 2-अंकीय वर्ष (SheetJS का m/d/yy रूप) — फ़ाइल का पहचाना गया प्रारूप लें; पहचान न हो तो m/d/yy */
-    let a=+m[1], b=+m[2], y=2000+(+m[3]), d, mo; const o2=__dateHint||'mdy';
+    let a=+m[1], b=+m[2], y=2000+(+m[3]), d, mo; const o2=hint||'mdy';
     if(o2==='mdy'){ mo=a; d=b; } else { d=a; mo=b; }
     if(mo>12 && d<=12){ const t=d; d=mo; mo=t; }
     if(mo>=1 && mo<=12 && d>=1 && d<=31) return `${y}-${pad2(mo)}-${pad2(d)}`;
@@ -11102,10 +11103,10 @@ async function fetchSheetAOA(id, tabName){
   return XLSX.utils.sheet_to_json(ws, {header:1, raw:false, defval:''});
 }
 
-function parseLiveGeneric(aoa){ return __withDateHint(aoa,['reg date'],parseLiveGeneric_raw); }
-function parseLiveGeneric_raw(aoa){
+function parseLiveGeneric(aoa){
   if(!aoa || aoa.length<2) throw new Error('empty sheet');
   const idx = buildHeaderIndex(aoa[0]);
+  const hReg = detectDateOrder(aoa,['reg date']), hDisp = detectDateOrder(aoa,['disposal date']);
   const out = [];
   for(let i=1;i<aoa.length;i++){
     const raw = aoa[i]; if(!raw || raw.every(c=>c===''||c==null)) continue;
@@ -11114,8 +11115,8 @@ function parseLiveGeneric_raw(aoa){
     const limitTxt = String(colVal(raw, idx, ['disposal time limit'])||'');
     const bucket = /60/.test(limitTxt) ? 60 : 90;
     const firNoDate = String(colVal(raw, idx, ['fir no/date','fir no /date','fir no/ date'])||'').trim();
-    const regISO = normalizeDateStr(colVal(raw, idx, ['reg date']), 'mdy');
-    const dispISO = normalizeDateStr(colVal(raw, idx, ['disposal date']), 'mdy');
+    const regISO = normalizeDateStr(colVal(raw, idx, ['reg date']), 'dmy', hReg);
+    const dispISO = normalizeDateStr(colVal(raw, idx, ['disposal date']), 'dmy', hDisp);
     const statusTxt = String(colVal(raw, idx, ['firs final status'])||'').trim();
     let sc = 0;
     if(/चालान/.test(statusTxt)) sc=1;
@@ -11138,10 +11139,10 @@ function parseLiveGeneric_raw(aoa){
   return out;
 }
 
-function parseLiveFDC(aoa){ return __withDateHint(aoa,['fir regd. dt.','fir reg. dt.'],parseLiveFDC_raw); }
-function parseLiveFDC_raw(aoa){
+function parseLiveFDC(aoa){
   if(!aoa || aoa.length<2) throw new Error('empty sheet');
   const idx = buildHeaderIndex(aoa[0]);
+  const hReg = detectDateOrder(aoa,['fir regd. dt.','fir reg. dt.']), hCs = detectDateOrder(aoa,['cs/fr dt.','cs/fr dt']);
   const ffillCols = ['district','circle office','police station'];
   const last = {};
   const dicts = {circles:[],ps:[],src:[],fft:[],cst:[],act1:[],act2:[]};
@@ -11161,12 +11162,12 @@ function parseLiveFDC_raw(aoa){
     const ps = String(colVal(raw, idx, ['police station'])||'').trim();
     if(!ps) continue;
     const fir = String(colVal(raw, idx, ['fir no. / year','fir no./year'])||'').trim();
-    const regDt = normalizeDateStr(colVal(raw, idx, ['fir regd. dt.','fir reg. dt.']), 'dmy');
+    const regDt = normalizeDateStr(colVal(raw, idx, ['fir regd. dt.','fir reg. dt.']), 'dmy', hReg);
     const act1 = String(colVal(raw, idx, ['act & section(fir regd.)','act & section (fir regd.)'])||'').trim().slice(0,150);
     const src = String(colVal(raw, idx, ['info. source','information source'])||'').trim();
     const fft = String(colVal(raw, idx, ['final form type'])||'').trim();
     const csfrno = String(colVal(raw, idx, ['cs or fr no. / year','cs/fr no./year'])||'').trim();
-    const csfrdt = normalizeDateStr(colVal(raw, idx, ['cs/fr dt.','cs/fr dt']), 'dmy');
+    const csfrdt = normalizeDateStr(colVal(raw, idx, ['cs/fr dt.','cs/fr dt']), 'dmy', hCs);
     const act2 = String(colVal(raw, idx, ['act & section(charge sheet)','act & section (charge sheet)'])||'').trim().slice(0,150);
     const cst = String(colVal(raw, idx, ['current status of fir'])||'').trim();
     const firCode = String(colVal(raw, idx, ['fir code'])||'').trim();
@@ -11176,16 +11177,16 @@ function parseLiveFDC_raw(aoa){
   return {circles:dicts.circles, ps:dicts.ps, src:dicts.src, fft:dicts.fft, cst:dicts.cst, act1:dicts.act1, act2:dicts.act2, rows};
 }
 
-function parseLiveSAS(aoa){ return __withDateHint(aoa,['fir reg date'],parseLiveSAS_raw); }
-function parseLiveSAS_raw(aoa){
+function parseLiveSAS(aoa){
   if(!aoa || aoa.length<2) throw new Error('empty sheet');
   const idx = buildHeaderIndex(aoa[0]);
+  const hReg = detectDateOrder(aoa,['fir reg date']), hCs = detectDateOrder(aoa,['chargesheet_dt','chargesheet dt']);
   const out = [];
   for(let i=1;i<aoa.length;i++){
     const raw = aoa[i]; if(!raw || raw.every(c=>c===''||c==null)) continue;
     const ps = String(colVal(raw, idx, ['ps','police station'])||'').trim();
     if(!ps) continue;
-    const regDate = normalizeDateStr(colVal(raw, idx, ['fir reg date']), 'dmy');
+    const regDate = normalizeDateStr(colVal(raw, idx, ['fir reg date']), 'dmy', hReg);
     const firNoYear = String(colVal(raw, idx, ['fir no./year','fir no/year'])||'').trim();
     const ipc = String(colVal(raw, idx, ['ipc^','ipc'])||'').trim() || null;
     const sll = String(colVal(raw, idx, ['sll^','sll'])||'').trim() || null;
@@ -11195,7 +11196,7 @@ function parseLiveSAS_raw(aoa){
     const rape = String(colVal(raw, idx, ['rape^','rape'])||'').trim() || null;
     const disposal = String(colVal(raw, idx, ['disposal status'])||'').trim();
     const actSections = String(colVal(raw, idx, ['act & sections'])||'').trim();
-    const csDate = normalizeDateStr(colVal(raw, idx, ['chargesheet_dt','chargesheet dt']), 'dmy');
+    const csDate = normalizeDateStr(colVal(raw, idx, ['chargesheet_dt','chargesheet dt']), 'dmy', hCs);
     const fft = String(colVal(raw, idx, ['final_form_type','final form type'])||'').trim();
     const fru = String(colVal(raw, idx, ['fr_unoccur','fr unoccur'])||'').trim();
     const infoSource = String(colVal(raw, idx, ['information_source','information source'])||'').trim();
@@ -18637,7 +18638,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   }
 function dhQ4(){
     var o={fdc:!!(typeof FDC!=='undefined'&&FDC.rows&&FDC.rows.length),tot:0,rows:[],yrs:{},list:[],amb:0,ui:0};
-    var cd=new Date(Date.now()-365*864e5); o.cut=cd.getFullYear()+'-'+('0'+(cd.getMonth()+1)).slice(-2)+'-'+('0'+cd.getDate()).slice(-2);
+    o.cut=oneYearCutoffISO();
     if(!o.fdc) return o; var smap={};
     dbRecords.forEach(function(r,i){ var k=dhId(RAW[i][15]); if(k) smap[k]=r; });
     FDC.rows.forEach(function(r){
@@ -18750,6 +18751,7 @@ function dhQ4(){
       [23,'चालान में जुड़ी धाराएँ — हत्या; महिला अपराधों में ब्लैकमेलिंग / IT एक्ट'],
       [24,'चोरी / नकबजनी — चालान में सम्बन्धित धारा का अभाव'],
       [25,'BNS धारा 111 / 112 — श्रेणी, उपश्रेणी, वर्ष, वृत्त व थानावार सारणी'],
+      [28,'सड़क दुर्घटना प्रकरण (BNS 281 + 125 / 125(a) / 125(b) / 106(1)) — वर्ष तुलनात्मक, वृत्तवार व थानावार'],
       [26,'एक वर्ष से अधिक पेंडिंग प्रकरण — अपराध श्रेणी / उपश्रेणी, वृत्तवार व थानावार सारणी'],
       [27,'वृताधिकारी हेतु वृत्तवार विश्लेषण नोट — पेंडेंसी, 60/90 दिवस निस्तारण, समग्र समीक्षा व आगामी माह का लक्ष्य']
     ];
@@ -19126,6 +19128,57 @@ function dhQ4(){
         'धारा 111 / 112 के प्रकरणों में संगठित गिरोह / अभ्यस्त अपराधी के साक्ष्य की समीक्षा कर पर्यवेक्षण सुनिश्चित किया जावे।'];
     });
     addPage(25,H1('BNS धारा 111 / 112 — अपराध की श्रेणी, उपश्रेणी, वर्ष, वृत्त व थानावार तुलनात्मक सारणी')+P('Generic फाइल के “INV. BASE ACT & SECTION” में BNS की धारा 111 (संगठित अपराध) अथवा 112 (छोटे संगठित अपराध) वाले प्रकरणों की स्थिति SAS Export की श्रेणी / उपश्रेणी के साथ निम्नानुसार है–')+q2h);
+    /* 28 — सड़क दुर्घटना प्रकरण (INV. BASE ACT & SECTION में BNS 281 + 125 / 125(a) / 125(b) / 106(1)) : वर्ष तुलनात्मक */
+    try{
+      var RD_T=[['सामान्य सड़क दुर्घटना (बिना चोट / क्षति अथवा केवल लापरवाही से वाहन चलाना)','281 + 125 BNS','बिना चोट'],['सामान्य सड़क दुर्घटना (साधारण चोट)','281 + 125(a) BNS','साधारण चोट'],['गंभीर सड़क दुर्घटना (गंभीर चोट)','281 + 125(b) BNS','गंभीर चोट'],['प्राणघातक सड़क दुर्घटना (मृत्यु कारित)','281 + 106(1) BNS','मृत्यु'],['अन्य — केवल धारा 281 (उपरोक्त में से कोई अन्य धारा नहीं)','281 BNS','केवल 281']];
+      var rdCat=function(t){ var h281=false,s125=false,s125a=false,s125b=false,s106=false;
+        String(t||'').split(/,(?=[A-Za-z])/).forEach(function(sg){ sg=sg.trim(); var mm=sg.match(/^(.*?)(?::-|\s>\s)(.*)$/); if(!mm) return; var n=mm[1].toUpperCase(); if(n.indexOf('NYAYA')<0&&n.indexOf('BNS')!==0) return;
+          mm[2].split(',').forEach(function(x){ var b=x.trim().match(/^(\d+)\s*(\(\s*([0-9A-Za-z]+)\s*\))?/); if(!b) return; var num=b[1], sf=(b[3]||'').toLowerCase();
+            if(num==='281') h281=true; else if(num==='125'){ if(sf==='a') s125a=true; else if(sf==='b') s125b=true; else if(!sf) s125=true; } else if(num==='106'&&sf==='1') s106=true; }); });
+        if(!h281) return -1; return s106?3:(s125b?2:(s125a?1:(s125?0:4))); };
+      var RDR=[]; (GEN||[]).forEach(function(g){ var c=rdCat(g[11]); if(c<0) return; var d=String(g[3]||''), yy=+d.slice(0,4), mo=+d.slice(5,7); if(!mo||(yy!==y&&yy!==y-1)||mo>m) return; var ps=String(g[0]||'').trim().toUpperCase(); RDR.push({c:c,y:yy,ps:ps,cir:dhCircOf(ps)}); });
+      var rn=function(f,c,yr){ var n=0; RDR.forEach(function(r){ if(r.y===yr&&(c===null||r.c===c)&&f(r)) n++; }); return n; };
+      var rcol=function(a,b){ return b>a?bgc('#FFE1E1'):(b<a?bgc('#E3F6E8'):null); };
+      var dlt=function(a,b){ var d=b-a; return d>0?'<b style="color:#B91C1C">+'+d+'</b>':(d<0?'<b style="color:#15803D">'+d+'</b>':'0'); };
+      var pcs=function(a,b){ return a? ((b>a?'+':'')+(((b-a)/a)*100).toFixed(1)+'%') : (b?'नया':'–'); };
+      var ALLF=function(){return true;};
+      /* A. जिला — दुर्घटना के प्रकार अनुसार */
+      var tA='<thead><tr>'+th('क्र.<br>सं.')+th('दुर्घटना का प्रकार')+th('BNS की धाराएं')+th((y-1))+th(y)+th('अन्तर')+th('परिवर्तन %')+'</tr></thead><tbody>', t1=0,t2=0;
+      RD_T.forEach(function(r,i){ var a=rn(ALLF,i,y-1), b=rn(ALLF,i,y); t1+=a; t2+=b; tA+='<tr>'+td(i+1)+tdl(r[0])+td(r[1])+td(a)+td(b,true,rcol(a,b))+td(dlt(a,b))+td(pcs(a,b))+'</tr>'; });
+      tA+='<tr>'+td('',true)+tdl('<b>कुल सड़क दुर्घटना प्रकरण (धारा 281 सहित)</b>')+td('')+td('<b>'+t1+'</b>',true)+td('<b>'+t2+'</b>',true,rcol(t1,t2))+td(dlt(t1,t2))+td(pcs(t1,t2))+'</tr>';
+      /* B / C. वृत्तवार / थानावार — प्रकार अनुसार */
+      var mkRd=function(keys,lf,kf,rl){ var h='<thead><tr>'+th(rl,' rowspan="2"')+RD_T.map(function(r){return th('<b>'+r[2]+'</b>',' colspan="2"')}).join('')+th('<b>कुल</b>',' colspan="2"')+th('अन्तर',' rowspan="2"')+'</tr><tr>'+RD_T.concat([0]).map(function(){return th(y-1)+th(y)}).join('')+'</tr></thead><tbody>';
+        var row=function(lbl,f,bd){ var t='<tr>'+(bd?tdl('<b>'+lbl+'</b>'):tdl(lbl)), s1=0,s2=0; RD_T.forEach(function(r,i){ var a=rn(f,i,y-1), b=rn(f,i,y); s1+=a; s2+=b; t+=td(a,bd)+td(b,bd,rcol(a,b)); }); return t+td(s1,true)+td(s2,true,rcol(s1,s2))+td(dlt(s1,s2))+'</tr>'; };
+        keys.forEach(function(k){ h+=row(lf(k),function(r){return kf(r)===k;},false); }); h+=row('जिला योग',ALLF,true); return tbl(h+'</tbody>',9.5); };
+      var cirK=[], psK=[]; RDR.forEach(function(r){ if(cirK.indexOf(r.cir)<0) cirK.push(r.cir); if(psK.indexOf(r.ps)<0) psK.push(r.ps); });
+      var tot=function(f){ return rn(f,null,y); };
+      cirK.sort(function(a,b){return tot(function(r){return r.cir===b})-tot(function(r){return r.cir===a})});
+      psK.sort(function(a,b){return tot(function(r){return r.ps===b})-tot(function(r){return r.ps===a})});
+      ALL_PS_EN.forEach(function(p){ if(psK.indexOf(p)<0&&p) psK.push(p); });
+      var tB=mkRd(cirK,function(k){return cname(k)},function(r){return r.cir},'वृत्त'), tC=mkRd(psK,function(k){return psLabel(k)||k},function(r){return r.ps},'थाना');
+      var per='जनवरी–'+nm+' '+(y-1)+' बनाम '+y;
+      NOTES=SN('सड़क दुर्घटना प्रकरण — समीक्षा',function(){
+        if(!RDR.length) return ['Generic फाइल लोड नहीं है अथवा “INV. BASE ACT & SECTION” में BNS 281 वाले प्रकरण नहीं मिले।'];
+        var L=['<b>कुल सड़क दुर्घटना प्रकरण (BNS 281):</b> '+(y-1)+': <b>'+t1+'</b> → '+y+': <b>'+t2+'</b> ('+pcs(t1,t2)+', '+(t2>t1?'<span style="color:#B91C1C">वृद्धि</span>':(t2<t1?'<span style="color:#15803D">कमी</span>':'कोई परिवर्तन नहीं'))+')'];
+        L.push('<b>प्रकारवार:</b> '+RD_T.map(function(r,i){return r[2]+' '+rn(ALLF,i,y-1)+'→'+rn(ALLF,i,y)}).join(' • '));
+        var d1=rn(ALLF,3,y-1), d2=rn(ALLF,3,y); L.push('<b style="color:'+(d2>d1?'#B91C1C':'#15803D')+'">प्राणघातक दुर्घटनाएँ (281 + 106(1)):</b> '+d1+' → '+d2+(d2>d1?' — वृद्धि, ब्लैक-स्पॉट / तेज गति पर विशेष कार्यवाही आवश्यक':' — '+(d2<d1?'कमी':'स्थिर')));
+        var ct=cirK.map(function(k){return {l:cname(k),a:rn(function(r){return r.cir===k},null,y-1),b:rn(function(r){return r.cir===k},null,y)}});
+        L.push('<b>वृत्तवार ('+(y-1)+'→'+y+'):</b> '+ct.map(function(x){return x.l+' '+x.a+'→'+x.b}).join(' • '));
+        L.push('<b>निर्देश:</b> प्राणघातक व गंभीर चोट वाले प्रकरणों में वाहन चालक की गिरफ्तारी / जब्ती, MV Act की धाराओं (134, 187 आदि) की अनुपालना तथा दुर्घटना-बहुल स्थानों पर यातायात प्रवर्तन बढ़ाया जावे।');
+        return L; });
+      addPage(28,H1('सड़क दुर्घटना प्रकरण — BNS 281 + 125 / 125(a) / 125(b) / 106(1) — वर्ष '+(y-1)+' एवं '+y+' की तुलनात्मक स्थिति')+P('Generic फाइल के “INV. BASE ACT & SECTION” में धारा 281 के साथ 125 / 125(a) / 125(b) / 106(1) में से कोई धारा (अथवा अन्य किसी धारा के साथ भी) होने पर प्रकरण सड़क दुर्घटना माना गया है। एक प्रकरण में एक से अधिक धारा होने पर सर्वाधिक गंभीर श्रेणी (मृत्यु > गंभीर चोट > साधारण चोट > बिना चोट) में एक बार गिना गया है। अवधि: '+per+'।')+H2('दुर्घटना के प्रकार अनुसार','जिला')+tbl(tA+'</tbody>',10.5)+H2('वृत्तवार','')+tB);
+      NOTES=SN('सड़क दुर्घटना — थानावार समीक्षा',function(){
+        if(!RDR.length) return ['डेटा उपलब्ध नहीं।'];
+        var rows=psK.map(function(k){ return {l:psLabel(k)||k,a:rn(function(r){return r.ps===k},null,y-1),b:rn(function(r){return r.ps===k},null,y),d:rn(function(r){return r.ps===k},3,y)}; });
+        var up=rows.filter(function(x){return x.b>x.a}).sort(function(p,q){return (q.b-q.a)-(p.b-p.a)}), dn=rows.filter(function(x){return x.b<x.a}).sort(function(p,q){return (p.b-p.a)-(q.b-q.a)}), top=rows.slice().sort(function(p,q){return q.b-p.b}).filter(function(x){return x.b>0}), dd=rows.filter(function(x){return x.d>0}).sort(function(p,q){return q.d-p.d});
+        var L=[]; L.push('<b style="color:#B91C1C">प्रकरण बढ़े ('+up.length+' थाने):</b> '+(up.slice(0,8).map(function(x){return x.l+' ('+x.a+'→'+x.b+')'}).join(', ')||'—'));
+        L.push('<b style="color:#15803D">प्रकरण घटे ('+dn.length+' थाने):</b> '+(dn.slice(0,8).map(function(x){return x.l+' ('+x.a+'→'+x.b+')'}).join(', ')||'—'));
+        L.push('<b>वर्ष '+y+' में सर्वाधिक प्रकरण:</b> '+top.slice(0,6).map(function(x){return x.l+' '+x.b}).join(', '));
+        L.push('<b>प्राणघातक दुर्घटना वाले थाने ('+y+'):</b> '+(dd.map(function(x){return x.l+' '+x.d}).join(', ')||'कोई नहीं'));
+        return L; });
+      addPage(28,H1('सड़क दुर्घटना प्रकरण — थानावार तुलनात्मक सारणी ('+per+')')+P('प्रत्येक थाने के सड़क दुर्घटना प्रकरण, दुर्घटना के प्रकार (BNS 281 + 125 / 125(a) / 125(b) / 106(1)) अनुसार निम्नानुसार हैं–')+H2('थानावार','')+tC);
+    }catch(e){ console.error('सड़क दुर्घटना पेज त्रुटि',e); }
+
     /* 26 — एक वर्ष से अधिक पेंडिंग प्रकरण: अपराध श्रेणी / उपश्रेणी, वृत्तवार, थानावार */
     var Q4=dhQ4(); window.__q4=Q4; var q4h='';
     if(!Q4.fdc) q4h='<div style="font-size:12px;color:#B91C1C">FIR Current Status डेटा लोड नहीं है।</div>';
