@@ -18449,7 +18449,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
         o.n++;
         if(F[i]==='ipc'){ if(r.sv) o.sv+=r.sv; if(r.rv) o.rv+=r.rv; }
         if(r.disposal==='Chargesheet') o.cs++;
-        else if(r.disposal==='F.R.'){ o.fr++; if(r.fru && String(r.fru).trim()) o.av++; }   /* अदम वकू = SAS कॉलम Q (FR_UNOCCUR) में प्रविष्टि वाली एफ.आर. */
+        else if(r.disposal==='F.R.'){ o.fr++; if(String(r.fft||'').trim().toUpperCase()==='UNOCCURED') o.av++; }   /* अदम वकू = SAS कॉलम P (FINAL_FORM_TYPE) = UNOCCURED वाली एफ.आर.; शेष सभी एफ.आर. = एफ.आर. अन्य */
         else o.pd++;
       }
     });
@@ -18559,7 +18559,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     });
     return '<div style="text-align:center;font-weight:700;font-size:13px;text-decoration:underline;margin:8px 0 2px">'+title+'</div>'+tbl(h+'</tbody>');
   }
-  var FOOT_DISP=NOTE('○ एफ.आर. अदम वकू – SAS Export के कॉलम FR_UNOCCUR में प्रविष्टि वाली एफ.आर. (मिथ्या / सिविल प्रकृति / तथ्य की भूल / विधि की भूल / असंज्ञेय आदि); एफ.आर. अन्य – शेष एफ.आर. (अदमपता/अदमसबूत आदि)।<br>* एफ.आर. अदम वकू / (कुल दर्ज अभियोग – पेण्डिंग अभियोग) * 100<br># चालान / (एफ.आर. अन्य + चालान) * 100');
+  var FOOT_DISP=NOTE('○ एफ.आर. अदम वकू – SAS Export के कॉलम P (FINAL_FORM_TYPE) में UNOCCURED वाली एफ.आर.; एफ.आर. अन्य – इसके अलावा शेष सभी एफ.आर. (अनट्रेस्ड / अनडिटेक्टेड / साक्ष्याभाव आदि)।<br>* एफ.आर. अदम वकू / (कुल दर्ज अभियोग – पेण्डिंग अभियोग) * 100<br># चालान / (एफ.आर. अन्य + चालान) * 100');
 
   function stationRows(){
     var by={}, out=[], all=[];
