@@ -1439,6 +1439,7 @@ html #toast{border-radius:var(--r-pill);box-shadow:var(--sh-lg)}
   <button data-pg="district" onclick="adminGo('district')">📊 जिला योग (एडमिन)</button>
   <button data-pg="monitor" onclick="adminGo('monitor')">📶 सूचना मॉनिटरिंग</button>
   <button data-pg="actWatch" onclick="go('actWatch')">⚖️ आबकारी/जुआ/आर्म्स/NDPS निगरानी</button>
+  <button data-pg="sensCases" onclick="go('sensCases')">🚨 विशेष पेंडिंग प्रकरण सारणियाँ (नया)</button>
   <button data-pg="perfMonitor" onclick="adminGo('perfMonitor')">🎯 परफॉर्मेंस मॉनिटरिंग (रैंक ट्रेंड)</button>
   <button data-pg="dataQuality" onclick="adminGo('dataQuality')">🔍 डेटा गुणवत्ता जाँच</button>
   <button data-pg="settings" onclick="adminGo('settings')">⚙️ सेटिंग्स</button>
@@ -3243,6 +3244,25 @@ function reply(obj) {
   </div>
 </div>
 
+<!-- ============================================================ विशेष पेंडिंग प्रकरण सारणियाँ ============================================================ -->
+<div class="pg" id="sensCases">
+  <div class="banner" style="background:linear-gradient(180deg,#8B1A1A,#4A0E0E)">
+    <div class="b-icon">🚨</div>
+    <h1>विशेष पेंडिंग प्रकरण सारणियाँ</h1><p>पोक्सो · SC/ST · NDPS · 420 भा.द.सं./318(4) बी.एन.एस. · 467-468/336(3)-338 · एक वर्ष से अधिक · RE-OPEN</p>
+  </div>
+  <div class="wrap">
+    <div class="intro" style="border-top-color:#8B1A1A">
+      <b>निर्देश:</b> तीनों फाइलें (FIR Current Status, SAS Export, Generic) FIR कोड से जोड़कर, प्रत्येक FIR की <b>ताज़ा स्थिति</b> (FIR Current Status को प्राथमिकता) के आधार पर सारणियाँ स्वतः बनती हैं। अनुसंधान अधिकारी का नाम केवल Generic फाइल में उपलब्ध है — जिन FIR का Generic में रिकॉर्ड नहीं, उनमें "—" दिखेगा। सारणी 4 में वे FIR नहीं गिनी जातीं जिनमें 467/468 भा.द.सं. या 336(3)/338 बी.एन.एस. भी है।
+    </div>
+    <div class="ctx-bar" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin:12px 0;">
+      <div><label>थाना</label><select id="scPs" onchange="renderSensCases()"></select></div>
+      <button class="btn-fill sm" style="background:#1B5E20" onclick="scDownloadAll()">📥 सभी सारणियाँ Excel में</button>
+    </div>
+    <div id="scSummary"></div>
+    <div id="scHost"></div>
+  </div>
+</div>
+
 <!-- ============================================================ आबकारी/जुआ/आर्म्स/NDPS निगरानी ============================================================ -->
 <div class="pg" id="actWatch">
   <div class="banner" style="background:linear-gradient(180deg,#7B1E3A,#4A1224)">
@@ -4384,6 +4404,7 @@ function go(id){
   if(id==='mob' && typeof mobInit==='function') mobInit();
   if(id==='settings' && typeof renderCustomPagesSettings==='function') renderCustomPagesSettings();
   if(id==='monitor' && typeof monInitSelects==='function') monInitSelects();
+  if(id==='sensCases' && typeof renderSensCases==='function'){ renderSensCases(); }
   if(id==='actWatch' && typeof awInitSelects==='function'){ awInitSelects(); if(typeof renderActWatch==='function') renderActWatch(); }
   if(id==='perfMonitor' && typeof pmInitSelects==='function'){ pmInitSelects(); if(typeof renderPerfMonitor==='function') renderPerfMonitor(); }
   if(id==='dataQuality' && typeof renderDataQuality==='function'){ renderDataQuality(); }
@@ -6292,7 +6313,7 @@ function buildRecords(){
     const d = r[1];
     const y = d ? parseInt(d.slice(0,4)) : null;
     const m = d ? parseInt(d.slice(5,7)) : null;
-    return {ps:r[0],date:d,year:y,month:m,fir:r[2],ipc:r[3],sll:r[4],wa:r[5],scst:r[6],pocso:r[7],rape:r[8],disposal:r[9],sections:r[10]||'-',csDate:r[11]||null,fft:r[12]||null,fru:r[13]||null,sv:(typeof r[16]==='number'?r[16]:null),rv:(typeof r[17]==='number'?r[17]:null)};
+    return {ps:r[0],date:d,year:y,month:m,fir:r[2],ipc:r[3],sll:r[4],wa:r[5],scst:r[6],pocso:r[7],rape:r[8],disposal:r[9],sections:r[10]||'-',csDate:r[11]||null,fft:r[12]||null,fru:r[13]||null,id:normFirId(r[15])||null,sv:(typeof r[16]==='number'?r[16]:null),rv:(typeof r[17]==='number'?r[17]:null)};
   });
 }
 
@@ -8039,16 +8060,15 @@ function buildRowsSAS(limit, df){
   });
   return out;
 }
-function buildRowsCombined(limit, df){
-  return buildRowsGeneric(limit, df).concat(buildRowsFDC(limit, df)).concat(buildRowsSAS(limit, df));
-}
+function buildRowsCombined(limit, df){ return buildRowsAutoMerge(limit, df); } // हर FIR एक बार (पहले तीनों स्रोत जोड़ने से तिगुनी गिनती होती थी)
 function buildRowsAutoMerge(limit, df){
-  // De-duplicate by PS+FIR No/Year across sources; prefer Generic > Current Status > SAS Export
+  // FIR कोड से डुप्लीकेट हटाएँ (कोड न हो तो थाना+FIR नंबर); प्राथमिकता Generic > Current Status > SAS Export
   const map = new Map();
-  function keyOf(ps, fir){ return ps+'|'+String(fir||'').trim(); }
-  GEN.forEach(r=>{ map.set(keyOf(r[0],r[2]), {row:r, src:'gen'}); });
-  FDC.rows.forEach(r=>{ const ps=FDC.ps[r[1]]; const k=keyOf(ps,r[2]); if(!map.has(k)) map.set(k,{row:r,src:'fdc'}); });
-  RAW.forEach(r=>{ const k=keyOf(r[0],r[2]); if(!map.has(k)) map.set(k,{row:r,src:'sas'}); });
+  getFirDB().forEach((e,k)=>{
+    if(e.gen) map.set(k,{row:e.gen,src:'gen'});
+    else if(e.fdc) map.set(k,{row:e.fdc,src:'fdc'});
+    else if(e.sas) map.set(k,{row:e.sas,src:'sas'});
+  });
   const out=[]; const today=new Date();
   map.forEach(({row:r,src})=>{
     if(src==='gen'){
@@ -8365,7 +8385,7 @@ function smartInsightsHTML(agg){
 
 function sourceNoteHTML(source){
   if(source==='generic') return '<div class="note">स्रोत: <b>Generic Data</b> — यह CCTNS द्वारा सटीक रूप से वर्गीकृत 60/90-दिन डेटा है (सर्वाधिक विश्वसनीय)।</div>';
-  const label = source==='fdc'?'Current Status':source==='sas'?'SAS Export':source==='combined'?'Combined (तीनों स्रोतों का योग)':'Auto Merge (FIR नंबर से डुप्लीकेट हटाकर)';
+  const label = source==='fdc'?'Current Status':source==='sas'?'SAS Export':source==='combined'?'Combined (FIR कोड से जुड़ा, डुप्लीकेट-रहित)':'Auto Merge (FIR कोड से डुप्लीकेट हटाकर)';
   return `<div class="note">⚠️ स्रोत: <b>${label}</b> — इसमें मूल 60/90-दिन टैग उपलब्ध नहीं होने के कारण धारा/अधिनियम के आधार पर <b>अनुमानित वर्गीकरण (approximate)</b> किया गया है (गंभीर धाराएँ जैसे POCSO, बलात्कार, हत्या आदि → 90 दिन शेष सभी → 60 दिन)। सटीक आधिकारिक आँकड़ों हेतु "Generic Data" स्रोत का उपयोग करें।</div>`;
 }
 
@@ -9054,9 +9074,14 @@ function firJoinKey(ps, firRaw){
 // इसलिए दोनों रूपों को एक समान स्ट्रिंग में सामान्य किया जाता है — यही सबसे भरोसेमंद जॉइन-कुंजी है।
 function normFirId(v){
   if(v===null || v===undefined) return '';
-  let s = String(v).trim();
+  if(typeof v==='number'){ if(!isFinite(v) || Math.abs(v)>=1e21) return ''; v = v.toLocaleString('fullwide',{useGrouping:false,maximumFractionDigits:0}); }
+  // अपॉस्ट्रॉफ़ी/उद्धरण-चिह्न, स्पेस, कॉमा (27,505,006,250,001) हटाएँ
+  let s = String(v).trim().replace(/^['"`\u2018\u2019]+|['"`\u2018\u2019]+$/g,'').replace(/[\s,\u00A0]/g,'');
   if(!s) return '';
   if(/^\d+\.0+$/.test(s)) s = s.slice(0, s.indexOf('.'));
+  // वैज्ञानिक संकेत (2.7505006250001E+13): सभी अंक सुरक्षित हों तभी मान्य; कटे हुए (2.7505E+13) अंक अपूर्ण हैं → अमान्य
+  const m = s.match(/^(\d)(?:\.(\d+))?[eE]\+?(\d+)$/);
+  if(m){ const digs=m[1]+(m[2]||''); if(digs.length===(+m[3])+1) s=digs; else return ''; }
   return /^\d+$/.test(s) ? s : '';
 }
 // रिकॉर्ड की जॉइन-कुंजी: पहले सटीक FIR_REG_NUM/FIR कोड से मिलान आज़माएं (सबसे भरोसेमंद),
@@ -9066,6 +9091,34 @@ function recordJoinKey(ps, firRaw, idRaw){
   if(id) return 'ID#'+id;
   return firJoinKey(ps, firRaw);
 }
+
+// ============================================================
+// FIR-संबंध परत (Relational layer) — तीनों फाइलों को FIR कोड (14-अंकीय) से जोड़ती है
+//   Generic: FIR_REG_NUM | SAS Export: FIR REG NUM (1) | FIR Current Status: FIR Code
+// हर FIR = एक यूनिट: {key,id,ps,gen,sas,fdc} — तीनों स्रोतों की पंक्तियाँ एक ही जगह।
+// कोड न हो तो थाना+FIR नंबर फॉलबैक। नतीजा कैश रहता है और डेटा बदलते ही अपने-आप दोबारा बनता है।
+// ============================================================
+let FIRDB = null;
+function getFirDB(){
+  const g=GEN||[], r=RAW||[], f=(FDC&&FDC.rows)||[];
+  if(FIRDB && FIRDB._g===g && FIRDB._r===r && FIRDB._f===f && FIRDB._n===(g.length+'|'+r.length+'|'+f.length)) return FIRDB;
+  const m=new Map();
+  function ent(key,id){ let e=m.get(key); if(!e){ e={key,id:id||null,ps:'',gen:null,sas:null,fdc:null}; m.set(key,e); } else if(!e.id && id) e.id=id; return e; }
+  g.forEach(x=>{ const ps=String(x[0]||'').trim().toUpperCase(); const id=normFirId(x[13]); const k=recordJoinKey(ps,x[2],x[13]); if(!k) return; const e=ent(k,id); e.gen=x; e.ps=e.ps||ps; });
+  r.forEach(x=>{ const ps=String(x[0]||'').trim().toUpperCase(); const id=normFirId(x[15]); const k=recordJoinKey(ps,x[2],x[15]); if(!k) return; const e=ent(k,id); e.sas=x; e.ps=e.ps||ps; });
+  f.forEach(x=>{ const ps=String(FDC.ps[x[1]]||'').trim().toUpperCase(); const id=normFirId(x[11]); const k=recordJoinKey(ps,x[2],x[11]); if(!k) return; const e=ent(k,id); e.fdc=x; e.ps=e.ps||ps; });
+  m._g=g; m._r=r; m._f=f; m._n=g.length+'|'+r.length+'|'+f.length;
+  FIRDB=m; return m;
+}
+// FIR की "वर्तमान" पेंडेंसी-श्रेणी — सबसे ताज़ा स्रोत FIR Current Status को प्राथमिकता, फिर SAS, फिर Generic
+// लौटाता है: 'ui' | '173193' | 'reopen' | null (निस्तारित)
+function firCurrentCat(e){
+  if(e.fdc) return fdcCatOf(FDC.cst[e.fdc[10]]);
+  if(e.sas) return sasCatOf(e.sas[9]);
+  if(e.gen) return genCatOf(e.gen[5]);
+  return null;
+}
+function firById(id){ const k='ID#'+normFirId(id); return getFirDB().get(k)||null; }
 
 // ---------- चालान/Chargesheet, एफ.आर./F.R., पैडिंग/Pending — हिन्दी व अंग्रेजी दोनों रूप एक ही श्रेणी माने जाएं ----------
 function normStatusKey(s){
@@ -9197,7 +9250,8 @@ function buildSearchIndex(){
 
   // सभी मर्ज्ड रिकॉर्ड को अंतिम इंडेक्स सूची में बदलें
   const idx = [];
-  merged.forEach(e=>{
+  merged.forEach((e,mk)=>{
+    if(typeof mk==='string' && mk.indexOf('ID#')===0) e.firId = mk.slice(3);
     e.srcList = Array.from(e.sources);
     e.src = e.srcList.join(' + '); // उदा. "Generic Data + SAS Export + Current Status"
     // सुसंगत प्रदर्शन हेतु: यदि सामान्यीकृत स्थिति श्रेणी मिली है तो एक समान हिन्दी लेबल दिखाएं
@@ -9206,7 +9260,7 @@ function buildSearchIndex(){
     else e.statusDisplay = e.status;
     e.actFlags = getActFlags((e.section||'')+' '+(e.status||''));
     const catsTxt = e.cats ? Object.values(e.cats).filter(Boolean).join(' ') : '';
-    e.blob = [e.src,e.ps,e.psHi,e.circle,e.fir,e.status,e.statusDisplay,e.section,e.invBaseSection,e.io,e.infoSource,e.extra,(e.frSub?FR_SUB_LABELS[e.frSub]:''),catsTxt].join(' ').toLowerCase();
+    e.blob = [e.firId||'',e.src,e.ps,e.psHi,e.circle,e.fir,e.status,e.statusDisplay,e.section,e.invBaseSection,e.io,e.infoSource,e.extra,(e.frSub?FR_SUB_LABELS[e.frSub]:''),catsTxt].join(' ').toLowerCase();
     idx.push(e);
   });
   return idx;
@@ -9665,16 +9719,14 @@ go = function(id){
 // PENDENCY RANKING PAGE
 // पेंडेंसी % = कुल पेंडिंग (सभी वर्ष, pending+reopen+193(9)/173(3)) ÷ चयनित वर्ष में दर्ज कुल प्रकरण
 // ============================================================
-/* "1 वर्ष से अधिक" = FIR पंजीकरण दिनांक, आज की तारीख से ठीक एक वर्ष पूर्व की तारीख से पहले की हो (दिनांक-स्तर पर, टाइमज़ोन/घंटों से अप्रभावित) */
-function oneYearCutoffISO(){ const t=new Date(); const c=new Date(t.getFullYear()-1,t.getMonth(),t.getDate()); return c.getFullYear()+'-'+String(c.getMonth()+1).padStart(2,'0')+'-'+String(c.getDate()).padStart(2,'0'); }
-function regOlderThan1Yr(dstr){ if(!dstr) return false; const d=String(dstr).slice(0,10); if(!/^\d{4}-\d{2}-\d{2}$/.test(d)) return false; return d<oneYearCutoffISO(); }
+function regOlderThan1Yr(dstr){ if(!dstr) return false; const d=new Date(String(dstr).slice(0,10)); if(isNaN(d)) return false; return (Date.now()-d.getTime())>365*864e5; }
 function regYearOf(dstr){ if(!dstr) return null; const y=parseInt(String(dstr).slice(0,4),10); return isNaN(y)?null:y; }
 
 // pendency status categories: 'ui'=UNDER INVESTIGATION, '173193'=173(8)CrPC/193(9)BNSS, 'reopen'=RE-OPEN
 function genCatOf(code){ if(code===0) return 'ui'; if(code===3) return '173193'; return null; }
 function fdcCatOf(cst){
   const c=String(cst||'').trim().toUpperCase().replace(/\s+/g,' ');
-  if(c==='UNDER INVESTIGATION') return 'ui';
+  if(c==='UNDER INVESTIGATION' || c==='REFUSED INVESTIGATION') return 'ui'; // SAS/Generic में REFUSED INVESTIGATION पेंडिंग गिना जाता है — FDC में भी वही
   if(/173\(8\)|193\(9\)/.test(c)) return '173193';
   if(/^RE-?OPEN/.test(c)) return 'reopen';
   return null;
@@ -9707,16 +9759,19 @@ function buildPendencyRowsSAS(){
     return {ps:String(r[0]||'').trim().toUpperCase(), fir:r[2], reg:r[1], section:r[10]||'', cat, pendingLike:cat!=null, regYear:regYearOf(r[1])};
   });
 }
-function buildPendencyRowsCombined(){
-  return buildPendencyRowsGeneric().concat(buildPendencyRowsFDC()).concat(buildPendencyRowsSAS());
-}
+function buildPendencyRowsCombined(){ return buildPendencyRowsAutoMerge(); } // पहले तीनों सूचियाँ जोड़ने से हर FIR 3 बार गिना जाता था — अब FIR कोड से एक बार
 function buildPendencyRowsAutoMerge(){
-  const map=new Map();
-  function keyOf(ps,fir){ return ps+'|'+String(fir||'').trim(); }
-  GEN.forEach(r=>{ const cat=genCatOf(r[5]); map.set(keyOf(r[0],r[2]), {ps:String(r[0]||'').trim().toUpperCase(), fir:r[2], reg:r[3], section:r[9]||'', cat, pendingLike:cat!=null, regYear:regYearOf(r[3])}); });
-  FDC.rows.forEach(r=>{ const ps=FDC.ps[r[1]]; const k=keyOf(ps,r[2]); if(!map.has(k)){ const cat=fdcCatOf(FDC.cst[r[10]]); map.set(k,{ps, fir:r[2], reg:r[3], section:FDC.act1[r[4]]||'', cat, pendingLike:cat!=null, regYear:regYearOf(r[3])}); } });
-  RAW.forEach(r=>{ const k=keyOf(r[0],r[2]); if(!map.has(k)){ const cat=sasCatOfRaw(r); map.set(k,{ps:String(r[0]||'').trim().toUpperCase(), fir:r[2], reg:r[1], section:r[10]||'', cat, pendingLike:cat!=null, regYear:regYearOf(r[1])}); } });
-  return Array.from(map.values());
+  // FIR कोड से एक यूनिट = एक FIR; स्थिति FIR Current Status > SAS > Generic के क्रम में (सबसे ताज़ा स्रोत जीतता है)
+  const out=[];
+  getFirDB().forEach(e=>{
+    let ps,fir,reg,section;
+    if(e.fdc){ ps=e.ps; fir=e.fdc[2]; reg=e.fdc[3]; section=FDC.act1[e.fdc[4]]||''; }
+    else if(e.sas){ ps=e.ps; fir=e.sas[2]; reg=e.sas[1]; section=e.sas[10]||''; }
+    else { ps=e.ps; fir=e.gen[2]; reg=e.gen[3]; section=e.gen[9]||''; }
+    const cat=firCurrentCat(e);
+    out.push({ps, fir, reg, section, cat, pendingLike:cat!=null, regYear:regYearOf(reg), id:e.id});
+  });
+  return out;
 }
 function buildPendencyRows(source){
   if(source==='generic') return buildPendencyRowsGeneric();
@@ -10664,7 +10719,8 @@ function dqBuildReport(){
   const today = isoDaysAgo(0);
   const issues = {
     dupFirCrime:[], futureDate:[], csBeforeReg:[], disposedNoCSDate:[], unclassified:[],
-    dupFirGen:[], missingIO:[], negativeRD:[]
+    dupFirGen:[], missingIO:[], negativeRD:[],
+    relStatusConflict:[], relNotInGen:[], relOrphan:[], relDateMismatch:[], relCsDateMismatch:[], relCodeFirMismatch:[]
   };
   // --- ज़िला-अपराध (crime-head / SAS Export) डेटा जाँच ---
   const seen = {};
@@ -10690,6 +10746,38 @@ function dqBuildReport(){
   });
   Object.values(seenGen).forEach(list=>{ if(list.length>1) issues.dupFirGen.push(...list); });
 
+  // --- तीनों फाइलों के बीच संबंध-जाँच (FIR कोड से जुड़े हुए यूनिट पर) ---
+  (function(){
+    const norm=c=> c==='ui'?'P' : c==='reopen'?'R' : 'D'; // 173(8)/193(9) और निस्तारित = D (परिभाषा-भेद नहीं, त्रुटि नहीं)
+    getFirDB().forEach(e=>{
+      const f=e.fdc, s=e.sas, g=e.gen;
+      const fir=(f&&f[2])||(s&&s[2])||(g&&g[2])||'';
+      const reg=(f&&f[3])||(s&&s[1])||(g&&g[3])||'';
+      const mk=(detail)=>({ps:e.ps, fir, date:reg, id:e.id||'', detail, srcs:(g?'G':'')+(s?'S':'')+(f?'F':'')});
+      // 1) स्थिति-टकराव
+      const st=[]; 
+      if(f) st.push(['FDC',norm(fdcCatOf(FDC.cst[f[10]])),FDC.cst[f[10]]]);
+      if(s) st.push(['SAS',norm(sasCatOf(s[9])),s[9]]);
+      if(g) st.push(['Generic',norm(genCatOf(g[5])),['पैडिंग','चालान','एफ आर','193(9)'][g[5]]]);
+      if(st.length>1 && new Set(st.map(x=>x[1])).size>1) issues.relStatusConflict.push(mk(st.map(x=>x[0]+': '+x[2]).join(' | ')));
+      // 2) पेंडिंग FIR जो 60/90-दिवस (Generic) सूची में नहीं है (जुलाई 2024 के बाद पंजीकृत)
+      if(!g && String(reg)>='2024-07-01' && ['ui','reopen'].includes(firCurrentCat(e))) issues.relNotInGen.push(mk('FDC/SAS में पेंडिंग, Generic (60/90) सूची में अनुपस्थित'));
+      // 3) अनाथ Generic/SAS रिकॉर्ड — FIR Current Status में नहीं मिला
+      if(!f && (g||s)) issues.relOrphan.push(mk('FIR Current Status में इस FIR कोड की प्रविष्टि नहीं'));
+      // 4) पंजीकरण दिनांक भिन्न
+      const ds=[f&&f[3], s&&s[1], g&&g[3]].filter(Boolean);
+      if(new Set(ds).size>1) issues.relDateMismatch.push(mk('दिनांक: '+(f?'FDC '+f[3]+' ':'')+(s?'SAS '+s[1]+' ':'')+(g?'Generic '+g[3]:'')));
+      // 5) निस्तारण दिनांक भिन्न (केवल निस्तारित प्रकरण)
+      const cd=[f&&f[8], s&&s[11], g&&g[4]].filter(Boolean);
+      if(new Set(cd).size>1) issues.relCsDateMismatch.push(mk('निस्तारण: '+(f&&f[8]?'FDC '+f[8]+' ':'')+(s&&s[11]?'SAS '+s[11]+' ':'')+(g&&g[4]?'Generic '+g[4]:'')));
+      // 6) 14-अंकीय कोड में समाहित वर्ष/क्रमांक बनाम FIR नंबर/वर्ष
+      if(e.id && fir){
+        const m=String(fir).match(/^(\d+)\/(\d{4})$/);
+        if(m && (e.id.slice(10)!==m[1].padStart(4,'0') || '20'+e.id.slice(8,10)!==m[2])) issues.relCodeFirMismatch.push(mk('कोड '+e.id+' बनाम FIR '+fir));
+      }
+    });
+  })();
+
   return issues;
 }
 const DQ_DEFS = [
@@ -10700,15 +10788,80 @@ const DQ_DEFS = [
   {key:'csBeforeReg', title:'निस्तारण तिथि, पंजीकरण से पहले', desc:'चालान/एफ.आर. दिनांक, FIR पंजीकरण दिनांक से पहले की दर्ज है — असंभव, दिनांक जाँचें', sev:'high'},
   {key:'futureDate', title:'भविष्य की पंजीकरण तिथि', desc:'FIR पंजीकरण दिनांक आज की तिथि से आगे की दर्ज है', sev:'high'},
   {key:'disposedNoCSDate', title:'निस्तारित परंतु दिनांक रिक्त', desc:'प्रकरण चालान/एफ.आर. दर्शाया गया है परंतु निस्तारण दिनांक दर्ज नहीं है', sev:'med'},
+  {key:'relStatusConflict', title:'फाइलों में स्थिति-टकराव (FIR कोड से)', desc:'एक ही FIR कोड किसी फाइल में पेंडिंग/री-ओपन व दूसरी में निस्तारित है (जैसे FDC में REOPEN पर SAS/Generic में चालान/FR)', sev:'high'},
+  {key:'relCodeFirMismatch', title:'FIR कोड बनाम FIR नंबर/वर्ष असंगत', desc:'14-अंकीय कोड के अंतिम अंक/वर्ष, FIR नंबर/वर्ष से मेल नहीं खाते', sev:'high'},
+  {key:'relDateMismatch', title:'पंजीकरण दिनांक फाइलों में भिन्न', desc:'एक ही FIR कोड की पंजीकरण तिथि तीनों फाइलों में समान नहीं', sev:'high'},
+  {key:'relCsDateMismatch', title:'निस्तारण दिनांक फाइलों में भिन्न', desc:'चालान/FR दिनांक FDC, SAS व Generic में समान नहीं', sev:'med'},
+  {key:'relOrphan', title:'अनाथ रिकॉर्ड (FDC में कोड नहीं)', desc:'Generic/SAS में है पर FIR Current Status में उसी FIR कोड की प्रविष्टि नहीं', sev:'med'},
+  {key:'relNotInGen', title:'पेंडिंग FIR, 60/90-दिवस सूची में नहीं', desc:'जुलाई 2024 के बाद पंजीकृत पेंडिंग FIR जो Generic में नहीं है — 60/90 पेज इन्हें नहीं गिनते', sev:'low'},
   {key:'unclassified', title:'अवर्गीकृत प्रकरण', desc:'यह प्रकरण किसी भी अपराध-हेड (IPC/SLL/WA/SCST/POCSO/RAPE) में चिन्हित नहीं है', sev:'low'}
 ];
+
+/* ===================== डेटा-अंतर्ग्रहण स्वास्थ्य रिपोर्ट =====================
+   हर स्रोत-फाइल लोड होने के बाद जाँच: कुंजी (14-अंकीय FIR कोड) मान्य/यूनिक है? दिनांक पढ़ी गईं? स्थिति के मान पहचाने गए?
+   फाइलें आपस में (Generic ⊂ SAS ⊂ FIR Current Status) जुड़ती हैं? */
+function buildIngestReport(){
+  const out=[]; const ok=(l,m)=>out.push({lvl:'ok',file:l,msg:m}), warn=(l,m)=>out.push({lvl:'warn',file:l,msg:m}), bad=(l,m)=>out.push({lvl:'bad',file:l,msg:m});
+  const psSet=new Set(ALL_PS_EN);
+  function keyStats(label, ids, total){
+    const valid=ids.filter(Boolean); const uniq=new Set(valid);
+    const nb=total-valid.length, dup=valid.length-uniq.size;
+    if(!total) bad(label,'कोई रिकॉर्ड नहीं मिला');
+    else if(nb===0 && dup===0) ok(label,`${total.toLocaleString('en-IN')} रिकॉर्ड — सभी का 14-अंकीय FIR कोड मान्य व यूनिक`);
+    else { if(nb) bad(label,`${nb.toLocaleString('en-IN')} रिकॉर्ड में FIR कोड अमान्य/रिक्त/घातांक-रूप (जैसे 2.7505E+13) — Google Sheet में उस कॉलम को "Plain text" फॉर्मेट करें; ऐसे रिकॉर्ड थाना+FIR नंबर से जुड़ेंगे`); if(dup) warn(label,`${dup.toLocaleString('en-IN')} डुप्लीकेट FIR कोड`); }
+    return uniq;
+  }
+  const gIds=GEN.map(r=>normFirId(r[13])), sIds=RAW.map(r=>normFirId(r[15])), fIds=FDC.rows.map(r=>normFirId(r[11]));
+  const G=keyStats('Generic',gIds,GEN.length), S=keyStats('SAS Export',sIds,RAW.length), F=keyStats('FIR Current Status',fIds,FDC.rows.length);
+  // दिनांक
+  const gReg=GEN.filter(r=>!r[3]).length, sReg=RAW.filter(r=>!r[1]).length, fReg=FDC.rows.filter(r=>!r[3]).length;
+  [['Generic',gReg,GEN.length],['SAS Export',sReg,RAW.length],['FIR Current Status',fReg,FDC.rows.length]].forEach(([l,n,tot])=>{ if(tot){ n? bad(l,`${n.toLocaleString('en-IN')} रिकॉर्ड की पंजीकरण दिनांक पढ़ी नहीं जा सकी`) : ok(l,'सभी पंजीकरण दिनांक सही पढ़ी गईं'); } });
+  const dBefore=GEN.filter(r=>r[3]&&r[4]&&r[4]<r[3]).length;
+  if(GEN.length){ dBefore? bad('Generic',`${dBefore.toLocaleString('en-IN')} FIR की निस्तारण दिनांक पंजीकरण से पहले आ रही है (दिनांक-प्रारूप की गड़बड़ी)`) : ok('Generic','निस्तारण दिनांक सभी पंजीकरण के बाद की — दिनांक-प्रारूप सही'); }
+  if(__ingestFix.genDateHealed) warn('Generic',`${__ingestFix.genDateHealed.toLocaleString('en-IN')} निस्तारण दिनांक में दिन/माह उलटे थे — "DISPOSAL DAYS" से मिलाकर स्वतः सुधारे गए`);
+  // स्थिति के मान
+  const knownF=/^(CHARGE ?SHEET|FINAL REPORT|UNDER INVESTIGATION|REFUSED INVESTIGATION|RE-?OPEN|173\(8\)|193\(9\))/i;
+  const unkF=new Set(); FDC.rows.forEach(r=>{ const s=String(FDC.cst[r[10]]||'').trim(); if(s && !knownF.test(s)) unkF.add(s); });
+  if(FDC.rows.length){ unkF.size? warn('FIR Current Status','अपरिचित स्थिति-मान: '+[...unkF].slice(0,5).join(' | ')+' — इन्हें पेंडेंसी/निस्तारण में नहीं गिना जाएगा') : ok('FIR Current Status','सभी स्थिति-मान पहचाने गए'); }
+  const knownS=/^(Chargesheet|F\.?R\.?|Pending|Re-?open)/i;
+  const unkS=new Set(); RAW.forEach(r=>{ const s=String(r[9]||'').trim(); if(s && !knownS.test(s)) unkS.add(s); });
+  if(RAW.length){ unkS.size? warn('SAS Export','अपरिचित Disposal Status: '+[...unkS].slice(0,5).join(' | ')) : ok('SAS Export','सभी Disposal Status पहचाने गए'); }
+  // थाना नाम
+  const unkPs=new Set(); GEN.forEach(r=>{ const p=String(r[0]||'').toUpperCase(); if(p&&!psSet.has(p)) unkPs.add(p); }); RAW.forEach(r=>{ const p=String(r[0]||'').toUpperCase(); if(p&&!psSet.has(p)) unkPs.add(p); }); FDC.rows.forEach(r=>{ const p=String(FDC.ps[r[1]]||'').toUpperCase(); if(p&&!psSet.has(p)) unkPs.add(p); });
+  unkPs.size? bad('थाना-नाम','अपरिचित थाना-नाम: '+[...unkPs].slice(0,6).join(', ')+' — ये थाना-वार तालिकाओं में छूट सकते हैं') : ok('थाना-नाम','सभी थाना-नाम पहचाने गए');
+  // डेटा की ताज़गी — हर फाइल की सबसे नई FIR; फाइलें अलग-अलग तिथि की हों तो चेतावनी
+  const mx=a=>a.reduce((m,x)=>x&&x>m?x:m,'');
+  const fresh=[['Generic',mx(GEN.map(r=>r[3]))],['SAS Export',mx(RAW.map(r=>r[1]))],['FIR Current Status',mx(FDC.rows.map(r=>r[3]))]].filter(x=>x[1]);
+  if(fresh.length){
+    const dd=s=>s.split('-').reverse().join('-'), dayN=s=>Math.round(Date.parse(s+'T00:00:00Z')/864e5);
+    const hi=fresh.reduce((a,b)=>a[1]>=b[1]?a:b), lo=fresh.reduce((a,b)=>a[1]<=b[1]?a:b);
+    const gap=dayN(hi[1])-dayN(lo[1]), age=Math.round((Date.now()-Date.parse(hi[1]+'T00:00:00Z'))/864e5);
+    const txt=fresh.map(x=>x[0]+': '+dd(x[1])).join(' • ');
+    gap>7 ? warn('डेटा की ताज़गी',`फाइलें अलग-अलग तिथि की हैं (अंतर ${gap} दिन) — सबसे नई FIR → ${txt}। तुलनात्मक आँकड़े मेल न खाएँ तो तीनों फाइलें एक ही दिन निकालकर अपलोड करें`) : age>10 ? warn('डेटा की ताज़गी',`सबसे नई FIR ${age} दिन पुरानी है (${txt}) — नई फाइलें अपलोड करें`) : ok('डेटा की ताज़गी',`सबसे नई FIR → ${txt}`);
+  }
+  // आपसी संबंध
+  if(F.size){
+    const gNotS=[...G].filter(x=>!S.has(x)).length, gNotF=[...G].filter(x=>!F.has(x)).length, sNotF=[...S].filter(x=>!F.has(x)).length;
+    (gNotF||sNotF)? warn('फाइलों का संबंध',`FIR कोड से मिलान टूट रहा है — Generic में से FIR Current Status में न मिलने वाली: ${gNotF}, SAS में से: ${sNotF} (फाइलें अलग-अलग तिथि की हो सकती हैं)`) : ok('फाइलों का संबंध',`Generic ⊂ SAS ⊂ FIR Current Status — सभी FIR कोड से जुड़ीं (Generic की ${G.size.toLocaleString('en-IN')}, SAS की ${S.size.toLocaleString('en-IN')}, कुल ${F.size.toLocaleString('en-IN')})`);
+  }
+  return out;
+}
+function renderIngestHealth(){
+  const rep=buildIngestReport(); const worst=rep.some(x=>x.lvl==='bad')?'bad':rep.some(x=>x.lvl==='warn')?'warn':'ok';
+  const col={ok:'#1B5E20',warn:'#B45309',bad:'#B71C1C'}, bg={ok:'#F1F8F2',warn:'#FFF8ED',bad:'#FDF2F2'}, ic={ok:'✅',warn:'⚠️',bad:'❌'};
+  return `<div style="border:1.5px solid ${col[worst]};background:${bg[worst]};border-radius:12px;padding:12px 16px;margin-bottom:16px;">
+    <div style="font-weight:800;color:${col[worst]};margin-bottom:6px;">📥 डेटा-अंतर्ग्रहण (Ingestion) स्वास्थ्य — तीनों स्रोत-फाइलें</div>
+    ${rep.map(x=>`<div style="font-size:13px;padding:2px 0;color:${col[x.lvl]};">${ic[x.lvl]} <b>${scEsc(x.file)}:</b> ${x.msg}</div>`).join('')}
+  </div>`;
+}
 function dqSevColor(sev){ return sev==='high' ? '#B71C1C' : sev==='med' ? '#B45309' : '#6B7280'; }
 function dqSevBg(sev){ return sev==='high' ? '#FDF2F2' : sev==='med' ? '#FFF8ED' : '#F5F5F5'; }
 function renderDataQuality(){
   const issues = dqBuildReport();
   window._dqLastIssues = issues;
   const totalIssues = DQ_DEFS.reduce((s,d)=>s+issues[d.key].length,0);
-  let h = `<div class="note" style="margin-bottom:14px;">यह जाँच स्वतः हर बार पेज खोलने पर ताज़ा डेटा पर चलती है — किसी भी सूची में दी गई FIR/थाना जाँचकर संबंधित प्रविष्टि सुधार लें।</div>`;
+  let h = renderIngestHealth();
+  h += `<div class="note" style="margin-bottom:14px;">यह जाँच स्वतः हर बार पेज खोलने पर ताज़ा डेटा पर चलती है — किसी भी सूची में दी गई FIR/थाना जाँचकर संबंधित प्रविष्टि सुधार लें।</div>`;
   h += `<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;">
     <div class="chip" style="cursor:default;">कुल संभावित त्रुटियाँ: <b>${totalIssues}</b></div>
   </div>`;
@@ -10734,8 +10887,12 @@ function dqShowDetail(key){
   const box = document.getElementById('dq-detail');
   if(!list.length){ box.innerHTML=''; return; }
   const isGenSource = key==='dupFirGen' || key==='missingIO' || key==='negativeRD';
+  const isRel = key.indexOf('rel')===0;
   let rowsHtml;
-  if(isGenSource){
+  if(isRel){
+    rowsHtml = list.slice(0,200).map(r=>`<tr><td>${ENG2HI_PS[r.ps]||r.ps}</td><td>${r.fir||'-'}</td><td>${r.id||'-'}</td><td>${r.date||'-'}</td><td>${r.detail||'-'}</td></tr>`).join('');
+    rowsHtml = `<table class="data-tbl"><thead><tr><th>थाना</th><th>FIR</th><th>FIR कोड</th><th>पंजीकरण दिनांक</th><th>विवरण</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
+  } else if(isGenSource){
     rowsHtml = list.slice(0,200).map(row=>`<tr><td>${ENG2HI_PS[row[0]]||row[0]}</td><td>${row[2]||'-'}</td><td>${row[3]||'-'}</td><td>${row[1]}</td><td>${row[8]||'-'}</td><td>${row[7]!=null?row[7]:'-'}</td></tr>`).join('');
     rowsHtml = `<table class="data-tbl"><thead><tr><th>थाना</th><th>FIR</th><th>पंजीकरण दिनांक</th><th>सीमा</th><th>IO</th><th>लंबित दिन</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
   } else {
@@ -10752,7 +10909,10 @@ function dqDownloadIssue(key){
   if(!list.length) return;
   const isGenSource = key==='dupFirGen' || key==='missingIO' || key==='negativeRD';
   let header, rows;
-  if(isGenSource){
+  if(key.indexOf('rel')===0){
+    header = ['थाना','FIR','FIR कोड','पंजीकरण दिनांक','विवरण'];
+    rows = list.map(r=>[ENG2HI_PS[r.ps]||r.ps, r.fir||'-', r.id||'-', r.date||'-', r.detail||'-']);
+  } else if(isGenSource){
     header = ['थाना','FIR','पंजीकरण दिनांक','सीमा','IO','लंबित दिन'];
     rows = list.map(row=>[ENG2HI_PS[row[0]]||row[0], row[2]||'-', row[3]||'-', row[1], row[8]||'-', row[7]!=null?row[7]:'-']);
   } else {
@@ -10768,7 +10928,10 @@ function dqDownloadAll(){
     const list = issues[d.key]; if(!list.length) return;
     const isGenSource = d.key==='dupFirGen' || d.key==='missingIO' || d.key==='negativeRD';
     let header, rows;
-    if(isGenSource){
+    if(d.key.indexOf('rel')===0){
+      header = ['थाना','FIR','FIR कोड','पंजीकरण दिनांक','विवरण'];
+      rows = list.map(r=>[ENG2HI_PS[r.ps]||r.ps, r.fir||'-', r.id||'-', r.date||'-', r.detail||'-']);
+    } else if(isGenSource){
       header = ['थाना','FIR','पंजीकरण दिनांक','सीमा','IO','लंबित दिन'];
       rows = list.map(row=>[ENG2HI_PS[row[0]]||row[0], row[2]||'-', row[3]||'-', row[1], row[8]||'-', row[7]!=null?row[7]:'-']);
     } else {
@@ -10779,6 +10942,230 @@ function dqDownloadAll(){
   });
   if(!sheets.length){ toast('✅ कोई त्रुटि नहीं मिली — डाउनलोड हेतु कुछ नहीं'); return; }
   exportRowsToXLSX('data-quality-report-full.xlsx', sheets);
+}
+
+
+/* ===================== विशेष पेंडिंग प्रकरण सारणियाँ (FIR कोड-आधारित) ===================== */
+function scEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function scFmtDate(iso){ const m=String(iso||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m? m[3]+'-'+m[2]+'-'+m[1] : (iso||'-'); }
+function scIso(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function scCutoff(months){ const d=new Date(); d.setMonth(d.getMonth()-months); return scIso(d); }
+// किसी एक्ट (IPC / BNS) की धारा-सूची निकालता है — तीनों फाइलों के अलग-अलग लिखावट-रूप पढ़ता है
+function scActTokens(text, act){
+  const s=String(text||'');
+  const re = act==='IPC' ? /\bIPC(?:\s*1860)?\s*(?::-|>|-)\s*/gi : /(?:BHARATIYA NYAYA SANHITA\s*\(BNS\)\s*,?\s*2023\s*(?::-|>|-)|\bBNS\s*(?::-|>|-))\s*/gi;
+  const out=[]; let m;
+  while((m=re.exec(s))){
+    const rest=s.slice(m.index+m[0].length);
+    const cut=rest.search(/,,|\s\/\s|[A-Za-z]{3,}/);
+    (cut<0?rest:rest.slice(0,cut)).split(',').forEach(x=>{ x=x.replace(/\s+/g,'').toUpperCase(); if(x) out.push(x); });
+  }
+  return out;
+}
+// अधिनियम-नाम हिंदी में
+const SC_ACT_HI = [
+  [/THE BHARATIYA NAGARIK SURAKSHA SANHITA \(BNSS\),?\s*2023/gi,'भारतीय नागरिक सुरक्षा संहिता (बी.एन.एस.एस.) 2023'],
+  [/THE BHARATIYA SAKSHYA ADHINIYAM \(BSA\),?\s*2023/gi,'भारतीय साक्ष्य अधिनियम (बी.एस.ए.) 2023'],
+  [/THE TELECOMMUNICATIONS ACT,?\s*2023/gi,'दूरसंचार अधिनियम 2023'],
+  [/THE BHARATIYA NYAYA SANHITA \(BNS\),?\s*2023/gi,'बी.एन.एस. 2023'],
+  [/\bIPC\s*1860/gi,'भा.द.सं. 1860'],
+  [/INFORMATION TECHNOLOGY \(AMENDMENT\) ACT\s*,?\s*2008/gi,'सूचना प्रौद्योगिकी (संशोधन) अधिनियम 2008'],
+  [/INFORMATION TECHNOLOGY ACT,?\s*2000/gi,'सूचना प्रौद्योगिकी अधिनियम 2000'],
+  [/NARCOTIC DRUGS AND PSYCHOTROPIC SUBSTANCES ACT,?\s*1985/gi,'स्वापक औषधि एवं मन:प्रभावी पदार्थ (NDPS) अधिनियम 1985'],
+  [/(?:THE )?RAJASTHAN EXCISE ACT,?\s*1950/gi,'राजस्थान आबकारी अधिनियम 1950'],
+  [/SCHEDULED CASTES AND SCHEDULED TRIBES \(PREVENTION OF ATROCITIES\) ACT,?\s*1989(?:\s*\(AMENDMENT 2015\))?/gi,'अनुसूचित जाति एवं अनुसूचित जनजाति (अत्याचार निवारण) अधिनियम 1989 (संशोधन 2015)'],
+  [/\bSCST-1989/gi,'अनुसूचित जाति एवं अनुसूचित जनजाति (अत्याचार निवारण) अधिनियम 1989'],
+  [/PROTECTION OF CHILDREN FROM SEXUAL OFFENCES ACT \(AMENDED\),?\s*2012,?\s*2019/gi,'लैंगिक अपराधों से बालकों का संरक्षण (पोक्सो) अधिनियम 2012 (संशोधित 2019)'],
+  [/\bPOCSO-2012/gi,'लैंगिक अपराधों से बालकों का संरक्षण (पोक्सो) अधिनियम 2012'],
+  [/ARMS ACT 1959 \(AMENDMENT 2019\)/gi,'शस्त्र अधिनियम 1959 (संशोधन 2019)'],
+  [/PROMOTION AND REGULATION OF ONLINE GAMING ACT,?\s*2025/gi,'ऑनलाइन गेमिंग (संवर्धन एवं विनियमन) अधिनियम 2025'],
+  [/RAJASTHAN PROHIBITION OF SMOKING AND NON SMOKERS HEALTH PROTECTION ACT\s*2000/gi,'राजस्थान धूम्रपान प्रतिषेध एवं अधूम्रपानी स्वास्थ्य संरक्षण अधिनियम 2000'],
+  [/RAJASTHAN NOISE CONTROL ACT\s*1963/gi,'राजस्थान ध्वनि नियंत्रण अधिनियम 1963'],
+  [/RAJASTHAN PUBLIC GAMBLING ORDINANCE\s*1949/gi,'राजस्थान सार्वजनिक जुआ अध्यादेश 1949'],
+  [/RAJASTHAN PREVENTION OF DEFACEMENT OF PROPERTY ACT,?\s*2006/gi,'राजस्थान सम्पत्ति विरूपण निवारण अधिनियम 2006'],
+  [/(?:THE )?MINES? AND MINERALS \(REGULATIONS? (?:AND|OF) DEVELOPMENT\) ACT\s*1957/gi,'खान एवं खनिज (विकास एवं विनियमन) अधिनियम 1957'],
+  [/PREVENTION OF DAMAGE TO PUBLIC PROPERTY ACT,?\s*1984/gi,'सार्वजनिक सम्पत्ति नुकसान निवारण अधिनियम 1984'],
+  [/ELECTRICITY ACT,?\s*2003/gi,'विद्युत अधिनियम 2003'],
+  [/THE COPY RIGHT ACT\s*1957\s*\(AMENDMENT 2012\)\.?/gi,'कॉपीराइट अधिनियम 1957 (संशोधन 2012)'],
+  [/EMIGRATION ACT,?\s*1983/gi,'उत्प्रवास अधिनियम 1983'],
+  [/PRIZE CHITS AND MONEY CIRCULATION SCHEMES \(BANNING\) ACT,?\s*1978/gi,'पुरस्कार चिट एवं धन परिचालन स्कीम (प्रतिषेध) अधिनियम 1978'],
+  [/RAJASTHAN PROHIBITION OF UNLAWFUL CONVERSION OF RELIGION ACT,?\s*2025/gi,'राजस्थान विधिविरुद्ध धर्म संपरिवर्तन प्रतिषेध अधिनियम 2025'],
+  [/MUSLIM WOMEN \(PROTECTION OF RIGHTS ON MARRIAGE\) ACT,?\s*2019/gi,'मुस्लिम महिला (विवाह अधिकार संरक्षण) अधिनियम 2019'],
+  [/THE MOTOR VEHICLE ACT\s*1988\s*\(AMENDMENT 2015\)\.?/gi,'मोटर यान अधिनियम 1988 (संशोधन 2015)'],
+  [/THE DOWRY PROHIBITION ACT,?\s*1961/gi,'दहेज प्रतिषेध अधिनियम 1961'],
+  [/ESSENTIAL COMMODITIES ACT,?\s*1955/gi,'आवश्यक वस्तु अधिनियम 1955'],
+  [/EXPLOSIVE SUBSTANCES ACT,?\s*1908/gi,'विस्फोटक पदार्थ अधिनियम 1908'],
+  [/THE INDIAN EXPLOSIVES ACT\s*1884\s*\(AMENDMENT[^)]*\)\.?/gi,'भारतीय विस्फोटक अधिनियम 1884'],
+  [/PREVENTION OF CRUELTY TO ANIMALS ACT,?\s*1960/gi,'पशु क्रूरता निवारण अधिनियम 1960'],
+  [/RAJASTHAN CAMEL \([^)]*\) ACT,?\s*2015/gi,'राजस्थान ऊँट (वध प्रतिषेध एवं अस्थायी प्रव्रजन/निर्यात विनियमन) अधिनियम 2015'],
+  [/RAJASTHAN BOVINE ANIMAL \([^)]*\) ACT\s*1995/gi,'राजस्थान गौवंश (वध प्रतिषेध एवं अस्थायी प्रव्रजन/निर्यात विनियमन) अधिनियम 1995'],
+  [/\bIPC\b/g,'भा.द.सं.'], [/\bBNS\b/g,'बी.एन.एस.']
+];
+// धारा-पाठ → पंक्तियों की सूची: हर अधिनियम की एक पंक्ति, "अधिनियम — धारा ..." रूप में, हिंदी में
+function scHindiSection(text){
+  const segs=String(text||'').replace(/,\s+(?=(?:THE )?[A-Za-z][A-Za-z() ]{5,}?\s*(?:>|:-))/g,',,').split(/,\s*,|\s\/\s/).map(x=>x.trim()).filter(Boolean);
+  return segs.map(seg=>{
+    SC_ACT_HI.forEach(([re,hi])=>{ seg=seg.replace(re,hi); });
+    seg=seg.replace(/\s*(?::-|>)\s*/,' — धारा ');
+    if(seg.indexOf(' — धारा ')<0){
+      const m=seg.match(/^(.*?(?:अधिनियम|अध्यादेश|सं\.)(?: \d{4})?(?: \([^)]*\))?)-(.+)$/);
+      if(m) seg=m[1]+' — धारा '+m[2];
+    }
+    return seg.replace(/[,;\s]+$/,'').replace(/,(?=\S)/g,', ').trim();
+  }).filter(Boolean);
+}
+const SC_STATUS_HI = {ui:'पेंडिंग', '173193':'173(8) CrPC/193(9) BNSS', reopen:'RE-OPEN'};
+function scBuildRows(){
+  const rows=[];
+  getFirDB().forEach(e=>{
+    const cat=firCurrentCat(e); if(!cat) return;
+    const f=e.fdc, s=e.sas, g=e.gen;
+    const fir=(f&&f[2])||(s&&s[2])||(g&&g[2])||'';
+    const reg=(f&&f[3])||(s&&s[1])||(g&&g[3])||'';
+    const cands=[ f?FDC.act1[f[4]]:'', s?s[10]:'', g?g[9]:'' ].map(x=>String(x||'').trim()).filter(Boolean);
+    const sec=cands[0]||'';
+    const allText=cands.join(' | ');
+    const ipcT=scActTokens(allText,'IPC'), bnsT=scActTokens(allText,'BNS');
+    const sas={ipc:s&&s[3], sll:s&&s[4], wa:s&&s[5], scst:s&&s[6], pocso:s&&s[7], rape:s&&s[8]};
+    const isPocso=!!sas.pocso || /POCSO|PROTECTION OF CHILDREN FROM SEXUAL/i.test(allText);
+    const isScst=!!sas.scst || /SCHEDULED CASTES? AND SCHEDULED TRIBES|PREVENTION OF ATROCITIES/i.test(allText);
+    const isNdps=sas.sll==='NDPS Act' || /NARCOTIC DRUGS|\bNDPS\b/i.test(allText);
+    let catHi, subHi='—';
+    if(isPocso){ catHi='पोक्सो एक्ट'; subHi= sas.pocso?mcrHi(sas.pocso):(sas.ipc?mcrHi(sas.ipc):'अन्य पोक्सो एक्ट'); }
+    else if(isScst){ catHi='SC/ST एक्ट'; subHi= sas.scst?mcrHi(sas.scst):(sas.ipc?mcrHi(sas.ipc):'एस.सी./एस.टी. एक्ट'); }
+    else if(sas.rape){ catHi='दुष्कर्म'; subHi=mcrHi(sas.rape); }
+    else if(sas.wa){ catHi='महिला अपराध'; subHi=mcrHi(sas.wa); }
+    else if(isNdps){ catHi='स्वापक (NDPS) एक्ट'; subHi=sas.sll?mcrHi(sas.sll):'NDPS एक्ट'; }
+    else if(sas.ipc){ catHi='भा.दं.सं./बी.एन.एस.'; subHi=mcrHi(sas.ipc); }
+    else if(sas.sll){ catHi='स्थानीय एवं विशेष अधिनियम'; subHi=mcrHi(sas.sll); }
+    else { catHi = (ipcT.length||bnsT.length) ? 'भा.दं.सं./बी.एन.एस.' : 'स्थानीय एवं विशेष अधिनियम'; }
+    const is420=ipcT.indexOf('420')>=0 || bnsT.indexOf('318(4)')>=0;
+    const is467=ipcT.indexOf('467')>=0 || ipcT.indexOf('468')>=0 || bnsT.indexOf('336(3)')>=0 || bnsT.indexOf('338')>=0;
+    if(subHi===mcrHi('Other BNS/IPC')){ if(is467) subHi='कूटरचना / जालसाजी'; else if(is420) subHi='धोखाधड़ी'; }
+    const csSec = (g&&g[14]) || (f&&FDC.act2[f[9]]) || '';
+    rows.push({ps:e.ps, psHi:ENG2HI_PS[e.ps]||e.ps, fir, reg, secLines:scHindiSection(sec), cat, statusHi:SC_STATUS_HI[cat], catHi, subHi,
+      io:(g&&g[8])||'', csLines:scHindiSection(String(csSec).trim()), id:e.id||'', isPocso, isScst, isNdps, is420, is467});
+  });
+  return rows;
+}
+const SC_TABLES = [
+  {id:'pocso', n:1, icon:'🧒', color:'#C2185B', c2:'#E91E63', title:'दो महीनों से अधिक अवधि के पेंडिंग पोक्सो (POCSO) एक्ट प्रकरण', short:'पोक्सो एक्ट · 2 माह+', test:r=>r.isPocso, months:2, cats:['ui','173193','reopen'], cols:'base'},
+  {id:'scst',  n:2, icon:'⚖️', color:'#6A1B9A', c2:'#9C27B0', title:'दो महीनों से अधिक अवधि के पेंडिंग SC/ST एक्ट प्रकरण', short:'SC/ST एक्ट · 2 माह+', test:r=>r.isScst, months:2, cats:['ui','173193','reopen'], cols:'base'},
+  {id:'ndps',  n:3, icon:'💊', color:'#00695C', c2:'#009688', title:'दो महीनों से अधिक अवधि के पेंडिंग NDPS एक्ट प्रकरण', short:'NDPS एक्ट · 2 माह+', test:r=>r.isNdps, months:2, cats:['ui','173193','reopen'], cols:'base'},
+  {id:'s420',  n:4, icon:'💳', color:'#1565C0', c2:'#2196F3', title:'420 भा.द.सं. / 318(4) बी.एन.एस. के पेंडिंग प्रकरण', short:'420 भा.द.सं. / 318(4) बी.एन.एस.', note:'जिन FIR में 467, 468 भा.द.सं. / 336(3), 338 बी.एन.एस. की धाराएँ भी हैं, वे इस सारणी में नहीं गिनी गई हैं — वे सारणी 5 में दर्ज हैं।', test:r=>r.is420 && !r.is467, cats:['ui','173193','reopen'], cols:'base'},
+  {id:'s467',  n:5, icon:'📝', color:'#E65100', c2:'#FF9800', title:'467, 468 भा.द.सं. / 336(3), 338 बी.एन.एस. के पेंडिंग प्रकरण', short:'467-468 भा.द.सं. / 336(3)-338 बी.एन.एस.', test:r=>r.is467, cats:['ui','173193','reopen'], cols:'base'},
+  {id:'y1',    n:6, icon:'⏳', color:'#8B1A1A', c2:'#D32F2F', title:'एक वर्ष से अधिक पेंडिंग प्रकरण (पेंडिंग / 173(8) CrPC–193(9) BNSS)', short:'एक वर्ष से अधिक पेंडिंग', test:r=>true, years:1, cats:['ui','173193'], cols:'full'},
+  {id:'reopen',n:7, icon:'🔄', color:'#37474F', c2:'#607D8B', title:'RE-OPEN प्रकरण (चालान धारा सहित)', short:'RE-OPEN प्रकरण', test:r=>true, cats:['reopen'], cols:'chalan'}
+];
+function scHeader(kind){
+  const base=['क्रम संख्या','पुलिस थाना','एफ.आई.आर. नंबर/वर्ष','दर्ज दिनांक','धारा'];
+  if(kind==='base') return base.concat(['अपराध की उप श्रेणी','नाम अनुसंधान अधिकारी','प्रकरण की स्थिति']);
+  if(kind==='full') return base.concat(['अपराध की श्रेणी','अपराध की उप श्रेणी','नाम अनुसंधान अधिकारी','प्रकरण की स्थिति']);
+  return base.concat(['अपराध की श्रेणी','अपराध की उप श्रेणी','नाम अनुसंधान अधिकारी','चालान धारा सहित']);
+}
+// सादा-पाठ कक्ष (Excel हेतु); धारा-कक्ष में हर अधिनियम नई पंक्ति पर
+function scRowCells(r,kind,i){
+  const sec=r.secLines.join('\n')||'—';
+  const b=[i, r.psHi, r.fir, scFmtDate(r.reg), sec];
+  if(kind==='base') return b.concat([r.subHi, r.io||'—', r.statusHi]);
+  if(kind==='full') return b.concat([r.catHi, r.subHi, r.io||'—', r.statusHi]);
+  return b.concat([r.catHi, r.subHi, r.io||'—', r.csLines.join('\n')||'चालान धारा दर्ज नहीं']);
+}
+function scCellHtml(head, val, def, rowNo){
+  const v=String(val==null?'':val);
+  if(head==='क्रम संख्या') return `<td class="sc-c"><span class="sc-no" style="background:${def.color}">${scEsc(v)}</span></td>`;
+  if(head==='धारा' || head==='चालान धारा सहित') return `<td class="sc-sec">${v.split('\n').map(x=>`<div>${scEsc(x)}</div>`).join('')}</td>`;
+  if(head==='प्रकरण की स्थिति'){ const cls=v==='RE-OPEN'?'sc-b-re':v==='पेंडिंग'?'sc-b-pe':'sc-b-bn'; return `<td class="sc-c"><span class="sc-badge ${cls}">${scEsc(v)}</span></td>`; }
+  if(head==='अपराध की श्रेणी') return `<td><span class="sc-chip" style="border-color:${def.color};color:${def.color}">${scEsc(v)}</span></td>`;
+  if(head==='पुलिस थाना') return `<td class="sc-ps">${scEsc(v)}</td>`;
+  if(head==='दर्ज दिनांक') return `<td style="white-space:nowrap">${scEsc(v)}</td>`;
+  if(head==='एफ.आई.आर. नंबर/वर्ष') return `<td class="sc-fir">${scEsc(v)}</td>`;
+  if(head==='नाम अनुसंधान अधिकारी' && (v==='—'||!v)) return `<td class="sc-na">—</td>`;
+  return `<td>${scEsc(v)}</td>`;
+}
+function scSelect(def, all, ps){
+  const cutoff = def.months? scCutoff(def.months) : def.years? scCutoff(def.years*12) : null;
+  let rows=all.filter(r=>def.cats.indexOf(r.cat)>=0 && def.test(r) && (!ps||ps==='ALL'||r.ps===ps) && (!cutoff || (r.reg && r.reg<cutoff)));
+  rows.sort((a,b)=>String(a.reg).localeCompare(String(b.reg)) || a.psHi.localeCompare(b.psHi,'hi'));
+  return {rows, cutoff};
+}
+function scInjectCss(){
+  if(document.getElementById('sc-css')) return;
+  const st=document.createElement('style'); st.id='sc-css';
+  st.textContent=`
+  #sensCases .sc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:18px}
+  #sensCases .sc-card{display:block;text-decoration:none;color:#fff;border-radius:14px;padding:14px 16px;box-shadow:0 6px 16px rgba(0,0,0,.16);position:relative;overflow:hidden;transition:transform .15s}
+  #sensCases .sc-card:hover{transform:translateY(-3px)}
+  #sensCases .sc-card .ic{position:absolute;right:10px;top:6px;font-size:34px;opacity:.28}
+  #sensCases .sc-card .num{font-size:34px;font-weight:800;line-height:1.1}
+  #sensCases .sc-card .lbl{font-size:12.5px;font-weight:600;margin-top:4px;opacity:.95}
+  #sensCases .sc-tbox{margin-bottom:22px;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.12);border:1px solid #e6e6ee}
+  #sensCases .sc-th{color:#fff;padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+  #sensCases .sc-th h3{margin:0;font-size:16px;line-height:1.4}
+  #sensCases .sc-th .cnt{background:rgba(255,255,255,.22);border-radius:20px;padding:3px 14px;font-weight:800;font-size:14px;white-space:nowrap}
+  #sensCases .sc-th button{background:#fff;color:#222;border:0;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer}
+  #sensCases .sc-note{background:#FFF8E1;border-left:4px solid #F9A825;padding:8px 14px;font-size:12.5px;color:#5d4a00}
+  #sensCases .sc-sub{padding:6px 16px;font-size:12.5px;color:#555;background:#f7f7fb}
+  #sensCases .sc-wrap{max-height:72vh;overflow:auto}
+  #sensCases table.sc-t{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+  #sensCases .sc-t th{position:sticky;top:0;background:#263238;color:#fff;padding:9px 10px;text-align:center;font-weight:700;white-space:nowrap;z-index:2}
+  #sensCases .sc-t td{padding:8px 10px;border-bottom:1px solid #eceff1;vertical-align:top}
+  #sensCases .sc-t tbody tr:nth-child(even){background:#f8f9fc}
+  #sensCases .sc-t tbody tr:hover{background:#FFF3E0}
+  #sensCases .sc-c{text-align:center}
+  #sensCases .sc-no{display:inline-block;min-width:26px;padding:2px 6px;border-radius:14px;color:#fff;font-weight:700;font-size:12px}
+  #sensCases .sc-ps{font-weight:700;white-space:nowrap}
+  #sensCases .sc-fir{font-weight:700;white-space:nowrap;color:#1a237e}
+  #sensCases .sc-sec{min-width:260px;max-width:420px;font-size:12.5px}
+  #sensCases .sc-sec div{padding:1px 0}
+  #sensCases .sc-sec div+div{border-top:1px dashed #cfd8dc;margin-top:2px;padding-top:3px}
+  #sensCases .sc-badge{display:inline-block;padding:3px 10px;border-radius:14px;font-weight:700;font-size:12px;white-space:nowrap}
+  #sensCases .sc-b-pe{background:#FFF3CD;color:#8a5a00;border:1px solid #f0c75e}
+  #sensCases .sc-b-bn{background:#E3F2FD;color:#0d47a1;border:1px solid #90caf9}
+  #sensCases .sc-b-re{background:#FDECEA;color:#b71c1c;border:1px solid #ef9a9a}
+  #sensCases .sc-chip{display:inline-block;border:1.5px solid;border-radius:14px;padding:2px 9px;font-weight:700;font-size:12px}
+  #sensCases .sc-na{color:#9aa0a6;text-align:center}
+  #sensCases .sc-empty{padding:22px;text-align:center;color:#2e7d32;font-weight:700}`;
+  document.head.appendChild(st);
+}
+function renderSensCases(){
+  const host=document.getElementById('scHost'); if(!host) return;
+  scInjectCss();
+  const sel=document.getElementById('scPs');
+  if(sel && !sel.options.length){ sel.innerHTML='<option value="ALL">सम्पूर्ण जिला</option>'+ALL_PS_EN.map(p=>`<option value="${scEsc(p)}">${scEsc(ENG2HI_PS[p]||p)}</option>`).join(''); }
+  const ps=sel?sel.value:'ALL';
+  const all=scBuildRows(); window._scAll=all;
+  if(!all.length){ host.innerHTML='<div class="note">डेटा उपलब्ध नहीं — पहले लाइव डेटा सिंक होने दें।</div>'; document.getElementById('scSummary').innerHTML=''; return; }
+  let sum='<div class="sc-grid">', body='';
+  SC_TABLES.forEach(def=>{
+    const {rows,cutoff}=scSelect(def,all,ps);
+    sum+=`<a class="sc-card" href="#sc-${def.id}" style="background:linear-gradient(135deg,${def.color},${def.c2})" onclick="document.getElementById('sc-${def.id}').scrollIntoView({behavior:'smooth'});return false;"><span class="ic">${def.icon}</span><div class="num">${rows.length}</div><div class="lbl">सारणी ${def.n}: ${scEsc(def.short)}</div></a>`;
+    const head=scHeader(def.cols);
+    const trs=rows.map((r,i)=>'<tr>'+scRowCells(r,def.cols,i+1).map((c,ci)=>scCellHtml(head[ci],c,def,i+1)).join('')+'</tr>').join('');
+    const sub = cutoff? `<div class="sc-sub">📅 दर्ज दिनांक <b>${scFmtDate(cutoff)}</b> से पूर्व के प्रकरण — अर्थात् आज की तिथि से <b>${def.months?def.months+' माह':def.years+' वर्ष'}</b> से अधिक अवधि के पेंडिंग</div>` : '';
+    body+=`<div class="sc-tbox" id="sc-${def.id}">
+      <div class="sc-th" style="background:linear-gradient(135deg,${def.color},${def.c2})"><h3>${def.icon} सारणी ${def.n}. ${scEsc(def.title)}</h3><div style="display:flex;gap:8px;align-items:center"><span class="cnt">कुल: ${rows.length}</span><button onclick="scDownload('${def.id}')">📥 Excel</button></div></div>
+      ${def.note?`<div class="sc-note">ℹ️ ${scEsc(def.note)}</div>`:''}${sub}
+      ${rows.length?`<div class="sc-wrap"><table class="sc-t"><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${trs}</tbody></table></div>`:'<div class="sc-empty">✅ कोई प्रकरण नहीं मिला</div>'}
+    </div>`;
+  });
+  sum+='</div>';
+  document.getElementById('scSummary').innerHTML=sum;
+  host.innerHTML=body;
+}
+function scSheet(def, ps){
+  const {rows}=scSelect(def,window._scAll||scBuildRows(),ps);
+  const kind=def.cols;
+  return {name:(def.n+'. '+def.short).replace(/[\\\/\?\*\[\]:]/g,' ').slice(0,31), aoa:[scHeader(kind)].concat(rows.map((r,i)=>scRowCells(r,kind,i+1))), colWidths:[8,20,16,12,55,22,22,22,30], filter:true};
+}
+function scDownload(id){
+  const def=SC_TABLES.find(d=>d.id===id); const ps=(document.getElementById('scPs')||{}).value||'ALL';
+  exportRowsToXLSX('vishesh-pending-'+id+'.xlsx',[scSheet(def,ps)]);
+}
+function scDownloadAll(){
+  const ps=(document.getElementById('scPs')||{}).value||'ALL';
+  if(!window._scAll) window._scAll=scBuildRows();
+  exportRowsToXLSX('vishesh-pending-sabhi-sarniyan.xlsx', SC_TABLES.map(d=>scSheet(d,ps)));
 }
 
 /* ===================== MASTER RENDER ===================== */
@@ -10893,12 +11280,12 @@ function handleDbFile(evt){
       const data = new Uint8Array(e.target.result);
       /* cellDates:false — तारीख़ें सीरियल-नंबर के रूप में पढ़ी जाती हैं और toISODate उन्हें सटीक बदलती है।
          (cellDates:true में SheetJS भारतीय टाइमज़ोन में कुछ तारीख़ें 1 दिन पीछे दे देता था) */
-      const wb = XLSX.read(data, {type:'array', cellDates:false});
+      const wb = XLSX.read(data, {type:'array', cellDates:false, cellNF:true});
       let sheetName = wb.SheetNames.includes('Results') ? 'Results'
                      : wb.SheetNames.includes('FIR CASS') ? 'FIR CASS'
                      : wb.SheetNames[0];
       const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {defval:null});
-      const aoaSas = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {header:1, raw:false, defval:''});
+      const aoaSas = sheetToAOAExact(wb.Sheets[sheetName]);
       if(rows.length===0){
         document.getElementById('dbUploadStatus').innerHTML = `<div class="status-msg err">फ़ाइल में कोई डेटा पंक्ति नहीं मिली (शीट: "${sheetName}")। कृपया जांचें कि सही शीट में डेटा है।</div>`;
         return;
@@ -10942,7 +11329,9 @@ function handleDbFile(evt){
       }).filter(Boolean);
 
       const mode = document.querySelector('input[name=dbMergeMode]:checked').value;
-      if(mode==='replace') RAW = newRecs; else RAW = RAW.concat(newRecs);
+      const rawBefore = RAW.length;
+      if(mode==='replace') RAW = newRecs; else RAW = mergeByFirKey(RAW, newRecs, 0, 2, 15);
+      const rawDup = (mode==='replace') ? 0 : (rawBefore + newRecs.length - RAW.length);
       buildRecords();
       initControls();
       renderAll();
@@ -10952,7 +11341,7 @@ function handleDbFile(evt){
       const missingCols = ['ps','firDate','disposal','infoSource'].filter(f=>!colMap[f]);
       const statusElDb = document.getElementById('dbUploadStatus');
       statusElDb.innerHTML =
-        `<div class="status-msg ok">✅ ${added} रिकॉर्ड सफलतापूर्वक ${mode==='replace'?'बदले गए':'जोड़े गए'} (शीट: "${sheetName}"${skipped?`, ${skipped} अमान्य पंक्तियाँ छोड़ी गईं`:''})। कुल अब ${dbRecords.length.toLocaleString('en-IN')} रिकॉर्ड हैं।${missingCols.length?'<br>⚠️ कुछ स्तंभ नहीं मिले: '+missingCols.map(f=>FIELD_LABELS_HI[f]||f).join(', ')+' — यदि "Information Source" यहाँ सूचीबद्ध है तो यूनिवर्सल सर्च में उसका फ़िल्टर काम नहीं करेगा; अपलोड की गई फ़ाइल में उस स्तंभ का नाम जांचें।':''}</div>`;
+        `<div class="status-msg ok">✅ ${added} रिकॉर्ड सफलतापूर्वक ${mode==='replace'?'बदले गए':'जोड़े गए'}${rawDup?` (${rawDup.toLocaleString('en-IN')} पहले से मौजूद FIR अद्यतन हुईं, दोहराई नहीं गईं)`:''} (शीट: "${sheetName}"${skipped?`, ${skipped} अमान्य पंक्तियाँ छोड़ी गईं`:''})। कुल अब ${dbRecords.length.toLocaleString('en-IN')} रिकॉर्ड हैं।${missingCols.length?'<br>⚠️ कुछ स्तंभ नहीं मिले: '+missingCols.map(f=>FIELD_LABELS_HI[f]||f).join(', ')+' — यदि "Information Source" यहाँ सूचीबद्ध है तो यूनिवर्सल सर्च में उसका फ़िल्टर काम नहीं करेगा; अपलोड की गई फ़ाइल में उस स्तंभ का नाम जांचें।':''}</div>`;
       pushSheetAndReportStatus(statusElDb, 'sas', aoaSas, mode);
     }catch(err){
       document.getElementById('dbUploadStatus').innerHTML =
@@ -11026,8 +11415,8 @@ const SHEET_IDS = {
 };
 // चारों एक ही Google Sheet में अलग-अलग टैब (tabs) पर हैं — टैब का नाम मायने रखता है
 const SHEET_TABS = { gen:'Generic', fdc:'FDC', sas:'SAS', wanted:'Wanted', wantedHistory:'WantedHistory', lockedPeriods:'LockedPeriods' };
-function gvizUrl(id, tabName){ return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}&_cb=${Date.now()}`; }
-function exportUrl(id, tabName){ return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}&_cb2=${Date.now()}_${Math.random()}`; }
+function gvizUrl(id, tabName){ return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}&headers=1&_cb=${Date.now()}`; }
+function exportUrl(id, tabName){ return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}&headers=1&_cb2=${Date.now()}_${Math.random()}`; }
 
 // SAS Export जैसी फाइलों में कभी-कभी हेडर के हर शब्द के बाद "." जुड़ जाता है (जैसे "IPC." या "Women. Abuse.")
 // — इससे कॉलम-मिलान (colVal) टूट जाता है और चार्ट/डेटा खाली दिखते हैं। इसलिए तुलना से पहले
@@ -11051,6 +11440,7 @@ function pad2(n){ return String(n).padStart(2,'0'); }
 // order: 'dmy' (दिनांक/माह/वर्ष — FIR Detail-Current Status व sasExport फ़ाइलों का प्रारूप) या
 //        'mdy' (माह/दिनांक/वर्ष — Generic फ़ाइल का प्रारूप, जैसे M/D/YYYY)
 // दोनों ही मामलों में यदि पहला/दूसरा भाग 12 से बड़ा हो तो वह स्वतः महीना नहीं हो सकता, इसलिए अदला-बदली सुरक्षा-जाल के रूप में बनी रहती है।
+var __dateHint=null;
 /* फ़ाइल के वास्तविक दिनांक-प्रारूप की पहचान: जिस कॉलम में 4-अंकीय वर्ष वाली दिनांकों में पहला भाग 12 से बड़ा मिले तो dmy, दूसरा भाग 12 से बड़ा मिले तो mdy */
 function detectDateOrder(aoa, colNames){
   const idx=buildHeaderIndex(aoa[0]||[]); let ci;
@@ -11059,10 +11449,10 @@ function detectDateOrder(aoa, colNames){
   for(let i=1;i<aoa.length;i++){ const v=String((aoa[i]&&aoa[i][ci]!=null)?aoa[i][ci]:'').trim(); const m=v.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/); if(!m) continue; if(+m[1]>12&&+m[2]<=12) dmy++; else if(+m[2]>12&&+m[1]<=12) mdy++; }
   return dmy>mdy?'dmy':(mdy>dmy?'mdy':null);
 }
-/* hint = इसी कॉलम की दिनांकों से पहचाना गया वास्तविक प्रारूप ('dmy'/'mdy'/null) — प्रत्येक कॉलम के लिए अलग */
+function __withDateHint(aoa, cols, fn){ let h=null; try{ h=detectDateOrder(aoa,cols); }catch(e){} __dateHint=h; try{ return fn(aoa); } finally{ __dateHint=null; } }
 function normalizeDateStr(v, order, hint){
   if(v==null || v==='') return null;
-  order = hint || order || 'dmy';
+  order = hint || __dateHint || order || 'dmy';
   const s = String(v).trim();
   let m;
   if(m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)) return `${m[1]}-${pad2(m[2])}-${pad2(m[3])}`;
@@ -11076,7 +11466,7 @@ function normalizeDateStr(v, order, hint){
   }
   if(m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2})$/)){
     /* 2-अंकीय वर्ष (SheetJS का m/d/yy रूप) — फ़ाइल का पहचाना गया प्रारूप लें; पहचान न हो तो m/d/yy */
-    let a=+m[1], b=+m[2], y=2000+(+m[3]), d, mo; const o2=hint||'mdy';
+    let a=+m[1], b=+m[2], y=2000+(+m[3]), d, mo; const o2=hint||__dateHint||'mdy';
     if(o2==='mdy'){ mo=a; d=b; } else { d=a; mo=b; }
     if(mo>12 && d<=12){ const t=d; d=mo; mo=t; }
     if(mo>=1 && mo<=12 && d>=1 && d<=31) return `${y}-${pad2(mo)}-${pad2(d)}`;
@@ -11084,6 +11474,68 @@ function normalizeDateStr(v, order, hint){
   const dt = new Date(s);
   if(!isNaN(dt.getTime())) return `${dt.getFullYear()}-${pad2(dt.getMonth()+1)}-${pad2(dt.getDate())}`;
   return null;
+}
+
+
+/* ===================== सटीक पठन (Exact ingestion) =====================
+   पहले Google Sheets का CSV SheetJS से पढ़ा जाता था, जो हर "दिखने में तारीख़" वाले मान को खुद तारीख़ मानकर m/d/yy में बदल देता था
+   (जैसे Generic की निस्तारण तिथि "2024-12-06" → "12/6/24" → दिन/माह उलट कर 06-12 की जगह 12-06) और लंबे अंकों को घातांक रूप दे सकता था।
+   अब CSV शब्दशः (exact string) पढ़ा जाता है; Excel फ़ाइल में तारीख़-वाले सेल सीधे ISO (YYYY-MM-DD) बनते हैं और 14-अंकीय कोड पूरे अंकों में रहते हैं। */
+function parseCSVStrict(text){
+  if(text && text.charCodeAt(0)===0xFEFF) text=text.slice(1);
+  const rows=[]; let row=[], cur='', inQ=false, i=0; const n=text.length;
+  while(i<n){
+    const ch=text[i];
+    if(inQ){
+      if(ch==='"'){ if(text[i+1]==='"'){ cur+='"'; i+=2; continue; } inQ=false; i++; continue; }
+      cur+=ch; i++; continue;
+    }
+    if(ch==='"'){ inQ=true; i++; continue; }
+    if(ch===','){ row.push(cur); cur=''; i++; continue; }
+    if(ch==='\r'){ i++; continue; }
+    if(ch==='\n'){ row.push(cur); rows.push(row); row=[]; cur=''; i++; continue; }
+    cur+=ch; i++;
+  }
+  if(cur!=='' || row.length){ row.push(cur); rows.push(row); }
+  return rows;
+}
+function sheetCellText(cell){
+  if(!cell || cell.v==null) return '';
+  if(cell.t==='d' && cell.v instanceof Date){ const d=cell.v; return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+  if(cell.t==='n'){
+    if(!cell.z && cell.w && /[A-Za-z]|[\/\-]/.test(cell.w)) return String(cell.w); /* फ़ॉर्मेट-जानकारी न मिले तो SheetJS का दिखने वाला रूप */
+    if(cell.z && XLSX.SSF && XLSX.SSF.is_date && XLSX.SSF.is_date(String(cell.z))){ const p=XLSX.SSF.parse_date_code(cell.v); if(p && p.y) return p.y+'-'+pad2(p.m)+'-'+pad2(p.d); }
+    if(Number.isInteger(cell.v) && Math.abs(cell.v)<1e21) return cell.v.toLocaleString('fullwide',{useGrouping:false});
+    return String(cell.v);
+  }
+  if(cell.t==='b') return cell.v?'TRUE':'FALSE';
+  return String(cell.v);
+}
+function sheetToAOAExact(ws){
+  if(!ws || !ws['!ref']) return [];
+  const rg=XLSX.utils.decode_range(ws['!ref']); const out=[];
+  for(let r=rg.s.r;r<=rg.e.r;r++){ const row=[]; for(let c=rg.s.c;c<=rg.e.c;c++){ row.push(sheetCellText(ws[XLSX.utils.encode_cell({r:r,c:c})])); } out.push(row); }
+  return out;
+}
+/* "जोड़ें (Add)" मोड में वही FIR दोबारा आने पर डुप्लीकेट न बने — FIR कोड (न हो तो थाना+FIR नंबर) पर नया रिकॉर्ड पुराने की जगह लेता है */
+function mergeByFirKey(oldArr, newArr, psIdx, firIdx, idIdx){
+  const m=new Map();
+  oldArr.concat(newArr).forEach((r,i)=>{ const k=recordJoinKey(String(r[psIdx]||'').trim().toUpperCase(), r[firIdx], r[idIdx]) || ('ROW#'+i); m.set(k,r); });
+  return Array.from(m.values());
+}
+/* Generic: निस्तारण दिनांक की जाँच — पंजीकरण + "DISPOSAL DAYS" से मिलान; दिन/माह उलटा आया हो तो सुधारें */
+var __ingestFix = {genDateHealed:0};
+function healDispDate(regISO, dispISO, dd){
+  if(!regISO || !dispISO) return dispISO;
+  const days=(a,b)=>Math.round((Date.parse(b+'T00:00:00Z')-Date.parse(a+'T00:00:00Z'))/864e5);
+  if(dd!=null && days(regISO,dispISO)===dd) return dispISO;
+  const m=dispISO.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(m && +m[3]<=12 && m[2]!==m[3]){
+    const sw=m[1]+'-'+m[3]+'-'+m[2];
+    if(dd!=null && days(regISO,sw)===dd){ __ingestFix.genDateHealed++; return sw; }
+    if(days(regISO,dispISO)<0 && days(regISO,sw)>=0){ __ingestFix.genDateHealed++; return sw; }
+  }
+  return dispISO;
 }
 
 async function fetchSheetAOA(id, tabName){
@@ -11098,15 +11550,15 @@ async function fetchSheetAOA(id, tabName){
     }catch(e){ lastErr=e; }
   }
   if(text==null) throw lastErr || new Error('fetch failed');
-  const wb = XLSX.read(text, {type:'string'});
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  return XLSX.utils.sheet_to_json(ws, {header:1, raw:false, defval:''});
+  return parseCSVStrict(text);
 }
 
-function parseLiveGeneric(aoa){
+function parseLiveGeneric(aoa){ return __withDateHint(aoa,['reg date'],parseLiveGeneric_raw); }
+function parseLiveGeneric_raw(aoa){
   if(!aoa || aoa.length<2) throw new Error('empty sheet');
   const idx = buildHeaderIndex(aoa[0]);
-  const hReg = detectDateOrder(aoa,['reg date']), hDisp = detectDateOrder(aoa,['disposal date']);
+  __ingestFix.genDateHealed = 0;
+  const __hReg = detectDateOrder(aoa,['reg date']) || undefined, __hDisp = detectDateOrder(aoa,['disposal date']) || undefined; // हर दिनांक-स्तंभ का अपना प्रारूप
   const out = [];
   for(let i=1;i<aoa.length;i++){
     const raw = aoa[i]; if(!raw || raw.every(c=>c===''||c==null)) continue;
@@ -11115,8 +11567,8 @@ function parseLiveGeneric(aoa){
     const limitTxt = String(colVal(raw, idx, ['disposal time limit'])||'');
     const bucket = /60/.test(limitTxt) ? 60 : 90;
     const firNoDate = String(colVal(raw, idx, ['fir no/date','fir no /date','fir no/ date'])||'').trim();
-    const regISO = normalizeDateStr(colVal(raw, idx, ['reg date']), 'dmy', hReg);
-    const dispISO = normalizeDateStr(colVal(raw, idx, ['disposal date']), 'dmy', hDisp);
+    let regISO = normalizeDateStr(colVal(raw, idx, ['reg date']), 'mdy', __hReg);
+    let dispISO = normalizeDateStr(colVal(raw, idx, ['disposal date']), 'mdy', __hDisp);
     const statusTxt = String(colVal(raw, idx, ['firs final status'])||'').trim();
     let sc = 0;
     if(/चालान/.test(statusTxt)) sc=1;
@@ -11125,24 +11577,25 @@ function parseLiveGeneric(aoa){
     const ddRaw = String(colVal(raw, idx, ['disposal  days','disposal days'])||'').trim();
     const rdRaw = String(colVal(raw, idx, ['reg firs days'])||'').trim();
     const dd = /^\d+$/.test(ddRaw) ? parseInt(ddRaw,10) : null;
+    dispISO = healDispDate(regISO, dispISO, dd);
     const rd = /^\d+$/.test(rdRaw) ? parseInt(rdRaw,10) : null;
     const ioName = String(colVal(raw, idx, ['io name'])||'').trim();
-    const regSection = String(colVal(raw, idx, ['reg act section'])||'').trim().slice(0,180);
+    const regSection = String(colVal(raw, idx, ['reg act section'])||'').trim().slice(0,600);
     const source = String(colVal(raw, idx, ['fir reg source'])||'').trim();
-    const invBaseSection = String(colVal(raw, idx, ['inv. base act & section','inv base act & section','inv base act and section','inv. base act and section','investigation base act & section','investigation base act and section'])||'').trim().slice(0,180);
+    const invBaseSection = String(colVal(raw, idx, ['inv. base act & section','inv base act & section','inv base act and section','inv. base act and section','investigation base act & section','investigation base act and section'])||'').trim().slice(0,600);
     const punishmentYear = String(colVal(raw, idx, ['punishment year','punishment yr'])||'').trim();
     const firRegNum = String(colVal(raw, idx, ['fir_reg_num','fir reg num'])||'').trim();
-    const csSection = String(colVal(raw, idx, ['chargesheet act & section','charge sheet act & section'])||'').trim().slice(0,250);
+    const csSection = String(colVal(raw, idx, ['chargesheet act & section','charge sheet act & section'])||'').trim().slice(0,600);
     out.push([ps, bucket, firNoDate, regISO, dispISO, sc, dd, rd, ioName, regSection, source, invBaseSection, punishmentYear, firRegNum, csSection]);
   }
   if(!out.length) throw new Error('no usable rows');
   return out;
 }
 
-function parseLiveFDC(aoa){
+function parseLiveFDC(aoa){ return __withDateHint(aoa,['fir regd. dt.','fir reg. dt.'],parseLiveFDC_raw); }
+function parseLiveFDC_raw(aoa){
   if(!aoa || aoa.length<2) throw new Error('empty sheet');
   const idx = buildHeaderIndex(aoa[0]);
-  const hReg = detectDateOrder(aoa,['fir regd. dt.','fir reg. dt.']), hCs = detectDateOrder(aoa,['cs/fr dt.','cs/fr dt']);
   const ffillCols = ['district','circle office','police station'];
   const last = {};
   const dicts = {circles:[],ps:[],src:[],fft:[],cst:[],act1:[],act2:[]};
@@ -11162,13 +11615,13 @@ function parseLiveFDC(aoa){
     const ps = String(colVal(raw, idx, ['police station'])||'').trim();
     if(!ps) continue;
     const fir = String(colVal(raw, idx, ['fir no. / year','fir no./year'])||'').trim();
-    const regDt = normalizeDateStr(colVal(raw, idx, ['fir regd. dt.','fir reg. dt.']), 'dmy', hReg);
-    const act1 = String(colVal(raw, idx, ['act & section(fir regd.)','act & section (fir regd.)'])||'').trim().slice(0,150);
+    const regDt = normalizeDateStr(colVal(raw, idx, ['fir regd. dt.','fir reg. dt.']), 'dmy');
+    const act1 = String(colVal(raw, idx, ['act & section(fir regd.)','act & section (fir regd.)'])||'').trim().slice(0,600);
     const src = String(colVal(raw, idx, ['info. source','information source'])||'').trim();
     const fft = String(colVal(raw, idx, ['final form type'])||'').trim();
     const csfrno = String(colVal(raw, idx, ['cs or fr no. / year','cs/fr no./year'])||'').trim();
-    const csfrdt = normalizeDateStr(colVal(raw, idx, ['cs/fr dt.','cs/fr dt']), 'dmy', hCs);
-    const act2 = String(colVal(raw, idx, ['act & section(charge sheet)','act & section (charge sheet)'])||'').trim().slice(0,150);
+    const csfrdt = normalizeDateStr(colVal(raw, idx, ['cs/fr dt.','cs/fr dt']), 'dmy');
+    const act2 = String(colVal(raw, idx, ['act & section(charge sheet)','act & section (charge sheet)'])||'').trim().slice(0,600);
     const cst = String(colVal(raw, idx, ['current status of fir'])||'').trim();
     const firCode = String(colVal(raw, idx, ['fir code'])||'').trim();
     rows.push([enc(circle,'circles'), enc(ps,'ps'), fir, regDt, enc(act1,'act1'), enc(src,'src'), enc(fft,'fft'), csfrno, csfrdt, enc(act2,'act2'), enc(cst,'cst'), firCode]);
@@ -11177,16 +11630,16 @@ function parseLiveFDC(aoa){
   return {circles:dicts.circles, ps:dicts.ps, src:dicts.src, fft:dicts.fft, cst:dicts.cst, act1:dicts.act1, act2:dicts.act2, rows};
 }
 
-function parseLiveSAS(aoa){
+function parseLiveSAS(aoa){ return __withDateHint(aoa,['fir reg date'],parseLiveSAS_raw); }
+function parseLiveSAS_raw(aoa){
   if(!aoa || aoa.length<2) throw new Error('empty sheet');
   const idx = buildHeaderIndex(aoa[0]);
-  const hReg = detectDateOrder(aoa,['fir reg date']), hCs = detectDateOrder(aoa,['chargesheet_dt','chargesheet dt']);
   const out = [];
   for(let i=1;i<aoa.length;i++){
     const raw = aoa[i]; if(!raw || raw.every(c=>c===''||c==null)) continue;
     const ps = String(colVal(raw, idx, ['ps','police station'])||'').trim();
     if(!ps) continue;
-    const regDate = normalizeDateStr(colVal(raw, idx, ['fir reg date']), 'dmy', hReg);
+    const regDate = normalizeDateStr(colVal(raw, idx, ['fir reg date']), 'dmy');
     const firNoYear = String(colVal(raw, idx, ['fir no./year','fir no/year'])||'').trim();
     const ipc = String(colVal(raw, idx, ['ipc^','ipc'])||'').trim() || null;
     const sll = String(colVal(raw, idx, ['sll^','sll'])||'').trim() || null;
@@ -11196,7 +11649,7 @@ function parseLiveSAS(aoa){
     const rape = String(colVal(raw, idx, ['rape^','rape'])||'').trim() || null;
     const disposal = String(colVal(raw, idx, ['disposal status'])||'').trim();
     const actSections = String(colVal(raw, idx, ['act & sections'])||'').trim();
-    const csDate = normalizeDateStr(colVal(raw, idx, ['chargesheet_dt','chargesheet dt']), 'dmy', hCs);
+    const csDate = normalizeDateStr(colVal(raw, idx, ['chargesheet_dt','chargesheet dt']), 'dmy');
     const fft = String(colVal(raw, idx, ['final_form_type','final form type'])||'').trim();
     const fru = String(colVal(raw, idx, ['fr_unoccur','fr unoccur'])||'').trim();
     const infoSource = String(colVal(raw, idx, ['information_source','information source'])||'').trim();
@@ -11671,6 +12124,7 @@ function dkRerenderActivePage(){
   if(id==='asOnDate'&&typeof aodRender==='function') run(aodRender);
   if(id==='pendency'&&typeof renderPendencyPage==='function') run(renderPendencyPage);
   if(id==='actWatch'&&typeof renderActWatch==='function') run(renderActWatch);
+  if(id==='sensCases'&&typeof renderSensCases==='function') run(renderSensCases);
   if(id==='perfMonitor'&&typeof renderPerfMonitor==='function') run(renderPerfMonitor);
   if(id==='dataQuality'&&typeof renderDataQuality==='function') run(renderDataQuality);
   if(id==='mcrBook'&&typeof renderMcrBook==='function') run(renderMcrBook);
@@ -11742,14 +12196,16 @@ function handleGenFile(evt){
   reader.onload = function(e){
     try{
       const data = new Uint8Array(e.target.result);
-      const wb = XLSX.read(data, {type:'array', cellDates:false});
+      const wb = XLSX.read(data, {type:'array', cellDates:false, cellNF:true});
       const ws = wb.Sheets[wb.SheetNames[0]];
-      const aoa = XLSX.utils.sheet_to_json(ws, {header:1, raw:false, defval:''});
+      const aoa = sheetToAOAExact(ws);
       const newGen = parseLiveGeneric(aoa);
       const mode = document.querySelector('input[name=genMergeMode]:checked').value;
-      GEN = (mode==='replace') ? newGen : GEN.concat(newGen);
+      const genBefore = GEN.length;
+      GEN = (mode==='replace') ? newGen : mergeByFirKey(GEN, newGen, 0, 2, 13);
+      const genDup = (mode==='replace') ? 0 : (genBefore + newGen.length - GEN.length);
       refreshAfterDataChange();
-      statusEl.innerHTML = `<div class="status-msg ok">✅ ${newGen.length} रिकॉर्ड सफलतापूर्वक ${mode==='replace'?'बदले गए':'जोड़े गए'}। अब कुल ${GEN.length.toLocaleString('en-IN')} रिकॉर्ड हैं।</div>`;
+      statusEl.innerHTML = `<div class="status-msg ok">✅ ${newGen.length} रिकॉर्ड सफलतापूर्वक ${mode==='replace'?'बदले गए':'जोड़े गए'}${genDup?` (${genDup.toLocaleString('en-IN')} पहले से मौजूद FIR नए रिकॉर्ड से अद्यतन हुईं, दोहराई नहीं गईं)`:''}। अब कुल ${GEN.length.toLocaleString('en-IN')} रिकॉर्ड हैं।</div>`;
       pushSheetAndReportStatus(statusEl, 'gen', aoa, mode);
     }catch(err){
       statusEl.innerHTML = `<div class="status-msg err">त्रुटि: ${err.message} — कृपया जांचें कि यह Generic(13) प्रारूप की ही फाइल है (स्तंभ: POLICE STATION, FIR NO/DATE, REG DATE, DISPOSAL DATE, FIRs FINAL STATUS, DISPOSAL TIME LIMIT आदि)।</div>`;
@@ -11772,9 +12228,9 @@ function handleFdcFile(evt){
   reader.onload = function(e){
     try{
       const data = new Uint8Array(e.target.result);
-      const wb = XLSX.read(data, {type:'array', cellDates:false});
+      const wb = XLSX.read(data, {type:'array', cellDates:false, cellNF:true});
       const ws = wb.Sheets[wb.SheetNames[0]];
-      const aoa = XLSX.utils.sheet_to_json(ws, {header:1, raw:false, defval:''});
+      const aoa = sheetToAOAExact(ws);
       const newFdc = parseLiveFDC(aoa);
       const mode = document.querySelector('input[name=fdcMergeMode]:checked').value;
       const countBefore = FDC.rows.length;
@@ -16219,7 +16675,7 @@ try{ initDispWordCircle(); }catch(e){}
     var css=document.createElement('style');
     css.textContent='.dk-upd{display:block;margin:8px auto 0;max-width:100%;font-size:11.5px;line-height:1.55;color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:5px 10px;box-sizing:border-box}.dk-upd.inl{color:var(--navy,#1E2A45);background:#EEF1F8;border-color:#d3d9e6;margin:6px 0 10px}';
     document.head.appendChild(css);
-    ['dashboard','disp60','disp90','crimeDisp','asOnDate','pendency','actWatch','univsearch','crimeAnalysis','perfMonitor','dataQuality','myPending','district','mcrBook'].forEach(function(id){
+    ['dashboard','disp60','disp90','crimeDisp','asOnDate','pendency','actWatch','sensCases','univsearch','crimeAnalysis','perfMonitor','dataQuality','myPending','district','mcrBook'].forEach(function(id){
       var pg=document.getElementById(id), bn=pg&&pg.querySelector('.banner'); if(!bn||bn.querySelector('.dk-upd')) return;
       var d=document.createElement('div'); d.className='dk-upd'; bn.appendChild(d);
     });
@@ -18638,7 +19094,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   }
 function dhQ4(){
     var o={fdc:!!(typeof FDC!=='undefined'&&FDC.rows&&FDC.rows.length),tot:0,rows:[],yrs:{},list:[],amb:0,ui:0};
-    o.cut=oneYearCutoffISO();
+    var cd=new Date(Date.now()-365*864e5); o.cut=cd.getFullYear()+'-'+('0'+(cd.getMonth()+1)).slice(-2)+'-'+('0'+cd.getDate()).slice(-2);
     if(!o.fdc) return o; var smap={};
     dbRecords.forEach(function(r,i){ var k=dhId(RAW[i][15]); if(k) smap[k]=r; });
     FDC.rows.forEach(function(r){
@@ -18751,7 +19207,6 @@ function dhQ4(){
       [23,'चालान में जुड़ी धाराएँ — हत्या; महिला अपराधों में ब्लैकमेलिंग / IT एक्ट'],
       [24,'चोरी / नकबजनी — चालान में सम्बन्धित धारा का अभाव'],
       [25,'BNS धारा 111 / 112 — श्रेणी, उपश्रेणी, वर्ष, वृत्त व थानावार सारणी'],
-      [28,'सड़क दुर्घटना प्रकरण (BNS 281 + 125 / 125(a) / 125(b) / 106(1)) — वर्ष तुलनात्मक, वृत्तवार व थानावार'],
       [26,'एक वर्ष से अधिक पेंडिंग प्रकरण — अपराध श्रेणी / उपश्रेणी, वृत्तवार व थानावार सारणी'],
       [27,'वृताधिकारी हेतु वृत्तवार विश्लेषण नोट — पेंडेंसी, 60/90 दिवस निस्तारण, समग्र समीक्षा व आगामी माह का लक्ष्य']
     ];
@@ -19128,57 +19583,6 @@ function dhQ4(){
         'धारा 111 / 112 के प्रकरणों में संगठित गिरोह / अभ्यस्त अपराधी के साक्ष्य की समीक्षा कर पर्यवेक्षण सुनिश्चित किया जावे।'];
     });
     addPage(25,H1('BNS धारा 111 / 112 — अपराध की श्रेणी, उपश्रेणी, वर्ष, वृत्त व थानावार तुलनात्मक सारणी')+P('Generic फाइल के “INV. BASE ACT & SECTION” में BNS की धारा 111 (संगठित अपराध) अथवा 112 (छोटे संगठित अपराध) वाले प्रकरणों की स्थिति SAS Export की श्रेणी / उपश्रेणी के साथ निम्नानुसार है–')+q2h);
-    /* 28 — सड़क दुर्घटना प्रकरण (INV. BASE ACT & SECTION में BNS 281 + 125 / 125(a) / 125(b) / 106(1)) : वर्ष तुलनात्मक */
-    try{
-      var RD_T=[['सामान्य सड़क दुर्घटना (बिना चोट / क्षति अथवा केवल लापरवाही से वाहन चलाना)','281 + 125 BNS','बिना चोट'],['सामान्य सड़क दुर्घटना (साधारण चोट)','281 + 125(a) BNS','साधारण चोट'],['गंभीर सड़क दुर्घटना (गंभीर चोट)','281 + 125(b) BNS','गंभीर चोट'],['प्राणघातक सड़क दुर्घटना (मृत्यु कारित)','281 + 106(1) BNS','मृत्यु'],['अन्य — केवल धारा 281 (उपरोक्त में से कोई अन्य धारा नहीं)','281 BNS','केवल 281']];
-      var rdCat=function(t){ var h281=false,s125=false,s125a=false,s125b=false,s106=false;
-        String(t||'').split(/,(?=[A-Za-z])/).forEach(function(sg){ sg=sg.trim(); var mm=sg.match(/^(.*?)(?::-|\s>\s)(.*)$/); if(!mm) return; var n=mm[1].toUpperCase(); if(n.indexOf('NYAYA')<0&&n.indexOf('BNS')!==0) return;
-          mm[2].split(',').forEach(function(x){ var b=x.trim().match(/^(\d+)\s*(\(\s*([0-9A-Za-z]+)\s*\))?/); if(!b) return; var num=b[1], sf=(b[3]||'').toLowerCase();
-            if(num==='281') h281=true; else if(num==='125'){ if(sf==='a') s125a=true; else if(sf==='b') s125b=true; else if(!sf) s125=true; } else if(num==='106'&&sf==='1') s106=true; }); });
-        if(!h281) return -1; return s106?3:(s125b?2:(s125a?1:(s125?0:4))); };
-      var RDR=[]; (GEN||[]).forEach(function(g){ var c=rdCat(g[11]); if(c<0) return; var d=String(g[3]||''), yy=+d.slice(0,4), mo=+d.slice(5,7); if(!mo||(yy!==y&&yy!==y-1)||mo>m) return; var ps=String(g[0]||'').trim().toUpperCase(); RDR.push({c:c,y:yy,ps:ps,cir:dhCircOf(ps)}); });
-      var rn=function(f,c,yr){ var n=0; RDR.forEach(function(r){ if(r.y===yr&&(c===null||r.c===c)&&f(r)) n++; }); return n; };
-      var rcol=function(a,b){ return b>a?bgc('#FFE1E1'):(b<a?bgc('#E3F6E8'):null); };
-      var dlt=function(a,b){ var d=b-a; return d>0?'<b style="color:#B91C1C">+'+d+'</b>':(d<0?'<b style="color:#15803D">'+d+'</b>':'0'); };
-      var pcs=function(a,b){ return a? ((b>a?'+':'')+(((b-a)/a)*100).toFixed(1)+'%') : (b?'नया':'–'); };
-      var ALLF=function(){return true;};
-      /* A. जिला — दुर्घटना के प्रकार अनुसार */
-      var tA='<thead><tr>'+th('क्र.<br>सं.')+th('दुर्घटना का प्रकार')+th('BNS की धाराएं')+th((y-1))+th(y)+th('अन्तर')+th('परिवर्तन %')+'</tr></thead><tbody>', t1=0,t2=0;
-      RD_T.forEach(function(r,i){ var a=rn(ALLF,i,y-1), b=rn(ALLF,i,y); t1+=a; t2+=b; tA+='<tr>'+td(i+1)+tdl(r[0])+td(r[1])+td(a)+td(b,true,rcol(a,b))+td(dlt(a,b))+td(pcs(a,b))+'</tr>'; });
-      tA+='<tr>'+td('',true)+tdl('<b>कुल सड़क दुर्घटना प्रकरण (धारा 281 सहित)</b>')+td('')+td('<b>'+t1+'</b>',true)+td('<b>'+t2+'</b>',true,rcol(t1,t2))+td(dlt(t1,t2))+td(pcs(t1,t2))+'</tr>';
-      /* B / C. वृत्तवार / थानावार — प्रकार अनुसार */
-      var mkRd=function(keys,lf,kf,rl){ var h='<thead><tr>'+th(rl,' rowspan="2"')+RD_T.map(function(r){return th('<b>'+r[2]+'</b>',' colspan="2"')}).join('')+th('<b>कुल</b>',' colspan="2"')+th('अन्तर',' rowspan="2"')+'</tr><tr>'+RD_T.concat([0]).map(function(){return th(y-1)+th(y)}).join('')+'</tr></thead><tbody>';
-        var row=function(lbl,f,bd){ var t='<tr>'+(bd?tdl('<b>'+lbl+'</b>'):tdl(lbl)), s1=0,s2=0; RD_T.forEach(function(r,i){ var a=rn(f,i,y-1), b=rn(f,i,y); s1+=a; s2+=b; t+=td(a,bd)+td(b,bd,rcol(a,b)); }); return t+td(s1,true)+td(s2,true,rcol(s1,s2))+td(dlt(s1,s2))+'</tr>'; };
-        keys.forEach(function(k){ h+=row(lf(k),function(r){return kf(r)===k;},false); }); h+=row('जिला योग',ALLF,true); return tbl(h+'</tbody>',9.5); };
-      var cirK=[], psK=[]; RDR.forEach(function(r){ if(cirK.indexOf(r.cir)<0) cirK.push(r.cir); if(psK.indexOf(r.ps)<0) psK.push(r.ps); });
-      var tot=function(f){ return rn(f,null,y); };
-      cirK.sort(function(a,b){return tot(function(r){return r.cir===b})-tot(function(r){return r.cir===a})});
-      psK.sort(function(a,b){return tot(function(r){return r.ps===b})-tot(function(r){return r.ps===a})});
-      ALL_PS_EN.forEach(function(p){ if(psK.indexOf(p)<0&&p) psK.push(p); });
-      var tB=mkRd(cirK,function(k){return cname(k)},function(r){return r.cir},'वृत्त'), tC=mkRd(psK,function(k){return psLabel(k)||k},function(r){return r.ps},'थाना');
-      var per='जनवरी–'+nm+' '+(y-1)+' बनाम '+y;
-      NOTES=SN('सड़क दुर्घटना प्रकरण — समीक्षा',function(){
-        if(!RDR.length) return ['Generic फाइल लोड नहीं है अथवा “INV. BASE ACT & SECTION” में BNS 281 वाले प्रकरण नहीं मिले।'];
-        var L=['<b>कुल सड़क दुर्घटना प्रकरण (BNS 281):</b> '+(y-1)+': <b>'+t1+'</b> → '+y+': <b>'+t2+'</b> ('+pcs(t1,t2)+', '+(t2>t1?'<span style="color:#B91C1C">वृद्धि</span>':(t2<t1?'<span style="color:#15803D">कमी</span>':'कोई परिवर्तन नहीं'))+')'];
-        L.push('<b>प्रकारवार:</b> '+RD_T.map(function(r,i){return r[2]+' '+rn(ALLF,i,y-1)+'→'+rn(ALLF,i,y)}).join(' • '));
-        var d1=rn(ALLF,3,y-1), d2=rn(ALLF,3,y); L.push('<b style="color:'+(d2>d1?'#B91C1C':'#15803D')+'">प्राणघातक दुर्घटनाएँ (281 + 106(1)):</b> '+d1+' → '+d2+(d2>d1?' — वृद्धि, ब्लैक-स्पॉट / तेज गति पर विशेष कार्यवाही आवश्यक':' — '+(d2<d1?'कमी':'स्थिर')));
-        var ct=cirK.map(function(k){return {l:cname(k),a:rn(function(r){return r.cir===k},null,y-1),b:rn(function(r){return r.cir===k},null,y)}});
-        L.push('<b>वृत्तवार ('+(y-1)+'→'+y+'):</b> '+ct.map(function(x){return x.l+' '+x.a+'→'+x.b}).join(' • '));
-        L.push('<b>निर्देश:</b> प्राणघातक व गंभीर चोट वाले प्रकरणों में वाहन चालक की गिरफ्तारी / जब्ती, MV Act की धाराओं (134, 187 आदि) की अनुपालना तथा दुर्घटना-बहुल स्थानों पर यातायात प्रवर्तन बढ़ाया जावे।');
-        return L; });
-      addPage(28,H1('सड़क दुर्घटना प्रकरण — BNS 281 + 125 / 125(a) / 125(b) / 106(1) — वर्ष '+(y-1)+' एवं '+y+' की तुलनात्मक स्थिति')+P('Generic फाइल के “INV. BASE ACT & SECTION” में धारा 281 के साथ 125 / 125(a) / 125(b) / 106(1) में से कोई धारा (अथवा अन्य किसी धारा के साथ भी) होने पर प्रकरण सड़क दुर्घटना माना गया है। एक प्रकरण में एक से अधिक धारा होने पर सर्वाधिक गंभीर श्रेणी (मृत्यु > गंभीर चोट > साधारण चोट > बिना चोट) में एक बार गिना गया है। अवधि: '+per+'।')+H2('दुर्घटना के प्रकार अनुसार','जिला')+tbl(tA+'</tbody>',10.5)+H2('वृत्तवार','')+tB);
-      NOTES=SN('सड़क दुर्घटना — थानावार समीक्षा',function(){
-        if(!RDR.length) return ['डेटा उपलब्ध नहीं।'];
-        var rows=psK.map(function(k){ return {l:psLabel(k)||k,a:rn(function(r){return r.ps===k},null,y-1),b:rn(function(r){return r.ps===k},null,y),d:rn(function(r){return r.ps===k},3,y)}; });
-        var up=rows.filter(function(x){return x.b>x.a}).sort(function(p,q){return (q.b-q.a)-(p.b-p.a)}), dn=rows.filter(function(x){return x.b<x.a}).sort(function(p,q){return (p.b-p.a)-(q.b-q.a)}), top=rows.slice().sort(function(p,q){return q.b-p.b}).filter(function(x){return x.b>0}), dd=rows.filter(function(x){return x.d>0}).sort(function(p,q){return q.d-p.d});
-        var L=[]; L.push('<b style="color:#B91C1C">प्रकरण बढ़े ('+up.length+' थाने):</b> '+(up.slice(0,8).map(function(x){return x.l+' ('+x.a+'→'+x.b+')'}).join(', ')||'—'));
-        L.push('<b style="color:#15803D">प्रकरण घटे ('+dn.length+' थाने):</b> '+(dn.slice(0,8).map(function(x){return x.l+' ('+x.a+'→'+x.b+')'}).join(', ')||'—'));
-        L.push('<b>वर्ष '+y+' में सर्वाधिक प्रकरण:</b> '+top.slice(0,6).map(function(x){return x.l+' '+x.b}).join(', '));
-        L.push('<b>प्राणघातक दुर्घटना वाले थाने ('+y+'):</b> '+(dd.map(function(x){return x.l+' '+x.d}).join(', ')||'कोई नहीं'));
-        return L; });
-      addPage(28,H1('सड़क दुर्घटना प्रकरण — थानावार तुलनात्मक सारणी ('+per+')')+P('प्रत्येक थाने के सड़क दुर्घटना प्रकरण, दुर्घटना के प्रकार (BNS 281 + 125 / 125(a) / 125(b) / 106(1)) अनुसार निम्नानुसार हैं–')+H2('थानावार','')+tC);
-    }catch(e){ console.error('सड़क दुर्घटना पेज त्रुटि',e); }
-
     /* 26 — एक वर्ष से अधिक पेंडिंग प्रकरण: अपराध श्रेणी / उपश्रेणी, वृत्तवार, थानावार */
     var Q4=dhQ4(); window.__q4=Q4; var q4h='';
     if(!Q4.fdc) q4h='<div style="font-size:12px;color:#B91C1C">FIR Current Status डेटा लोड नहीं है।</div>';
