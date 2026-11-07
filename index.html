@@ -1339,6 +1339,46 @@ html #toast{border-radius:var(--r-pill);box-shadow:var(--sh-lg)}
 @media print{html body::before{display:none}html .pcard,html .tbl-outer{box-shadow:none}}
 </style>
 <meta name="referrer" content="strict-origin-when-cross-origin">
+<style id="typing-css">
+.typing-bar{background:#F4F7FF;border:1.5px solid #c5d3f0;border-radius:10px;padding:10px 12px;margin-bottom:12px}
+.typing-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.typing-ttl{font-weight:800;color:#1B2A5C;margin-right:4px}
+.typing-top button{border:1.5px solid #9db3e6;background:#fff;border-radius:20px;padding:5px 12px;font-weight:700;cursor:pointer;font-size:13px}
+.typing-top button.on{background:#1B3A8A;color:#fff;border-color:#1B3A8A}
+.typing-tmp{background:#FFF3CD;border:1px solid #f0c75e;color:#7a5300;border-radius:14px;padding:3px 10px;font-size:12px;font-weight:700}
+.typing-help{font-size:12.5px;color:#33415c;margin-top:7px;line-height:1.5}
+.typing-more{margin-top:8px;font-size:13px}.typing-more summary{cursor:pointer;font-weight:700;color:#1B3A8A}
+.typing-more input,.typing-more textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:7px 9px;border:1.5px solid #c5d3f0;border-radius:8px}
+.typing-conv{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:start}
+.typing-conv button{margin-top:6px;border:1.5px solid #9db3e6;background:#fff;border-radius:8px;padding:7px 10px;font-weight:700;cursor:pointer}
+@media(max-width:700px){.typing-conv{grid-template-columns:1fr}}
+#entry-overlay[data-typing="mangal"] input[type=text]:not([readonly]),#entry-overlay[data-typing="mangal"] textarea:not([data-typing-skip]),
+#entry-overlay[data-typing="devlys"] input[type=text]:not([readonly]),#entry-overlay[data-typing="devlys"] textarea:not([data-typing-skip]),
+#entry-overlay textarea[data-typing-skip],#typing-conv-out{font-family:'Mangal','Noto Sans Devanagari','Nirmala UI','Kokila',sans-serif !important;font-size:15.5px !important}
+</style>
+<style id="apadv-css">
+.apadv-bar{position:sticky;top:0;z-index:30;background:#fff;border:1.5px solid #d7dff2;border-radius:12px;padding:9px 12px;margin-bottom:12px;box-shadow:0 3px 10px rgba(30,50,110,.10)}
+.apadv-stats{display:flex;flex-wrap:wrap;gap:6px}
+.apadv-pill{background:#eef2ff;border-radius:16px;padding:3px 11px;font-size:12.5px;color:#243066}
+.apadv-pill.ok{background:#e6f5ea;color:#1b5e20}.apadv-pill.warn{background:#fff3d6;color:#8a5a00}.apadv-pill.err{background:#fde7e7;color:#b71c1c}.apadv-pill.soft{background:#f2f2f2;color:#555}
+.apadv-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.apadv-actions button,.apadv-draft button{border:1.5px solid #9db3e6;background:#fff;border-radius:8px;padding:5px 11px;font-weight:700;cursor:pointer;font-size:12.5px}
+.apadv-keys{font-size:11.5px;color:#667}
+.apadv-draft{margin-top:8px;background:#FFF8E1;border:1px solid #f0c75e;border-radius:8px;padding:7px 10px;font-size:13px}
+.ap-v{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.ap-chip{font-size:12px;border-radius:12px;padding:2px 9px;border:1px solid}
+.ap-c-ok{background:#e6f5ea;color:#1b5e20;border-color:#a5d6a7}.ap-c-warn{background:#fff3d6;color:#8a5a00;border-color:#f0c75e}.ap-c-err{background:#fde7e7;color:#b71c1c;border-color:#ef9a9a}
+.case-row.ap-lv-ok{box-shadow:inset 4px 0 0 #43a047}.case-row.ap-lv-warn{box-shadow:inset 4px 0 0 #f9a825}.case-row.ap-lv-err{box-shadow:inset 4px 0 0 #e53935}
+#ap-ac{position:fixed;z-index:2000;background:#fff;border:1.5px solid #9db3e6;border-radius:10px;box-shadow:0 8px 22px rgba(0,0,0,.2);max-height:300px;overflow:auto;display:none}
+.ap-ac-h{font-size:11px;color:#667;padding:5px 10px;background:#f4f7ff;border-bottom:1px solid #dde6fa}
+.ap-ac-i{padding:7px 10px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:13px}.ap-ac-i span{color:#555;margin-left:8px}.ap-ac-i small{display:block;color:#777;margin-top:2px}
+.ap-ac-i.on,.ap-ac-i:hover{background:#e8efff}
+.ap-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:3000;display:flex;align-items:center;justify-content:center;padding:14px}
+.ap-modal-box{background:#fff;border-radius:14px;max-width:760px;width:100%;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.ap-modal-h{padding:13px 16px;font-weight:800;color:#1B2A5C;border-bottom:1px solid #e3e8f5}.ap-modal-b{padding:8px 16px;overflow:auto}
+.ap-modal-f{padding:11px 16px;border-top:1px solid #e3e8f5;display:flex;gap:10px;justify-content:flex-end}.ap-modal-f button{border:1.5px solid #9db3e6;background:#fff;border-radius:8px;padding:7px 14px;font-weight:700;cursor:pointer}.ap-modal-f .ap-b-pri{background:#1B3A8A;color:#fff;border-color:#1B3A8A}
+.ap-miss-row{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #f0f0f0;font-size:13px}.ap-empty{padding:20px;text-align:center;color:#1b5e20;font-weight:700}
+</style>
 </head>
 <body>
 <noscript><div style="padding:16px;margin:12px;background:#FEF3C7;color:#7C2D12;border-radius:12px;font-weight:600">⚠️ यह पोर्टल चलाने के लिए ब्राउज़र में JavaScript चालू होना ज़रूरी है।</div></noscript>
@@ -3252,10 +3292,15 @@ function reply(obj) {
   </div>
   <div class="wrap">
     <div class="intro" style="border-top-color:#8B1A1A">
-      <b>निर्देश:</b> तीनों फाइलें (FIR Current Status, SAS Export, Generic) FIR कोड से जोड़कर, प्रत्येक FIR की <b>ताज़ा स्थिति</b> (FIR Current Status को प्राथमिकता) के आधार पर सारणियाँ स्वतः बनती हैं। अनुसंधान अधिकारी का नाम केवल Generic फाइल में उपलब्ध है — जिन FIR का Generic में रिकॉर्ड नहीं, उनमें "—" दिखेगा। सारणी 4 में वे FIR नहीं गिनी जातीं जिनमें 467/468 भा.द.सं. या 336(3)/338 बी.एन.एस. भी है।
+      <b>निर्देश:</b> तीनों फाइलें (FIR Current Status, SAS Export, Generic) FIR कोड से जोड़कर, प्रत्येक FIR की <b>ताज़ा स्थिति</b> (FIR Current Status को प्राथमिकता) के आधार पर सारणियाँ स्वतः बनती हैं। अनुसंधान अधिकारी का नाम केवल Generic फाइल में उपलब्ध है — जिन FIR का Generic में रिकॉर्ड नहीं, उनमें "—" दिखेगा। <b>ऊपर "पेंडिंग अवधि" फ़िल्टर</b> से 2 माह / 6 माह / 1 / 2 / 3 / 5 वर्ष से अधिक अवधि चुनने पर सभी सारणियाँ उसी अवधि के अनुसार बदल जाती हैं। सारणी 4 में वे FIR नहीं गिनी जातीं जिनमें 467/468 भा.द.सं. या 336(3)/338 बी.एन.एस. भी है।
     </div>
     <div class="ctx-bar" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin:12px 0;">
       <div><label>थाना</label><select id="scPs" onchange="renderSensCases()"></select></div>
+      <div><label>पेंडिंग अवधि (फ़िल्टर)</label><select id="scDur" onchange="renderSensCases()">
+        <option value="def">डिफ़ॉल्ट — प्रत्येक सारणी की निर्धारित अवधि</option>
+        <option value="2m">2 माह से अधिक</option><option value="6m">6 माह से अधिक</option><option value="1y">1 वर्ष से अधिक</option>
+        <option value="2y">2 वर्ष से अधिक</option><option value="3y">3 वर्ष से अधिक</option><option value="5y">5 वर्ष से अधिक</option>
+      </select></div>
       <button class="btn-fill sm" style="background:#1B5E20" onclick="scDownloadAll()">📥 सभी सारणियाँ Excel में</button>
     </div>
     <div id="scSummary"></div>
@@ -3483,6 +3528,21 @@ function reply(obj) {
   <div class="entry-strip"><span></span><span></span><span></span></div>
   <div class="entry-body">
     <div class="entry-wrap">
+      <div id="typing-bar" class="typing-bar">
+        <div class="typing-top"><span class="typing-ttl">⌨️ टाइपिंग विकल्प</span>
+          <button type="button" data-tmode="en" onclick="setTypingMode('en')">🔤 English</button>
+          <button type="button" data-tmode="mangal" onclick="setTypingMode('mangal')">अ Mangal (हिंदी यूनिकोड)</button>
+          <button type="button" data-tmode="devlys" onclick="setTypingMode('devlys')">क DevLys (कृतिदेव कीबोर्ड)</button>
+          <span id="typing-tmp" class="typing-tmp" style="display:none">⏸ अस्थायी English (Ctrl+Space से वापस)</span></div>
+        <div id="typing-help" class="typing-help"></div>
+        <details class="typing-more"><summary>🧪 टाइप करके जाँचें / 📋 DevLys पाठ → यूनिकोड कनवर्टर</summary>
+          <input type="text" id="typing-test" placeholder="यहाँ टाइप करके देखें… (चुने गए विकल्प के अनुसार)">
+          <div class="typing-conv"><textarea id="typing-conv-in" data-typing-skip rows="2" placeholder="पुराना DevLys/कृतिदेव पाठ यहाँ पेस्ट करें (जैसे iqfyl Fkkuk)…" oninput="typingConvertTool()"></textarea>
+          <textarea id="typing-conv-out" data-typing-skip rows="2" readonly placeholder="यूनिकोड (Mangal) पाठ यहाँ दिखेगा"></textarea>
+          <button type="button" onclick="typingCopyConv()">📋 कॉपी</button></div>
+          <div style="font-size:11.5px;color:#666;margin-top:4px">सुझाव: अंग्रेज़ी में लिखना हो तो <b>Ctrl+Space</b> से अस्थायी रूप से English करें। चुना हुआ विकल्प इस ब्राउज़र में याद रहता है।</div>
+        </details>
+      </div>
       <div id="entry-meta" class="entry-meta"></div>
       <div id="entry-lock-banner" style="display:none;background:#FDEDED;border:1.5px solid #E5484D;border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:#8A1F1F;font-weight:600">
         🔒 यह माह एडमिन द्वारा लॉक कर दिया गया है — उच्च कार्यालय को सूचना भेजी जा चुकी है, इसलिए अब इसमें बदलाव नहीं किया जा सकता। बदलाव जरूरी हो तो एडमिन से अनलॉक करवाएं (Settings)।
@@ -4582,7 +4642,8 @@ function renderApradhRows(cfg, rows, key){
   });
   html+=`</div><button class="add-row-btn" onclick="addApradhRow()">+ नई पंक्ति जोड़ें (नया प्रकरण)</button>`;
   html+=apradhBulkToolsHtml(cfg);
-  document.getElementById('entry-content').innerHTML=html;
+  document.getElementById('entry-content').innerHTML=apAdvBarHtml()+html;
+  apAdvAfterRender();
 }
 
 /** पेंडिंग(>1वर्ष)/BNSS-CrPC/री-ओपन जैसे row-based प्रारूपों में एक-एक करके भरने के बजाय
@@ -4658,9 +4719,12 @@ function buildApradhListFromFDC(catKey, thanaHi, cutoffDate){
     const act1=FDC.act1[r[4]]||'';
     const dmy = regDt.split('-').reverse().join('.');
     const firDisp = (r[2]||'')+(regDt?(' दिनांक '+dmy):'');
-    const row = {fir:firDisp, dhara:act1};
+    const hiSec = (typeof scHindiSection==='function' ? scHindiSection(act1).join('; ') : '') || act1;   // धारा हिंदी में
+    const ent = (typeof firById==='function') ? firById(r[11]) : null;                                    // Generic फाइल से IO का नाम
+    const ioName = (ent && ent.gen && ent.gen[8]) ? String(ent.gen[8]) : '';
+    const row = {fir:firDisp, dhara:hiSec};
     if(catKey==='reopen'){ row.aadesh_kiska=''; row.aadesh_no=''; row.karan=''; }
-    else { row.vivaran=''; row.ao=''; row.karan=''; }
+    else { row.vivaran=''; row.ao=ioName; row.karan=''; }
     out.push(row);
   });
   return out;
@@ -4719,8 +4783,7 @@ function apUploadXls(){
     if(/\.csv$/i.test(file.name)){
       const reader=new FileReader();
       reader.onload=function(e){
-        const lines=String(e.target.result).split(/\r?\n/).filter(l=>l.trim().length);
-        const aoa=lines.map(l=> l.indexOf('\t')>-1?l.split('\t'):l.split(','));
+        const txt=String(e.target.result); const aoa=(txt.indexOf('\t')>-1 ? txt.split(/\r?\n/).filter(l=>l.trim().length).map(l=>l.split('\t')) : parseCSVStrict(txt).filter(r=>r.some(c=>String(c).trim())));
         apply(aoa);
       };
       reader.onerror=function(){ statusEl.innerHTML='<span style="color:#b00020">⚠️ फ़ाइल पढ़ने में त्रुटि हुई।</span>'; };
@@ -4731,9 +4794,9 @@ function apUploadXls(){
         try{
           if(typeof XLSX==='undefined'){ statusEl.innerHTML='<span style="color:#b00020">⚠️ Excel लाइब्रेरी उपलब्ध नहीं — कृपया CSV या पेस्ट विकल्प इस्तेमाल करें।</span>'; return; }
           const data=new Uint8Array(e.target.result);
-          const wb=XLSX.read(data,{type:'array', cellDates:true});
+          const wb=XLSX.read(data,{type:'array', cellDates:false, cellNF:true});
           const sheet=wb.Sheets[wb.SheetNames[0]];
-          const aoa=XLSX.utils.sheet_to_json(sheet,{header:1, raw:false, defval:''});
+          const aoa=sheetToAOAExact(sheet);
           apply(aoa);
         }catch(err){ statusEl.innerHTML='<span style="color:#b00020">⚠️ फ़ाइल पढ़ने में त्रुटि: '+err.message+'</span>'; }
       };
@@ -4793,6 +4856,7 @@ function renderApradhRow(cfg,r,i){
       <div class="case-field"><label>पुलिस थाना</label><input type="text" value="${escHtml(thana)}" readonly style="background:#EEF2F7;font-weight:600"></div>
       ${fields}
     </div>
+    <div class="ap-v"></div>
   </div>`;
 }
 
@@ -4872,6 +4936,7 @@ function addApradhRow(){
   const div=document.createElement('div');
   div.innerHTML=renderApradhRow(entryCtx._cfg,{},i);
   form.appendChild(div.firstElementChild);
+  apAdvRefresh(true);
 }
 
 function delApradhRow(i){
@@ -4884,6 +4949,7 @@ function delApradhRow(i){
     if(num) num.textContent=idx+1;
     row.querySelector('.del-row-btn').setAttribute('onclick','delApradhRow('+idx+')');
   });
+  apAdvRefresh(true);
 }
 
 function collectApradhRows(){
@@ -5573,6 +5639,7 @@ function saveEntry(){
       const data=collectSampattiData();
       payload={thana,year,month,monthName,data,savedAt:new Date().toLocaleString('hi-IN')};
     } else {
+      if(!apAdvGate()) return;
       const rows=collectApradhRows();
       payload={thana,year,month,monthName,rows,savedAt:new Date().toLocaleString('hi-IN')};
     }
@@ -5588,6 +5655,7 @@ function saveEntry(){
   }
 
   if(saveData(_key, payload)){
+    apDraftClear();
     toast('✅ डेटा सफलतापूर्वक सेव हो गया — '+monthName+' '+year);
     showNextFormatPrompt(branch,type);
     // केंद्रीय सर्वर पर भी भेजें (अगर कनेक्ट है) — यह localStorage सेव को रोकता नहीं
@@ -11048,15 +11116,22 @@ function scBuildRows(){
   });
   return rows;
 }
+const SC_DUR = {'2m':2,'6m':6,'1y':12,'2y':24,'3y':36,'5y':60};
+const SC_DUR_LABEL = {2:'दो महीनों से अधिक',6:'6 माह से अधिक',12:'एक वर्ष से अधिक',24:'2 वर्ष से अधिक',36:'3 वर्ष से अधिक',60:'5 वर्ष से अधिक'};
+const SC_DUR_SHORT = {2:'2 माह+',6:'6 माह+',12:'1 वर्ष+',24:'2 वर्ष+',36:'3 वर्ष+',60:'5 वर्ष+'};
+// dm = डिफ़ॉल्ट अवधि (माह) — ऊपर के फ़िल्टर से कोई अवधि चुनने पर वही सभी सारणियों पर लागू होती है
 const SC_TABLES = [
-  {id:'pocso', n:1, icon:'🧒', color:'#C2185B', c2:'#E91E63', title:'दो महीनों से अधिक अवधि के पेंडिंग पोक्सो (POCSO) एक्ट प्रकरण', short:'पोक्सो एक्ट · 2 माह+', test:r=>r.isPocso, months:2, cats:['ui','173193','reopen'], cols:'base'},
-  {id:'scst',  n:2, icon:'⚖️', color:'#6A1B9A', c2:'#9C27B0', title:'दो महीनों से अधिक अवधि के पेंडिंग SC/ST एक्ट प्रकरण', short:'SC/ST एक्ट · 2 माह+', test:r=>r.isScst, months:2, cats:['ui','173193','reopen'], cols:'base'},
-  {id:'ndps',  n:3, icon:'💊', color:'#00695C', c2:'#009688', title:'दो महीनों से अधिक अवधि के पेंडिंग NDPS एक्ट प्रकरण', short:'NDPS एक्ट · 2 माह+', test:r=>r.isNdps, months:2, cats:['ui','173193','reopen'], cols:'base'},
-  {id:'s420',  n:4, icon:'💳', color:'#1565C0', c2:'#2196F3', title:'420 भा.द.सं. / 318(4) बी.एन.एस. के पेंडिंग प्रकरण', short:'420 भा.द.सं. / 318(4) बी.एन.एस.', note:'जिन FIR में 467, 468 भा.द.सं. / 336(3), 338 बी.एन.एस. की धाराएँ भी हैं, वे इस सारणी में नहीं गिनी गई हैं — वे सारणी 5 में दर्ज हैं।', test:r=>r.is420 && !r.is467, cats:['ui','173193','reopen'], cols:'base'},
-  {id:'s467',  n:5, icon:'📝', color:'#E65100', c2:'#FF9800', title:'467, 468 भा.द.सं. / 336(3), 338 बी.एन.एस. के पेंडिंग प्रकरण', short:'467-468 भा.द.सं. / 336(3)-338 बी.एन.एस.', test:r=>r.is467, cats:['ui','173193','reopen'], cols:'base'},
-  {id:'y1',    n:6, icon:'⏳', color:'#8B1A1A', c2:'#D32F2F', title:'एक वर्ष से अधिक पेंडिंग प्रकरण (पेंडिंग / 173(8) CrPC–193(9) BNSS)', short:'एक वर्ष से अधिक पेंडिंग', test:r=>true, years:1, cats:['ui','173193'], cols:'full'},
-  {id:'reopen',n:7, icon:'🔄', color:'#37474F', c2:'#607D8B', title:'RE-OPEN प्रकरण (चालान धारा सहित)', short:'RE-OPEN प्रकरण', test:r=>true, cats:['reopen'], cols:'chalan'}
+  {id:'pocso', n:1, icon:'🧒', color:'#C2185B', c2:'#E91E63', title:'पेंडिंग पोक्सो (POCSO) एक्ट प्रकरण', short:'पोक्सो एक्ट', dm:2, test:r=>r.isPocso, cats:['ui','173193','reopen'], cols:'base'},
+  {id:'scst',  n:2, icon:'⚖️', color:'#6A1B9A', c2:'#9C27B0', title:'पेंडिंग SC/ST एक्ट प्रकरण', short:'SC/ST एक्ट', dm:2, test:r=>r.isScst, cats:['ui','173193','reopen'], cols:'base'},
+  {id:'ndps',  n:3, icon:'💊', color:'#00695C', c2:'#009688', title:'पेंडिंग NDPS एक्ट प्रकरण', short:'NDPS एक्ट', dm:2, test:r=>r.isNdps, cats:['ui','173193','reopen'], cols:'base'},
+  {id:'s420',  n:4, icon:'💳', color:'#1565C0', c2:'#2196F3', title:'420 भा.द.सं. / 318(4) बी.एन.एस. के पेंडिंग प्रकरण', short:'420 भा.द.सं. / 318(4) बी.एन.एस.', dm:null, note:'जिन FIR में 467, 468 भा.द.सं. / 336(3), 338 बी.एन.एस. की धाराएँ भी हैं, वे इस सारणी में नहीं गिनी गई हैं — वे सारणी 5 में दर्ज हैं।', test:r=>r.is420 && !r.is467, cats:['ui','173193','reopen'], cols:'base'},
+  {id:'s467',  n:5, icon:'📝', color:'#E65100', c2:'#FF9800', title:'467, 468 भा.द.सं. / 336(3), 338 बी.एन.एस. के पेंडिंग प्रकरण', short:'467-468 भा.द.सं. / 336(3)-338 बी.एन.एस.', dm:null, test:r=>r.is467, cats:['ui','173193','reopen'], cols:'base'},
+  {id:'y1',    n:6, icon:'⏳', color:'#8B1A1A', c2:'#D32F2F', title:'पेंडिंग प्रकरण (जाँच में लंबित)', short:'पेंडिंग (जाँच में लंबित)', dm:12, test:r=>true, cats:['ui'], cols:'full'},
+  {id:'b173',  n:7, icon:'📑', color:'#0D47A1', c2:'#1976D2', title:'173(8) CrPC / 193(9) BNSS के प्रकरण', short:'173(8) CrPC / 193(9) BNSS', titleAll:'173(8) CrPC / 193(9) BNSS के समस्त प्रकरण (सभी अवधि)', dm:null, test:r=>true, cats:['173193'], cols:'full'},
+  {id:'reopen',n:8, icon:'🔄', color:'#37474F', c2:'#607D8B', title:'RE-OPEN प्रकरण (चालान धारा सहित)', short:'RE-OPEN प्रकरण', dm:null, test:r=>true, cats:['reopen'], cols:'chalan'}
 ];
+function scEffMonths(def){ const v=(document.getElementById('scDur')||{}).value||'def'; return v!=='def' ? SC_DUR[v] : def.dm; }
+function scTitle(def,mo){ if(!mo && def.titleAll) return def.titleAll; return mo ? SC_DUR_LABEL[mo]+' अवधि के '+def.title : def.title; }
 function scHeader(kind){
   const base=['क्रम संख्या','पुलिस थाना','एफ.आई.आर. नंबर/वर्ष','दर्ज दिनांक','धारा'];
   if(kind==='base') return base.concat(['अपराध की उप श्रेणी','नाम अनुसंधान अधिकारी','प्रकरण की स्थिति']);
@@ -11084,10 +11159,10 @@ function scCellHtml(head, val, def, rowNo){
   return `<td>${scEsc(v)}</td>`;
 }
 function scSelect(def, all, ps){
-  const cutoff = def.months? scCutoff(def.months) : def.years? scCutoff(def.years*12) : null;
+  const mo=scEffMonths(def); const cutoff = mo? scCutoff(mo) : null;
   let rows=all.filter(r=>def.cats.indexOf(r.cat)>=0 && def.test(r) && (!ps||ps==='ALL'||r.ps===ps) && (!cutoff || (r.reg && r.reg<cutoff)));
   rows.sort((a,b)=>String(a.reg).localeCompare(String(b.reg)) || a.psHi.localeCompare(b.psHi,'hi'));
-  return {rows, cutoff};
+  return {rows, cutoff, mo};
 }
 function scInjectCss(){
   if(document.getElementById('sc-css')) return;
@@ -11138,13 +11213,13 @@ function renderSensCases(){
   if(!all.length){ host.innerHTML='<div class="note">डेटा उपलब्ध नहीं — पहले लाइव डेटा सिंक होने दें।</div>'; document.getElementById('scSummary').innerHTML=''; return; }
   let sum='<div class="sc-grid">', body='';
   SC_TABLES.forEach(def=>{
-    const {rows,cutoff}=scSelect(def,all,ps);
-    sum+=`<a class="sc-card" href="#sc-${def.id}" style="background:linear-gradient(135deg,${def.color},${def.c2})" onclick="document.getElementById('sc-${def.id}').scrollIntoView({behavior:'smooth'});return false;"><span class="ic">${def.icon}</span><div class="num">${rows.length}</div><div class="lbl">सारणी ${def.n}: ${scEsc(def.short)}</div></a>`;
+    const {rows,cutoff,mo}=scSelect(def,all,ps); const ttl=scTitle(def,mo);
+    sum+=`<a class="sc-card" href="#sc-${def.id}" style="background:linear-gradient(135deg,${def.color},${def.c2})" onclick="document.getElementById('sc-${def.id}').scrollIntoView({behavior:'smooth'});return false;"><span class="ic">${def.icon}</span><div class="num">${rows.length}</div><div class="lbl">सारणी ${def.n}: ${scEsc(def.short)}${mo?' · '+SC_DUR_SHORT[mo]:''}</div></a>`;
     const head=scHeader(def.cols);
     const trs=rows.map((r,i)=>'<tr>'+scRowCells(r,def.cols,i+1).map((c,ci)=>scCellHtml(head[ci],c,def,i+1)).join('')+'</tr>').join('');
-    const sub = cutoff? `<div class="sc-sub">📅 दर्ज दिनांक <b>${scFmtDate(cutoff)}</b> से पूर्व के प्रकरण — अर्थात् आज की तिथि से <b>${def.months?def.months+' माह':def.years+' वर्ष'}</b> से अधिक अवधि के पेंडिंग</div>` : '';
+    const sub = cutoff? `<div class="sc-sub">📅 दर्ज दिनांक <b>${scFmtDate(cutoff)}</b> से पूर्व के प्रकरण — अर्थात् आज की तिथि से <b>${SC_DUR_LABEL[mo]}</b> अवधि के</div>` : '';
     body+=`<div class="sc-tbox" id="sc-${def.id}">
-      <div class="sc-th" style="background:linear-gradient(135deg,${def.color},${def.c2})"><h3>${def.icon} सारणी ${def.n}. ${scEsc(def.title)}</h3><div style="display:flex;gap:8px;align-items:center"><span class="cnt">कुल: ${rows.length}</span><button onclick="scDownload('${def.id}')">📥 Excel</button></div></div>
+      <div class="sc-th" style="background:linear-gradient(135deg,${def.color},${def.c2})"><h3>${def.icon} सारणी ${def.n}. ${scEsc(ttl)}</h3><div style="display:flex;gap:8px;align-items:center"><span class="cnt">कुल: ${rows.length}</span><button onclick="scDownload('${def.id}')">📥 Excel</button></div></div>
       ${def.note?`<div class="sc-note">ℹ️ ${scEsc(def.note)}</div>`:''}${sub}
       ${rows.length?`<div class="sc-wrap"><table class="sc-t"><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${trs}</tbody></table></div>`:'<div class="sc-empty">✅ कोई प्रकरण नहीं मिला</div>'}
     </div>`;
@@ -11154,9 +11229,10 @@ function renderSensCases(){
   host.innerHTML=body;
 }
 function scSheet(def, ps){
-  const {rows}=scSelect(def,window._scAll||scBuildRows(),ps);
+  const {rows,mo}=scSelect(def,window._scAll||scBuildRows(),ps);
   const kind=def.cols;
-  return {name:(def.n+'. '+def.short).replace(/[\\\/\?\*\[\]:]/g,' ').slice(0,31), aoa:[scHeader(kind)].concat(rows.map((r,i)=>scRowCells(r,kind,i+1))), colWidths:[8,20,16,12,55,22,22,22,30], filter:true};
+  const SN={pocso:'पोक्सो',scst:'SC-ST',ndps:'NDPS',s420:'420-318(4)',s467:'467-468-336(3)',y1:'पेंडिंग-जाँच',b173:'173(8)-193(9)',reopen:'RE-OPEN'};
+  return {name:(def.n+'. '+SN[def.id]+(mo?' '+SC_DUR_SHORT[mo]:'')).replace(/[\\\/\?\*\[\]:]/g,' ').slice(0,31), aoa:[scHeader(kind)].concat(rows.map((r,i)=>scRowCells(r,kind,i+1))), colWidths:[8,20,16,12,55,22,22,22,30], filter:true};
 }
 function scDownload(id){
   const def=SC_TABLES.find(d=>d.id===id); const ps=(document.getElementById('scPs')||{}).value||'ALL';
@@ -11167,6 +11243,385 @@ function scDownloadAll(){
   if(!window._scAll) window._scAll=scBuildRows();
   exportRowsToXLSX('vishesh-pending-sabhi-sarniyan.xlsx', SC_TABLES.map(d=>scSheet(d,ps)));
 }
+
+/* ===================== टाइपिंग विकल्प: English / Mangal (फ़ोनेटिक) / DevLys (कृतिदेव कीबोर्ड) ===================== */
+var DL_MARK='\uE000';
+var DL_MAP={
+  'd':'क','D':'क्','[':'ख्','x':'ग','X':'ग्','?':'घ्','p':'च','P':'च्','N':'छ','t':'ज','T':'ज्','>':'झ',
+  'V':'ट','B':'ठ','M':'ड','<':'ढ','.':'ण्','r':'त','R':'त्','F':'थ्','n':'द','/':'ध्','u':'न','U':'न्',
+  'i':'प','I':'प्','Q':'फ्','c':'ब','C':'ब्','H':'भ्','e':'म','E':'म्',';':'य',"'":'श्','"':'ष्','j':'र',
+  'y':'ल','Y':'ल्','o':'व','O':'व्','l':'स','L':'स्','g':'ह','K':'ज्ञ','{':'क्ष्','=':'त्र','}':'द्व','|':'द्ध','J':'श्र',
+  'v':'अ','b':'इ','m':'उ',',':'ए','_':'ऋ','q':'ु','w':'ू','h':'ी','a':'ं','z':'्र','~':'्','+':'़',
+  'A':'।','@':'/','&':'-','-':'.','¡':'ँ','Å':'ऊ','¥':'ञ','³':'ङ'
+};
+var DL_HALF_ONLY='खघथधभणफशष';
+var DL_MATRAS='ािीुूेैोौंँः़ृ';
+function dlIsCons(c){ return !!c && ((c>='\u0915'&&c<='\u0939')||(c>='\u0958'&&c<='\u095F')); }
+function dlStep(s, ch){
+  var prev=s.slice(-1);
+  if(/[\/.\-,]/.test(ch) && /[0-9]/.test(prev)) return s+ch;          // 12/2025, 10.03.2025, 12-03-2025
+  if(ch===' '||ch==='\n'||ch==='\t'){ return s.replace(DL_MARK,'')+ch; } // अधूरी 'ि' छोड़ें
+  if(ch==='f'){ return s+DL_MARK; }
+  var out;
+  if(ch==='k'){
+    if(prev==='्' && DL_HALF_ONLY.indexOf(s.slice(-2,-1))>=0) out=s.slice(0,-1);   // [k=ख, Hk=भ, .k=ण ...
+    else if(prev==='अ') out=s.slice(0,-1)+'आ';
+    else out=s+'ा';
+  } else if(ch==='s'){
+    if(prev==='ा') out=s.slice(0,-1)+'ो'; else if(prev==='आ') out=s.slice(0,-1)+'ओ'; else if(prev==='ए') out=s.slice(0,-1)+'ऐ'; else out=s+'े';
+  } else if(ch==='S'){
+    if(prev==='ा') out=s.slice(0,-1)+'ौ'; else if(prev==='आ') out=s.slice(0,-1)+'औ'; else if(prev==='ए') out=s.slice(0,-1)+'ऐ'; else out=s+'ै';
+  } else if(ch==='Z'){
+    if(prev==='इ') out=s.slice(0,-1)+'ई';
+    else {
+      var i=s.length;
+      while(i>0 && DL_MATRAS.indexOf(s[i-1])>=0) i--;           // मात्राएँ पार करें
+      var ci=i-1; if(ci<0||!dlIsCons(s[ci])) out=s+'र्';
+      else { while(ci>=2 && s[ci-1]==='्' && dlIsCons(s[ci-2])) ci-=2; var mk=s.lastIndexOf(DL_MARK); out=s.slice(0,ci)+'र्'+s.slice(ci); }
+    }
+  } else if(DL_MAP[ch]!==undefined){ out=s+DL_MAP[ch]; }
+  else out=s+ch;
+  // लंबित 'ि' — पूरा व्यंजन-समूह बनते ही जोड़ें
+  var m=out.lastIndexOf(DL_MARK);
+  if(m>=0){
+    var seg=out.slice(m+1), last=seg.slice(-1);
+    if(seg.length>12 || /[\s]/.test(seg)) out=out.replace(DL_MARK,'');
+    else if(seg && last!=='्' && dlIsCons(last)) out=out.slice(0,m)+seg+'ि';
+  }
+  return out;
+}
+function dlConvert(txt, ctx){ var s=ctx||''; var base=s.length; for(var i=0;i<txt.length;i++) s=dlStep(s,txt[i]); return s.slice(base).replace(DL_MARK,''); }
+
+/* ---------- Mangal: फ़ोनेटिक (अंग्रेज़ी अक्षर → देवनागरी) ---------- */
+var PH_CONS=[['ksh','क्ष'],['chh','छ'],['gny','ज्ञ'],['shh','ष'],['Sh','ष'],['kh','ख'],['gh','घ'],['ch','च'],['jh','झ'],['Th','ठ'],['Dh','ढ'],['th','थ'],['dh','ध'],['ph','फ'],['bh','भ'],['sh','श'],['tr','त्र'],['gy','ज्ञ'],['Rh','ढ़'],
+ ['k','क'],['g','ग'],['j','ज'],['T','ट'],['D','ड'],['N','ण'],['t','त'],['d','द'],['n','न'],['p','प'],['f','फ'],['b','ब'],['m','म'],['y','य'],['r','र'],['l','ल'],['v','व'],['w','व'],['s','स'],['S','ष'],['h','ह'],['q','क़'],['z','ज़'],['x','क्स'],['c','क'],['R','ड़']];
+var PH_VOW=[['aa','आ','ा'],['ai','ऐ','ै'],['au','औ','ौ'],['ee','ई','ी'],['ii','ई','ी'],['oo','ऊ','ू'],['uu','ऊ','ू'],['Ri','ऋ','ृ'],['a','अ',''],['i','इ','ि'],['u','उ','ु'],['e','ए','े'],['o','ओ','ो']];
+function phMatch(list,w,i){ for(var k=0;k<list.length;k++){ var s=list[k][0]; if(w.substr(i,s.length)===s) return k; } return -1; }
+function phClusterEndsWithVowel(w,i){ // i से आगे व्यंजन-समूह के बाद स्वर आता है?
+  while(i<w.length){ var c=phMatch(PH_CONS,w,i); if(c<0) break; i+=PH_CONS[c][0].length; }
+  return i<w.length && phMatch(PH_VOW,w,i)>=0;
+}
+function phoneticWord(w){
+  // केवल पहला अक्षर बड़ा (जैसे Ramesh) हो तो सामान्य शब्द मानें; एक से अधिक बड़े अक्षर हों तो ट/ठ/ड/ढ/ण/ष आदि के लिए केस-सेंसिटिव
+  if(/^[A-Z][a-z]*$/.test(w)) w=w.toLowerCase();
+  var out='', i=0, n=w.length, afterCons=false;
+  while(i<n){
+    if(w[i]==='M'){ out+='ं'; afterCons=false; i++; continue; }
+    if(w[i]==='H'&&i>0){ out+='ः'; afterCons=false; i++; continue; }
+    var k=phMatch(PH_VOW,w,i);
+    if(k>=0){ var t=PH_VOW[k][0];
+      if(afterCons){ out+= (t==='a' ? ((i+1===n)?'ा':'') : PH_VOW[k][2]); } else out+=PH_VOW[k][1];
+      afterCons=false; i+=t.length; continue; }
+    k=phMatch(PH_CONS,w,i);
+    if(k>=0){ if(afterCons && phClusterEndsWithVowel(w,i)) out+='्'; out+=PH_CONS[k][1]; afterCons=true; i+=PH_CONS[k][0].length; continue; }
+    out+=w[i]; afterCons=false; i++;
+  }
+  return out;
+}
+function phoneticEligible(w){ return /^[A-Za-z]+$/.test(w) && !(w.length>=2 && w===w.toUpperCase()); }
+var TYPING_MODE='en', TYPING_TMP_EN=false;
+try{ TYPING_MODE=localStorage.getItem('dk_typing_mode')||'en'; }catch(e){}
+var TYPING_HELP={
+  en:'सामान्य अंग्रेज़ी टाइपिंग (कोई बदलाव नहीं)।',
+  mangal:'<b>Mangal (हिंदी यूनिकोड, फ़ोनेटिक):</b> अंग्रेज़ी अक्षरों में लिखें — शब्द पूरा होने पर (स्पेस/एंटर) अपने-आप हिंदी बन जाता है। लंबी मात्रा हेतु <b>aa, ee, oo</b>, ट-ठ-ड-ढ-ण हेतु <b>T, Th, D, Dh, N</b>, अनुस्वार हेतु <b>M</b>। उदाहरण: <i>thaanaa → थाना, pulis → पुलिस, prakaraN → प्रकरण, namaste → नमस्ते</i>। बड़े अक्षरों वाले शब्द (FIR, NDPS) अंग्रेज़ी ही रहते हैं। हिंदी कीबोर्ड (InScript) से सीधे भी लिख सकते हैं।',
+  devlys:'<b>DevLys / कृतिदेव कीबोर्ड-लेआउट:</b> वही कुंजियाँ दबाएँ जो DevLys में दबाते हैं — पोर्टल उसे स्वतः <b>यूनिकोड (Mangal)</b> में बदलकर सेव करता है, ताकि हर कंप्यूटर/मोबाइल/Excel में सही दिखे। उदाहरण: <i>iqfyl → पुलिस, Fkkuk → थाना, izdj.k → प्रकरण, Hkkjr → भारत</i>। अंकों के बाद / . - सामान्य चिह्न ही रहते हैं (जैसे 12/2025, 10.03.2025)।'
+};
+function typingEligible(el){
+  if(!el || !el.closest || !el.closest('#entry-overlay') || el.readOnly || el.disabled || el.hasAttribute('data-typing-skip')) return false;
+  if(el.tagName==='TEXTAREA') return true;
+  if(el.tagName==='INPUT'){ var ty=(el.getAttribute('type')||'text').toLowerCase(); return ty==='text' || ty==='search'; }
+  return false;
+}
+function typingFire(el){ el.dispatchEvent(new Event('input',{bubbles:true})); }
+function typingSetValue(el, before, after){ el.value=before+after; try{ el.setSelectionRange(before.length,before.length); }catch(e){} typingFire(el); }
+function typingInsertDL(el, ch){
+  var s=el.selectionStart, e=el.selectionEnd, v=el.value, before=v.slice(0,s), after=v.slice(e);
+  typingSetValue(el, dlStep(before,ch), after);
+}
+function typingInsertText(el, txt){
+  var s=el.selectionStart, e=el.selectionEnd, v=el.value; typingSetValue(el, v.slice(0,s)+txt, v.slice(e));
+}
+function typingFlushWord(el){
+  var s=el.selectionStart; if(s==null) return; var v=el.value, before=v.slice(0,s), m=/([A-Za-z]+)$/.exec(before);
+  if(m && phoneticEligible(m[1])){ var conv=phoneticWord(m[1]); typingSetValue(el, before.slice(0,before.length-m[1].length)+conv, v.slice(el.selectionEnd)); }
+}
+function setTypingMode(m){
+  TYPING_MODE=m; try{ localStorage.setItem('dk_typing_mode',m); }catch(e){}
+  var ov=document.getElementById('entry-overlay'); if(ov) ov.setAttribute('data-typing',m);
+  document.querySelectorAll('#typing-bar [data-tmode]').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-tmode')===m); });
+  var h=document.getElementById('typing-help'); if(h) h.innerHTML=TYPING_HELP[m];
+}
+function typingConvertTool(){
+  var src=document.getElementById('typing-conv-in'), out=document.getElementById('typing-conv-out'); if(!src||!out) return;
+  var v=src.value; out.value = /[\u0900-\u097F]/.test(v) ? v : dlConvert(v,'');
+}
+function typingCopyConv(){ var o=document.getElementById('typing-conv-out'); if(!o||!o.value) return; o.select(); try{ document.execCommand('copy'); toast('✅ यूनिकोड पाठ कॉपी हो गया'); }catch(e){} }
+function typingInit(){
+  setTypingMode(TYPING_MODE);
+  document.addEventListener('beforeinput', function(e){
+    var el=e.target; if(!typingEligible(el)) return;
+    var mode=TYPING_TMP_EN?'en':TYPING_MODE; if(mode==='en') return;
+    if(mode==='devlys'){
+      if(e.inputType==='insertText' && e.data && e.data.length===1 && e.data.charCodeAt(0)<128){ e.preventDefault(); typingInsertDL(el,e.data); }
+      else if(e.inputType==='insertFromPaste' || e.inputType==='insertFromDrop'){
+        var d=(e.dataTransfer && e.dataTransfer.getData('text'))||'';
+        if(d && !/[\u0900-\u097F]/.test(d) && /[A-Za-z]/.test(d)){ e.preventDefault(); typingInsertText(el, dlConvert(d,'')); }
+      }
+    } else if(mode==='mangal'){
+      var trig=(e.inputType==='insertText' && e.data && /^[\s,.;:!?)\]\-\/]$/.test(e.data)) || e.inputType==='insertParagraph' || e.inputType==='insertLineBreak';
+      if(trig) typingFlushWord(el);
+    }
+  }, true);
+  document.addEventListener('focusout', function(e){
+    var el=e.target; if(!typingEligible(el)) return;
+    if(TYPING_MODE==='mangal' && !TYPING_TMP_EN) typingFlushWord(el);
+    if(el.value && el.value.indexOf(DL_MARK)>=0){ el.value=el.value.split(DL_MARK).join(''); typingFire(el); }
+  }, true);
+  document.addEventListener('keydown', function(e){
+    if(e.ctrlKey && e.code==='Space' && typingEligible(e.target)){
+      e.preventDefault(); TYPING_TMP_EN=!TYPING_TMP_EN;
+      var st=document.getElementById('typing-tmp'); if(st) st.style.display=TYPING_TMP_EN?'inline-block':'none';
+    }
+  }, true);
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', typingInit); else typingInit();
+
+/* ===================== सूचना-प्राप्ति (डेटा भरें) — एडवांस मॉड्यूल =====================
+   1) FIR टाइप करते ही CCTNS (तीनों फाइलों का FIR-कोड संबंध) से सुझाव व स्वतः भराई (धारा हिंदी में, IO नाम)
+   2) हर पंक्ति की लाइव जाँच — CCTNS में मिलान, स्थिति/आयु, दिनांक, डुप्लीकेट, मोबाइल, खाली खाने
+   3) छूटे हुए CCTNS प्रकरण की पहचान व एक क्लिक में जोड़ना
+   4) ड्राफ्ट अपने-आप सुरक्षित (हर 4 सेकंड) + पुनःस्थापना; सेव से पहले गुणवत्ता-जाँच
+   5) कीबोर्ड: Ctrl+S सेव • Ctrl+Enter नई पंक्ति • Enter अगला खाना */
+var AP_FORM_RULES={ pending:{cats:['ui'],minDays:365}, bnss:{cats:['173193'],minDays:0}, reopen:{cats:['reopen'],minDays:0} };
+var AP_STATUS_HI={ui:'पेंडिंग','173193':'173(8) CrPC/193(9) BNSS',reopen:'RE-OPEN',none:'निस्तारित (चालान/FR)'};
+var _apKeyNow='', _apIdx=null, _apTimer=null, _apDraftTimer=null, _apBaseline='', _apLastDraft='';
+function apFirKey(txt){ var m=String(txt||'').match(/(\d{1,5})\s*[\/\-]\s*((?:19|20)\d{2})/); return m ? (parseInt(m[1],10)+'/'+m[2]) : ''; }
+function apTypedDate(txt){ var m=String(txt||'').match(/(\d{1,2})\s*[.\-\/]\s*(\d{1,2})\s*[.\-\/]\s*((?:19|20)\d{2})/); return m ? (m[3]+'-'+pad2(+m[2])+'-'+pad2(+m[1])) : ''; }
+function apDmy(iso){ var m=String(iso||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m? m[3]+'.'+m[2]+'.'+m[1] : ''; }
+function apIndex(){
+  var db=getFirDB(); if(_apIdx && _apIdx.db===db && _apIdx.n===db.size) return _apIdx;
+  var ix={db:db,n:db.size,byPsKey:new Map(),byKey:new Map(),byPs:new Map()};
+  db.forEach(function(e){
+    var f=e.fdc,s=e.sas,g=e.gen; var fir=(f&&f[2])||(s&&s[2])||(g&&g[2])||''; var key=apFirKey(fir); if(!key) return;
+    var reg=(f&&f[3])||(s&&s[1])||(g&&g[3])||'';
+    var info={key:key,fir:fir,reg:reg,ps:e.ps,cat:firCurrentCat(e)||'none',e:e,io:(g&&g[8])||'',id:e.id};
+    ix.byPsKey.set(e.ps+'|'+key,info);
+    if(!ix.byKey.has(key)) ix.byKey.set(key,[]); ix.byKey.get(key).push(info);
+    if(!ix.byPs.has(e.ps)) ix.byPs.set(e.ps,[]); ix.byPs.get(e.ps).push(info);
+  });
+  _apIdx=ix; return ix;
+}
+function apSecText(info){
+  if(info._sec!==undefined) return info._sec; var e=info.e, f=e.fdc,s=e.sas,g=e.gen;
+  var raw=(f?FDC.act1[f[4]]:'')||(s?s[10]:'')||(g?g[9]:'')||''; info._sec=(scHindiSection(raw).join('; ')||String(raw)); return info._sec;
+}
+function apRule(){ return entryCtx && AP_FORM_RULES[entryCtx.type]; }
+function apPsEn(){ return entryCtx ? hi2engPs(entryCtx.thana) : null; }
+function apAgeDays(iso){ return iso ? Math.round((Date.now()-Date.parse(iso+'T00:00:00Z'))/864e5) : 0; }
+function apExpected(){
+  var rule=apRule(), ps=apPsEn(); if(!rule||!ps) return [];
+  var list=apIndex().byPs.get(ps)||[];
+  return list.filter(function(i){ return rule.cats.indexOf(i.cat)>=0 && (!rule.minDays || apAgeDays(i.reg)>rule.minDays); })
+             .sort(function(a,b){ return String(a.reg).localeCompare(String(b.reg)); });
+}
+function apRowObj(rowEl){ var o={}; rowEl.querySelectorAll('input[name],textarea[name]').forEach(function(i){ o[i.name]=i.value.trim(); }); return o; }
+function apValidateRow(o, rule, ps, seen){
+  var res={lvl:'ok',chips:[],key:''}; var cfgKeys=entryCtx._cfg.keys;
+  function add(l,t){ res.chips.push({l:l,t:t}); if(l==='err'||(l==='warn'&&res.lvl==='ok')) res.lvl=l; }
+  var any=Object.keys(o).some(function(k){return o[k];}); if(!any){ res.lvl='empty'; return res; }
+  var key=apFirKey(o.fir); res.key=key;
+  if(!o.fir) add('err','मु.अ.सं. (FIR नंबर/वर्ष) खाली है');
+  else if(!key) add('warn','FIR नंबर/वर्ष पहचाना नहीं गया — "123/2025 दिनांक 12.03.2025" रूप में लिखें');
+  if(key){
+    if(seen[key]) add('err','यह FIR ('+key+') इसी सूची में दोबारा है (पंक्ति '+seen[key]+')');
+    var ix=apIndex(), info=ix.byPsKey.get(ps+'|'+key);
+    if(!info){
+      var other=(ix.byKey.get(key)||[]).filter(function(x){return x.ps!==ps;});
+      if(other.length) add('warn','इस थाने के CCTNS में नहीं मिला — यह नंबर '+(ENG2HI_PS[other[0].ps]||other[0].ps)+' थाने का है');
+      else add('warn','CCTNS डेटा में यह FIR नहीं मिली — नंबर/वर्ष जाँचें');
+    } else {
+      res.info=info;
+      var okCat=rule && rule.cats.indexOf(info.cat)>=0;
+      if(!okCat) add('warn','CCTNS में स्थिति: '+AP_STATUS_HI[info.cat]+' — यह प्रारूप '+(rule&&rule.cats.map(function(c){return AP_STATUS_HI[c];}).join('/'))+' के लिए है');
+      else if(rule.minDays && apAgeDays(info.reg)<=rule.minDays) add('warn','प्रकरण 1 वर्ष से कम पुराना है (दर्ज '+apDmy(info.reg)+')');
+      var td=apTypedDate(o.fir); if(td && info.reg && td!==info.reg) add('warn','दर्ज दिनांक CCTNS ('+apDmy(info.reg)+') से भिन्न है');
+      if(okCat){ res.matched=true; add('ok','✔ CCTNS से मिलान — '+AP_STATUS_HI[info.cat]+' • दर्ज '+apDmy(info.reg)); }
+    }
+    if(!seen[key]) seen[key]=0;
+  }
+  if(cfgKeys.indexOf('dhara')>=0 && !o.dhara) add('warn','धारा खाली है');
+  if(rule && rule.cats[0]==='ui'){ if(!o.vivaran) add('warn','प्रकरण का संक्षिप्त विवरण खाली है'); if(!o.karan) add('warn','पेंडिंग रहने का कारण खाली है'); }
+  if(cfgKeys.indexOf('karan')>=0 && rule && rule.cats[0]!=='ui' && !o.karan) add('warn','कारण खाली है');
+  if(o.ao){ var mob=(o.ao.match(/\d{10}/)||[])[0]; var digits=(o.ao.replace(/\D/g,'')); if(digits.length>0 && !mob) add('warn','अनुसंधान अधिकारी का मोबाइल 10 अंकों का नहीं दिखा'); }
+  else if(cfgKeys.indexOf('ao')>=0) add('warn','अनुसंधान अधिकारी का नाम/पद/मोबाइल खाली है');
+  return res;
+}
+function apValidateAll(){
+  var rule=apRule(), ps=apPsEn(), seen={}, out={err:0,warn:0,ok:0,rows:0,filled:0,total:0,errMsgs:[],firstErr:null,results:[]};
+  var rows=document.querySelectorAll('#cases-form .case-row'); var cfgKeys=entryCtx._cfg.keys;
+  rows.forEach(function(r,idx){
+    var o=apRowObj(r), key=apFirKey(o.fir);
+    var s2={}; for(var k in seen) s2[k]=seen[k];
+    var res=apValidateRow(o,rule,ps,seen);
+    if(key){ if(seen[key]){ /* duplicate flagged already */ } else seen[key]=idx+1; }
+    res.row=r; res.idx=idx; out.results.push(res);
+    if(res.lvl==='empty') return; out.rows++;
+    cfgKeys.forEach(function(k){ out.total++; if(o[k]) out.filled++; });
+    res.chips.forEach(function(c){ if(c.l==='err'){ out.err++; if(out.errMsgs.length<5) out.errMsgs.push('पंक्ति '+(idx+1)+': '+c.t); if(!out.firstErr) out.firstErr=r; } else if(c.l==='warn') out.warn++; });
+    if(res.matched) out.ok++;
+  });
+  return out;
+}
+function apRenderRowChips(out){
+  out.results.forEach(function(res){
+    var box=res.row.querySelector('.ap-v'); if(!box) return;
+    res.row.classList.remove('ap-lv-ok','ap-lv-warn','ap-lv-err');
+    if(res.lvl==='empty'){ box.innerHTML=''; return; }
+    res.row.classList.add('ap-lv-'+res.lvl);
+    box.innerHTML=res.chips.map(function(c){ return '<span class="ap-chip ap-c-'+c.l+'">'+(c.l==='err'?'❌ ':c.l==='warn'?'⚠️ ':'')+escHtml(c.t)+'</span>'; }).join('');
+  });
+}
+function apAdvBarHtml(){
+  return '<div id="ap-adv-bar" class="apadv-bar"><div id="ap-adv-stats" class="apadv-stats"></div>'+
+   '<div class="apadv-actions"><button type="button" onclick="apShowMissing()">🔎 छूटे CCTNS प्रकरण <b id="ap-miss-n">0</b></button>'+
+   '<button type="button" onclick="apAdvRefresh(true)">🔄 CCTNS से पुनः जाँचें</button>'+
+   '<span class="apadv-keys">⌨️ Ctrl+S सेव • Ctrl+Enter नई पंक्ति • Enter अगला खाना</span></div><div id="ap-draft-banner"></div></div>';
+}
+function apAdvRefresh(now){
+  clearTimeout(_apTimer); _apTimer=setTimeout(apAdvRun, now?0:250);
+}
+function apAdvRun(){
+  if(!entryCtx || entryCtx.branch!=='apradh' || !entryCtx._cfg || entryCtx._cfg.tableMode || !document.getElementById('cases-form')) return;
+  var out=apValidateAll(); apRenderRowChips(out);
+  var exp=apExpected(), have={}; out.results.forEach(function(r){ if(r.key) have[r.key]=1; });
+  var missing=exp.filter(function(i){ return !have[i.key]; }); window._apMissing=missing;
+  var pct=out.total? Math.round(out.filled*100/out.total):0; var st=document.getElementById('ap-adv-stats');
+  var hasData=(FDC&&FDC.rows&&FDC.rows.length)||(RAW&&RAW.length);
+  if(st) st.innerHTML='<span class="apadv-pill">📋 पंक्तियाँ <b>'+out.rows+'</b></span><span class="apadv-pill">🧩 पूर्णता <b>'+pct+'%</b></span>'+
+    '<span class="apadv-pill ok">✅ CCTNS मिलान <b>'+out.ok+'</b></span><span class="apadv-pill warn">⚠️ चेतावनी <b>'+out.warn+'</b></span><span class="apadv-pill err">❌ त्रुटि <b>'+out.err+'</b></span>'+
+    (hasData? '<span class="apadv-pill">📡 CCTNS अनुसार अपेक्षित <b>'+exp.length+'</b></span>':'<span class="apadv-pill warn">CCTNS डेटा लोड नहीं — मिलान बंद</span>')+
+    '<span id="ap-draft-state" class="apadv-pill soft"></span>';
+  var mn=document.getElementById('ap-miss-n'); if(mn) mn.textContent=missing.length;
+  var ds=document.getElementById('ap-draft-state'); if(ds&&window._apDraftAt) ds.textContent='💾 ड्राफ्ट '+window._apDraftAt;
+}
+function apAdvAfterRender(){ apAdvRefresh(true); }
+function apAddRowFromInfo(info, keepEmpty){
+  var cfg=entryCtx._cfg, form=document.getElementById('cases-form'); if(!form) return;
+  var obj={fir:(info.fir||info.key)+(info.reg?' दिनांक '+apDmy(info.reg):''), dhara:apSecText(info)};
+  if(cfg.keys.indexOf('ao')>=0 && info.io) obj.ao=info.io;
+  var rows=Array.prototype.slice.call(form.querySelectorAll('.case-row')); var last=rows[rows.length-1];
+  if(last && !keepEmpty && !Object.keys(apRowObj(last)).some(function(k){return apRowObj(last)[k];})){ last.remove(); }
+  var i=form.children.length, div=document.createElement('div'); div.innerHTML=renderApradhRow(cfg,obj,i); form.appendChild(div.firstElementChild);
+  document.querySelectorAll('.case-row').forEach(function(row,idx){ row.id='crow-'+idx; var n=row.querySelector('.case-row-num'); if(n) n.textContent=idx+1; row.querySelector('.del-row-btn').setAttribute('onclick','delApradhRow('+idx+')'); });
+}
+function apShowMissing(){
+  var list=window._apMissing||[]; var m=document.getElementById('ap-miss-modal'); if(m) m.remove();
+  m=document.createElement('div'); m.id='ap-miss-modal'; m.className='ap-modal';
+  var body=list.length? list.map(function(i,ix){ return '<label class="ap-miss-row"><input type="checkbox" data-ix="'+ix+'" checked><span><b>'+escHtml(i.fir)+'</b> • '+apDmy(i.reg)+' • '+escHtml((apSecText(i)||'').slice(0,110))+(i.io?' • IO: '+escHtml(i.io):'')+'</span></label>'; }).join('')
+   : '<div class="ap-empty">✅ CCTNS के अनुसार इस प्रारूप का कोई प्रकरण छूटा नहीं है।</div>';
+  m.innerHTML='<div class="ap-modal-box"><div class="ap-modal-h">🔎 CCTNS में हैं, पर आपकी सूची में नहीं ('+list.length+')</div><div class="ap-modal-b">'+body+'</div>'+
+   '<div class="ap-modal-f">'+(list.length?'<button type="button" class="ap-b-pri" onclick="apAddMissing()">➕ चुने हुए जोड़ें</button>':'')+'<button type="button" onclick="document.getElementById(\'ap-miss-modal\').remove()">बंद करें</button></div></div>';
+  document.body.appendChild(m);
+}
+function apAddMissing(){
+  var list=window._apMissing||[], picked=[]; document.querySelectorAll('#ap-miss-modal input[type=checkbox]:checked').forEach(function(c){ picked.push(list[+c.getAttribute('data-ix')]); });
+  if(!picked.length){ toast('ℹ️ कोई प्रकरण चुना नहीं'); return; }
+  picked.forEach(function(i){ apAddRowFromInfo(i); }); document.getElementById('ap-miss-modal').remove(); apAdvRefresh(true); toast('✅ '+picked.length+' प्रकरण जोड़े गए — विवरण/कारण जाँचकर भरें और सेव करें');
+}
+/* ---- FIR टाइप करते समय सुझाव (autocomplete) ---- */
+var _apAc={el:null,items:[],sel:-1};
+function apAcHide(){ var b=document.getElementById('ap-ac'); if(b) b.style.display='none'; _apAc.items=[]; _apAc.sel=-1; }
+function apAcShow(inp){
+  var rule=apRule(), ps=apPsEn(); if(!rule||!ps) return apAcHide();
+  var q=inp.value.trim(); var digits=(q.match(/^\d{1,5}/)||[''])[0]; if(!digits) return apAcHide();
+  var taken={}; document.querySelectorAll('#cases-form .case-row').forEach(function(r){ if(r.contains(inp)) return; var k=apFirKey((r.querySelector('input[name=fir]')||{}).value); if(k) taken[k]=1; });
+  var n=parseInt(digits,10);
+  var items=apExpected().filter(function(i){ if(taken[i.key]) return false; var no=parseInt(i.key,10); return String(no).indexOf(String(n))===0; }).slice(0,8);
+  _apAc.el=inp; _apAc.items=items; _apAc.sel=items.length?0:-1;
+  var b=document.getElementById('ap-ac'); if(!b){ b=document.createElement('div'); b.id='ap-ac'; document.body.appendChild(b); }
+  if(!items.length){ b.style.display='none'; return; }
+  var r=inp.getBoundingClientRect(); b.style.cssText='display:block;left:'+r.left+'px;top:'+(r.bottom+2)+'px;min-width:'+Math.max(r.width,330)+'px';
+  b.innerHTML='<div class="ap-ac-h">CCTNS से सुझाव — चुनने पर धारा/IO अपने-आप भरेंगे</div>'+items.map(function(i,ix){ return '<div class="ap-ac-i'+(ix===0?' on':'')+'" data-ix="'+ix+'"><b>'+escHtml(i.fir)+'</b> <span>'+apDmy(i.reg)+'</span><small>'+escHtml((apSecText(i)||'').slice(0,70))+'</small></div>'; }).join('');
+}
+function apAcPick(ix){
+  var info=_apAc.items[ix], inp=_apAc.el; if(!info||!inp) return;
+  var row=inp.closest('.case-row'); var set=function(n,v){ var f=row.querySelector('[name='+n+']'); if(f && v!=null && (!f.value.trim() || n==='fir')){ f.value=v; } };
+  set('fir',(info.fir||info.key)+(info.reg?' दिनांक '+apDmy(info.reg):'')); set('dhara',apSecText(info)); if(info.io) set('ao',info.io);
+  apAcHide(); apAdvRefresh(true); var nx=row.querySelector('[name=vivaran],[name=aadesh_kiska],[name=karan]'); if(nx) nx.focus();
+}
+/* ---- ड्राफ्ट ---- */
+function apDraftKey(){ return entryCtx&&entryCtx._key? 'dk_draft:'+entryCtx._key : ''; }
+function apCaptureNow(){
+  if(!entryCtx) return null;
+  if(entryCtx.branch==='apradh' && entryCtx._cfg && !entryCtx._cfg.tableMode && document.getElementById('cases-form')) return {rows:collectApradhRows()};
+  var v=[]; document.querySelectorAll('#entry-content input,#entry-content textarea,#entry-content select').forEach(function(e){ v.push(e.value); }); return {vals:v};
+}
+function apDraftStart(){
+  apDraftStop(); var key=apDraftKey(); if(!key) return; _apKeyNow=key;
+  var cap=apCaptureNow(); _apBaseline=JSON.stringify(cap); _apLastDraft=_apBaseline; window._apDraftAt='';
+  var banner=document.getElementById('ap-draft-banner'); var raw=null; try{ raw=localStorage.getItem(key); }catch(e){}
+  if(raw){ try{ var d=JSON.parse(raw); if(d && JSON.stringify(d.data)!==_apBaseline){
+      var when=new Date(d.ts).toLocaleString('hi-IN'); var html='<div class="apadv-draft">📝 <b>असेव्ड ड्राफ्ट मिला</b> ('+when+') — <button type="button" onclick="apDraftRestore()">↩️ पुनःस्थापित करें</button> <button type="button" onclick="apDraftDiscard()">🗑 हटाएँ</button></div>';
+      if(banner) banner.innerHTML=html; else { var c=document.getElementById('entry-content'); if(c) c.insertAdjacentHTML('afterbegin',html); } window._apDraftPending=d; } }catch(e){} }
+  _apDraftTimer=setInterval(function(){
+    if(apDraftKey()!==_apKeyNow){ apDraftStart(); return; }   // दूसरा प्रारूप खुल गया — ड्राफ्ट-कुंजी व बेसलाइन नए सिरे से
+    var cur=apCaptureNow(); if(!cur) return; var s=JSON.stringify(cur); if(s===_apLastDraft || s===_apBaseline) return;
+    try{ localStorage.setItem(key, JSON.stringify({ts:Date.now(),data:cur})); _apLastDraft=s; window._apDraftAt=new Date().toLocaleTimeString('hi-IN',{hour:'2-digit',minute:'2-digit'}); var ds=document.getElementById('ap-draft-state'); if(ds) ds.textContent='💾 ड्राफ्ट '+window._apDraftAt; }catch(e){}
+  },4000);
+}
+function apDraftStop(){ clearInterval(_apDraftTimer); _apDraftTimer=null; }
+function apDraftClear(){ var key=apDraftKey(); if(key){ try{ localStorage.removeItem(key); }catch(e){} } _apBaseline=JSON.stringify(apCaptureNow()); _apLastDraft=_apBaseline; window._apDraftAt=''; window._apDraftPending=null; var b=document.getElementById('ap-draft-banner'); if(b) b.innerHTML=''; }
+function apDraftRestore(){
+  var d=window._apDraftPending; if(!d||!entryCtx) return; var data=d.data;
+  if(data.rows && entryCtx._cfg && !entryCtx._cfg.tableMode){ renderApradhRows(entryCtx._cfg, data.rows.length?data.rows:[{}], entryCtx._key); }
+  else if(data.vals){ var els=document.querySelectorAll('#entry-content input,#entry-content textarea,#entry-content select'); els.forEach(function(e,i){ if(data.vals[i]!==undefined){ e.value=data.vals[i]; e.dispatchEvent(new Event('input',{bubbles:true})); } }); }
+  window._apDraftPending=null; var b=document.getElementById('ap-draft-banner'); if(b) b.innerHTML=''; toast('↩️ ड्राफ्ट पुनःस्थापित हुआ — जाँचकर सेव करें'); apAdvRefresh(true);
+}
+function apDraftDiscard(){ var key=apDraftKey(); if(key){ try{ localStorage.removeItem(key); }catch(e){} } window._apDraftPending=null; var b=document.getElementById('ap-draft-banner'); if(b) b.innerHTML=''; }
+/* ---- सेव से पहले गुणवत्ता-जाँच ---- */
+function apAdvGate(){
+  if(!entryCtx || entryCtx.branch!=='apradh' || !entryCtx._cfg || entryCtx._cfg.tableMode || !document.getElementById('cases-form')) return true;
+  var out=apValidateAll(); apRenderRowChips(out); apAdvRefresh(true);
+  if(out.err>0){
+    var go=confirm('❌ '+out.err+' त्रुटि मिलीं:\n• '+out.errMsgs.join('\n• ')+'\n\nफिर भी सेव करना चाहते हैं?\n(रद्द करने पर त्रुटि वाली पंक्ति पर ले जाएँगे)');
+    if(!go){ if(out.firstErr) out.firstErr.scrollIntoView({behavior:'smooth',block:'center'}); return false; }
+  } else if(out.warn>0){ toast('⚠️ '+out.warn+' चेतावनियाँ हैं — सेव हो रहा है; बाद में पंक्तियाँ जाँच लें'); }
+  return true;
+}
+/* ---- इवेंट ---- */
+function apAdvInit(){
+  var ov=document.getElementById('entry-overlay'); if(!ov) return;
+  ov.addEventListener('input', function(e){
+    var t=e.target; if(!t.closest || !t.closest('#cases-form')) return;
+    if(t.name==='fir'){ apAcShow(t); }
+    apAdvRefresh();
+  });
+  ov.addEventListener('focusout', function(e){
+    var t=e.target; if(t && t.name==='fir'){ t.value=t.value.replace(/(\d)\s*\/\s*((?:19|20)\d{2})/,'$1/$2'); setTimeout(apAcHide,180); apAdvRefresh(); }
+  });
+  document.addEventListener('mousedown', function(e){ var it=e.target.closest && e.target.closest('.ap-ac-i'); if(it){ e.preventDefault(); apAcPick(+it.getAttribute('data-ix')); } });
+  ov.addEventListener('keydown', function(e){
+    if(!entryCtx) return;
+    var t=e.target;
+    var acOpen=_apAc.items.length && document.getElementById('ap-ac') && document.getElementById('ap-ac').style.display==='block';
+    if(acOpen && t===_apAc.el){
+      if(e.key==='ArrowDown'||e.key==='ArrowUp'){ e.preventDefault(); _apAc.sel=(_apAc.sel+(e.key==='ArrowDown'?1:-1)+_apAc.items.length)%_apAc.items.length; document.querySelectorAll('#ap-ac .ap-ac-i').forEach(function(x,i){ x.classList.toggle('on',i===_apAc.sel); }); return; }
+      if(e.key==='Enter'||e.key==='Tab'){ if(_apAc.sel>=0){ e.preventDefault(); apAcPick(_apAc.sel); return; } }
+      if(e.key==='Escape'){ e.preventDefault(); apAcHide(); return; }
+    }
+    if((e.ctrlKey||e.metaKey) && (e.key==='s'||e.key==='S')){ e.preventDefault(); saveEntry(); return; }
+    if((e.ctrlKey||e.metaKey) && e.key==='Enter' && document.getElementById('cases-form')){ e.preventDefault(); addApradhRow(); var rs=document.querySelectorAll('#cases-form .case-row'); var f=rs[rs.length-1].querySelector('input[name]'); if(f) f.focus(); return; }
+    if(e.key==='Enter' && !e.ctrlKey && !e.altKey && t.tagName==='INPUT' && t.closest('.case-row') && t.type==='text' && !t.readOnly){
+      e.preventDefault(); var row=t.closest('.case-row'); var fields=Array.prototype.slice.call(row.querySelectorAll('input[name],textarea[name]'));
+      var ix=fields.indexOf(t)+(e.shiftKey?-1:1);
+      if(ix>=0 && ix<fields.length) fields[ix].focus(); else { var nx=e.shiftKey? row.previousElementSibling : row.nextElementSibling; if(nx){ var f2=nx.querySelector('input[name]'); if(f2) f2.focus(); } }
+    }
+  }, true);
+  window.addEventListener('scroll', apAcHide, true);
+  new MutationObserver(function(){ if(ov.classList.contains('on')){ apDraftStart(); apAdvRefresh(true); } else { apDraftStop(); apAcHide(); } }).observe(ov,{attributes:true,attributeFilter:['class']});
+  window.addEventListener('beforeunload', function(e){ if(ov.classList.contains('on')){ var cur=apCaptureNow(); if(cur && JSON.stringify(cur)!==_apBaseline && JSON.stringify(cur)!==_apLastDraft){ e.preventDefault(); e.returnValue=''; } } });
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', apAdvInit); else apAdvInit();
 
 /* ===================== MASTER RENDER ===================== */
 function safeCall(fn){
@@ -13834,6 +14289,7 @@ function cpRenderRow(fmt,r,i){
       <div class="case-field"><label>पुलिस थाना</label><input type="text" value="${escHtml(thana)}" readonly style="background:#EEF2F7;font-weight:600"></div>
       ${fields}
     </div>
+    <div class="ap-v"></div>
   </div>`;
 }
 
@@ -18449,7 +18905,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
         o.n++;
         if(F[i]==='ipc'){ if(r.sv) o.sv+=r.sv; if(r.rv) o.rv+=r.rv; }
         if(r.disposal==='Chargesheet') o.cs++;
-        else if(r.disposal==='F.R.'){ o.fr++; if(String(r.fft||'').trim().toUpperCase()==='UNOCCURED') o.av++; }   /* अदम वकू = SAS कॉलम P (FINAL_FORM_TYPE) = UNOCCURED वाली एफ.आर.; शेष सभी एफ.आर. = एफ.आर. अन्य */
+        else if(r.disposal==='F.R.'){ o.fr++; if(r.fru && String(r.fru).trim()) o.av++; }   /* अदम वकू = SAS कॉलम Q (FR_UNOCCUR) में प्रविष्टि वाली एफ.आर. */
         else o.pd++;
       }
     });
@@ -18559,7 +19015,7 @@ if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
     });
     return '<div style="text-align:center;font-weight:700;font-size:13px;text-decoration:underline;margin:8px 0 2px">'+title+'</div>'+tbl(h+'</tbody>');
   }
-  var FOOT_DISP=NOTE('○ एफ.आर. अदम वकू – SAS Export के कॉलम P (FINAL_FORM_TYPE) में UNOCCURED वाली एफ.आर.; एफ.आर. अन्य – इसके अलावा शेष सभी एफ.आर. (अनट्रेस्ड / अनडिटेक्टेड / साक्ष्याभाव आदि)।<br>* एफ.आर. अदम वकू / (कुल दर्ज अभियोग – पेण्डिंग अभियोग) * 100<br># चालान / (एफ.आर. अन्य + चालान) * 100');
+  var FOOT_DISP=NOTE('○ एफ.आर. अदम वकू – SAS Export के कॉलम FR_UNOCCUR में प्रविष्टि वाली एफ.आर. (मिथ्या / सिविल प्रकृति / तथ्य की भूल / विधि की भूल / असंज्ञेय आदि); एफ.आर. अन्य – शेष एफ.आर. (अदमपता/अदमसबूत आदि)।<br>* एफ.आर. अदम वकू / (कुल दर्ज अभियोग – पेण्डिंग अभियोग) * 100<br># चालान / (एफ.आर. अन्य + चालान) * 100');
 
   function stationRows(){
     var by={}, out=[], all=[];
