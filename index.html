@@ -1379,6 +1379,59 @@ html #toast{border-radius:var(--r-pill);box-shadow:var(--sh-lg)}
 .ap-modal-f{padding:11px 16px;border-top:1px solid #e3e8f5;display:flex;gap:10px;justify-content:flex-end}.ap-modal-f button{border:1.5px solid #9db3e6;background:#fff;border-radius:8px;padding:7px 14px;font-weight:700;cursor:pointer}.ap-modal-f .ap-b-pri{background:#1B3A8A;color:#fff;border-color:#1B3A8A}
 .ap-miss-row{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #f0f0f0;font-size:13px}.ap-empty{padding:20px;text-align:center;color:#1b5e20;font-weight:700}
 </style>
+<style id="mkadv-css">
+.mkadv-bar{position:sticky;top:0;z-index:30;background:#fff;border:1.5px solid #d7dff2;border-radius:12px;padding:9px 12px;margin-bottom:12px;box-shadow:0 3px 10px rgba(30,50,110,.10)}
+.mk-msg{font-size:12.5px;border-radius:8px;padding:4px 10px;margin-top:5px;border:1px solid}
+.mk-m-err{background:#fde7e7;color:#b71c1c;border-color:#ef9a9a}.mk-m-warn{background:#fff3d6;color:#8a5a00;border-color:#f0c75e}.mk-m-info{background:#eef2ff;color:#243066;border-color:#c5d3f0}.mk-m-ok{background:#e6f5ea;color:#1b5e20;border-color:#a5d6a7}
+.mk-cctns{margin-top:7px;background:#F1F8FF;border:1px solid #bbdefb;border-radius:8px;padding:6px 10px;font-size:12.5px;color:#0d3c6b}
+input.mk-bad{outline:2px solid #e53935;background:#fff5f5 !important}
+.mk-prev{font-size:10.5px;color:#7a7f99;margin-top:2px}.mk-hide-prev .mk-prev{display:none}
+.mkcc{background:#fff;border:1.5px solid #e3d3d6;border-radius:16px;padding:14px;margin:14px 0;box-shadow:0 4px 14px rgba(0,0,0,.08)}
+.mkcc-h{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:flex-end;margin-bottom:12px}
+.mkcc-t{font-size:17px;font-weight:800;color:#7A1F2B}.mkcc-s{font-size:12.5px;color:#555;margin-top:3px}
+.mkcc-ctl,.mkcc-ctl2{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}.mkcc-ctl2{margin-bottom:8px}
+.mkcc label{display:block;font-size:11.5px;color:#666;margin-bottom:2px}.mkcc select{padding:6px 8px;border:1.5px solid #cfd6ea;border-radius:8px;font-family:inherit;max-width:100%}
+.mkcc-ctl button{border:0;background:linear-gradient(135deg,#2E7D32,#1B5E20);color:#fff;font-weight:700;border-radius:8px;padding:8px 14px;cursor:pointer}
+.mkcc-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.mkcc-tile{position:relative;background:linear-gradient(135deg,#7A1F2B,#C2185B);color:#fff;border-radius:12px;padding:11px 13px;overflow:hidden}
+.mkcc-tile .ic{position:absolute;right:8px;top:4px;font-size:30px;opacity:.28}.mkcc-tile .num{font-size:26px;font-weight:800}.mkcc-tile .lbl{font-size:12px;font-weight:600}.mkcc-tile .sub{font-size:11px;opacity:.85;margin-top:2px}
+.mkcc-box{border:1px solid #ece5e7;border-radius:12px;padding:10px 12px;margin-bottom:12px;background:#fffdfd}.mkcc-bt{font-weight:800;color:#5b1520;margin-bottom:8px;font-size:14px}
+.mk-scroll{overflow-x:auto;max-height:70vh}
+table.mk-mx{border-collapse:separate;border-spacing:0;font-size:12.5px;width:100%}.mk-mx th{position:sticky;top:0;background:#37474F;color:#fff;padding:6px 8px;z-index:2;white-space:nowrap}
+.mk-mx td{padding:5px 8px;border-bottom:1px solid #eee;text-align:center}.mk-mx td.mk-th,.mk-mx td:first-child{text-align:left}.mk-circ{font-weight:700;background:#f6eef0;text-align:left;white-space:nowrap}
+.mk-c{cursor:pointer;font-size:15px}.mk-c.ok{background:#eaf7ec}.mk-c.w{background:#fff6dd}.mk-c.e{background:#fdeaea}.mk-c.no{background:#f4f4f4;opacity:.8}
+.mk-tot td{background:#FFF1D6;font-weight:800}.mk-sub td{background:#F3F0FA;font-weight:700}.mk-cir td{background:#7A1F2B;color:#fff;font-weight:700;text-align:left}
+.mk-nums td{text-align:right}.mk-nums td.mk-th{text-align:left}.mk-nf{color:#b71c1c}
+.mk-iss{max-height:340px;overflow:auto}
+</style>
+<style>
+/* ===== v50: यूनिवर्सल सर्च — स्थिति चिप्स व एडवांस विश्लेषण ===== */
+.us-chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0 6px}
+.us-chip-lbl{font-weight:700;font-size:12.5px;color:var(--soft)}
+.us-chip{--c:#0E1B33;border:1.5px solid color-mix(in srgb,var(--c) 35%,#fff);background:#fff;color:var(--c);border-radius:999px;padding:6px 13px;font:600 12.5px 'Hind',sans-serif;cursor:pointer;transition:all .15s}
+.us-chip:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.1)}
+.us-chip b{background:color-mix(in srgb,var(--c) 14%,#fff);border-radius:999px;padding:1px 7px;margin-left:4px;font-size:11.5px}
+.us-chip.on{background:var(--c);color:#fff;border-color:var(--c)}
+.us-chip.on b{background:rgba(255,255,255,.25);color:#fff}
+.us-badge{--c:#64748b;display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;color:var(--c);background:color-mix(in srgb,var(--c) 13%,#fff);white-space:nowrap}
+.us-sort{padding:9px 10px;border-radius:12px;border:1.5px solid var(--line);font-size:12.5px;background:#fff;margin-right:6px}
+.us-title{display:flex;align-items:center;gap:8px;margin:20px 0 10px;font-size:15px;font-weight:800;color:var(--navy)}
+.us-title small{font-weight:500;color:var(--soft);font-size:12px}
+.us-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:10px;margin-bottom:14px}
+.us-kpi{--c:#0E1B33;background:var(--card);border:1px solid var(--line);border-top:4px solid var(--c);border-radius:var(--r-lg);padding:12px 10px;text-align:center;box-shadow:var(--sh-sm)}
+.us-kpi.click{cursor:pointer;transition:transform .15s,box-shadow .15s}.us-kpi.click:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.12)}
+.us-kpi .n{font-size:24px;font-weight:800;color:var(--c);line-height:1.1}
+.us-kpi .l{font-size:11.5px;color:var(--soft);margin-top:3px;font-weight:600}
+.us-kpi .s{font-size:11px;color:var(--c);margin-top:2px;font-weight:700}
+.us-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px;margin-bottom:14px}
+.uac-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:14px 16px 10px;box-shadow:var(--sh-sm)}
+.uac-card h4{margin:0 0 8px;font-size:13.5px;color:var(--navy)}
+.uac-card .cv{position:relative;height:250px}
+.us-insights{background:linear-gradient(135deg,#f4f8ff,#fff);border:1px solid var(--line);border-left:5px solid #2F6FED;border-radius:var(--r-lg);padding:12px 16px;margin-bottom:14px}
+.us-insights h4{margin:0 0 6px;font-size:13.5px;color:var(--navy)}
+.us-insights li{font-size:12.8px;line-height:1.7;margin-left:16px}
+.us-bar{position:relative;height:20px;background:#eef1f6;border-radius:10px;overflow:hidden}.us-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:10px;opacity:.85}.us-bar span{position:relative;display:block;text-align:center;font-size:11.5px;font-weight:700;line-height:20px;color:#111}
+</style>
 </head>
 <body>
 <noscript><div style="padding:16px;margin:12px;background:#FEF3C7;color:#7C2D12;border-radius:12px;font-weight:600">⚠️ यह पोर्टल चलाने के लिए ब्राउज़र में JavaScript चालू होना ज़रूरी है।</div></noscript>
@@ -1652,6 +1705,10 @@ html #toast{border-radius:var(--r-pill);box-shadow:var(--sh-lg)}
         <div>
           <label>माह (वैकल्पिक)</label>
           <select id="db-month"></select>
+        </div>
+        <div>
+          <label>स्थिति (एक या अधिक चुनें)</label>
+          <div id="db-status"></div>
         </div>
       </div>
 
@@ -2458,6 +2515,8 @@ html #toast{border-radius:var(--r-pill);box-shadow:var(--sh-lg)}
         <div id="univSuggestBox" class="univ-suggest-box" style="display:none;"></div>
       </div>
 
+      <div id="univStatusChips" class="us-chips"></div>
+
       <div class="univ-filter-toolbar">
         <div class="ctx-title" style="margin:0;">🧰 फ़िल्टर (सभी मल्टीपल-सेलेक्ट — एक साथ कई विकल्प चुनें)</div>
         <div class="univ-filter-toolbar-actions">
@@ -2484,6 +2543,10 @@ html #toast{border-radius:var(--r-pill);box-shadow:var(--sh-lg)}
           <div>
             <label>महीना</label>
             <div id="univMonthFilter"></div>
+          </div>
+          <div>
+            <label>📌 स्थिति</label>
+            <div id="univStatusFilter"></div>
           </div>
         </div>
       </div>
@@ -2526,9 +2589,16 @@ html #toast{border-radius:var(--r-pill);box-shadow:var(--sh-lg)}
 
       <div class="univ-filter-actions-row">
         <div id="univSearchCount" class="univ-search-count"></div>
-        <button class="btn-fill" onclick="downloadUnivResults()">⬇️ परिणाम डाउनलोड (CSV)</button>
+        <select id="univSortSel" class="us-sort" onchange="univSortMode=this.value;runUniversalSearch()" title="क्रम चुनें">
+          <option value="default">↕ क्रम: डिफ़ॉल्ट</option><option value="new">नवीनतम पहले</option><option value="old">पुराने पहले</option><option value="ps">थाना अनुसार</option><option value="status">स्थिति अनुसार</option>
+        </select>
+        <button class="btn-fill" onclick="downloadUnivResults()">⬇️ CSV</button>
+        <button class="btn-fill" style="background:linear-gradient(135deg,#138808,#0b5c05)" onclick="downloadUnivExcel()">📗 Excel (विश्लेषण सहित)</button>
       </div>
     </div>
+
+    <div id="univAnalytics"></div>
+    <div id="univDeep"></div>
 
     <div id="univSearchResults"></div>
 
@@ -2738,6 +2808,8 @@ html #toast{border-radius:var(--r-pill);box-shadow:var(--sh-lg)}
     <div class="intro" style="border-top-color:#E5484D">
       <b>निर्देश:</b> पहले नीचे <b>थाना, वर्ष और माह</b> चुनें, फिर संबंधित प्रारूप में <b>"📝 डेटा भरें"</b> दबाएँ — टेबल मोबाइल फोन व कंप्यूटर दोनों से आसानी से भरी जा सकती है। सफ़ेद खाने भरें, <b>हरे रंग के खाने</b> (योग/शेष) अपने-आप जुड़ते हैं। भरने के बाद <b>"💾 सेव करें"</b> जरूर दबाएँ।
     </div>
+
+    <div id="mk-cc"></div>
 
     <div class="pcard" style="--ca:#128C7E;margin-bottom:14px">
       <div class="pcard-head"><div class="pcard-icon">🔗</div><span class="pcard-badge" style="background:#e7f7f2;color:#128C7E">थानों को लिंक भेजें</span></div>
@@ -4465,6 +4537,7 @@ function go(id){
   if(id==='settings' && typeof renderCustomPagesSettings==='function') renderCustomPagesSettings();
   if(id==='monitor' && typeof monInitSelects==='function') monInitSelects();
   if(id==='sensCases' && typeof renderSensCases==='function'){ renderSensCases(); }
+  if(id==='malkhana' && typeof renderMkCommand==='function'){ renderMkCommand(); }
   if(id==='actWatch' && typeof awInitSelects==='function'){ awInitSelects(); if(typeof renderActWatch==='function') renderActWatch(); }
   if(id==='perfMonitor' && typeof pmInitSelects==='function'){ pmInitSelects(); if(typeof renderPerfMonitor==='function') renderPerfMonitor(); }
   if(id==='dataQuality' && typeof renderDataQuality==='function'){ renderDataQuality(); }
@@ -5488,7 +5561,7 @@ function renderMalkhanaTable(cfg, data, monthName, year){
     footHtml=`<tr class="yog-row">${tds}</tr>`;
   }
 
-  document.getElementById('entry-content').innerHTML=`
+  document.getElementById('entry-content').innerHTML=mkAdvBarHtml()+`
     ${extraHtml}
     <div class="tbl-outer"><table class="data-tbl">
       <thead>${theadHtml}</thead>
@@ -5496,6 +5569,7 @@ function renderMalkhanaTable(cfg, data, monthName, year){
     </table></div>`;
 
   recalcMalkhana();
+  mkAdvAfterRender();
 }
 
 function mkGetN(id){ const el=document.getElementById(id); if(!el) return 0; const v=el.tagName==='INPUT'?el.value:el.textContent; return parseInt(v)||0; }
@@ -5549,6 +5623,7 @@ function recalcMalkhana(){
       mkSetA('mk_coltotal_rowyog', tot);
     }
   }
+  if(typeof mkAdvRefresh==='function'){ mkAdvRefresh(); mkCctnsNote(); }
 }
 
 function collectMalkhanaData(){
@@ -5647,6 +5722,7 @@ function saveEntry(){
     const data=collectSummonData();
     payload={thana,year,month,monthName,data,savedAt:new Date().toLocaleString('hi-IN')};
   } else if(branch==='malkhana'){
+    if(!mkAdvGate()) return;
     const data=collectMalkhanaData();
     payload={thana,year,month,monthName,data,savedAt:new Date().toLocaleString('hi-IN')};
   } else if(branch==='custom'){
@@ -5656,6 +5732,7 @@ function saveEntry(){
 
   if(saveData(_key, payload)){
     apDraftClear();
+    if(branch==='malkhana' && typeof renderMkCommand==='function'){ _mkCc.year=year; _mkCc.month=month; try{ renderMkCommand(); }catch(e){} }
     toast('✅ डेटा सफलतापूर्वक सेव हो गया — '+monthName+' '+year);
     showNextFormatPrompt(branch,type);
     // केंद्रीय सर्वर पर भी भेजें (अगर कनेक्ट है) — यह localStorage सेव को रोकता नहीं
@@ -6306,6 +6383,7 @@ let dbState = {
   tvaCat: null,
   tvaMonth: new Date().getMonth()+1,
   tvaYears: new Set(),  // strings, e.g. "2025","2026"
+  statusSet: new Set(),    // स्थिति फ़िल्टर (खाली = सभी)
   frSub: null,  // F.R. उप-श्रेणी फ़िल्टर (null = सभी)
   firCmpCat: null, firCmpSub: null, firCmpYear: null, firCmpSeries: {a:true,b:true}
 };
@@ -6907,7 +6985,7 @@ function buildMultiSelect(elId, allOptions, selectedSet, placeholder, onChange, 
 }
 document.addEventListener('click', ()=>{ document.querySelectorAll('.msel-panel.open').forEach(p=>p.classList.remove('open')); });
 
-let msPS=null, msCat=null, msSub=null;
+let msPS=null, msCat=null, msSub=null, msStatus=null;
 
 /* ===================== INIT / CONTROLS ===================== */
 function initControls(){
@@ -6915,6 +6993,7 @@ function initControls(){
   msPS = buildMultiSelect('db-ps', psList, dbState.psSet, 'थाना', ()=>{ dbState.page=1; renderAll(); });
 
   msCat = buildMultiSelect('db-cat', CRIME_HEADS.map(h=>h.label), new Set([...dbState.catFieldSet].map(f=>CRIME_HEADS.find(h=>h.key===f)?.label).filter(Boolean)), 'अपराध श्रेणी', ()=>{});
+  msStatus = buildMultiSelect('db-status', dbStatusOptions(), dbState.statusSet, 'स्थिति', ()=>{ dbState.page=1; renderAll(); }, o=>DB_STATUS_LABEL[o]||o);
   // category multiselect works on labels; translate back to keys via wrapper
   wireCategorySelect();
   refreshSubcatOptions();
@@ -7037,7 +7116,13 @@ function currentFilteredSet(){
     if(dbState.years.length===0) out = [];
     else out = base.filter(r=> dbState.years.includes(r.year) && (dbState.month===0 || r.month===dbState.month));
   }
-  return filterByFrSub(filterByCategory(out));
+  return filterByStatus(filterByFrSub(filterByCategory(out)));
+}
+const DB_STATUS_LABEL = {'Chargesheet':'चार्जशीट','F.R.':'एफ.आर.','Pending':'पेंडिंग / लंबित'};
+function filterByStatus(list){ if(!dbState.statusSet.size) return list; return list.filter(r=>dbState.statusSet.has(r.disposal)); }
+function dbStatusOptions(){
+  const ord=['Chargesheet','F.R.','Pending'], have=new Set(dbRecords.map(r=>r.disposal).filter(Boolean));
+  return [...ord.filter(o=>have.has(o)), ...[...have].filter(o=>!ord.includes(o)).sort()];
 }
 function setFrSub(key){
   dbState.frSub = (dbState.frSub===key) ? null : key;
@@ -7097,7 +7182,7 @@ function renderSummary(){
   `;
   const psLabel = dbState.psSet.size ? (dbState.psSet.size<=2 ? [...dbState.psSet].join(', ') : dbState.psSet.size+' थाने चयनित') : 'समस्त जिला';
   document.getElementById('dbSubtitle').textContent =
-    `कुल ${dbRecords.length.toLocaleString('en-IN')} रिकॉर्ड लोड | थाना: ${psLabel} | मोड: ${dbState.mode==='year'?'वर्षवार तुलना':'दिनांक अवधि खोज'}`;
+    `कुल ${dbRecords.length.toLocaleString('en-IN')} रिकॉर्ड लोड | थाना: ${psLabel} | स्थिति: ${dbState.statusSet.size ? [...dbState.statusSet].map(o=>DB_STATUS_LABEL[o]||o).join(', ') : 'समस्त'} | मोड: ${dbState.mode==='year'?'वर्षवार तुलना':'दिनांक अवधि खोज'}`;
   renderFrSubChips();
 }
 
@@ -7204,7 +7289,7 @@ const valueLabelsPlugin = {
   }
 };
 function _renderOneChart(def){
-  const base = filterByPS(dbRecords);
+  const base = filterByStatus(filterByPS(dbRecords));
   const fld = def.field || def.key;
   const isPpt = !!def.ppt;
   const canvas = isPpt ? ensurePptCanvas(def.key) : ensureCanvas(def.key,false);
@@ -7249,7 +7334,7 @@ function renderSinglePptChart(key){
   if(def) _renderOneChart(def);
 }
 function renderCharts(){
-  const base = filterByPS(dbRecords);
+  const base = filterByStatus(filterByPS(dbRecords));
   ensureDivider('pptDivider', '<h3 style="margin:0;font-size:17px;">📑 प्रस्तुतिकरण (PPT) अनुरूप श्रेणी-वार चार्ट्स</h3><p style="margin:6px 0 10px;font-size:12px;opacity:.85;">प्रत्येक चार्ट में अपना स्वतंत्र "तुलनात्मक माह" चुनें — ऊपर का वर्ष चयन सभी पर लागू होता है</p><button class="btn-fill" style="background:#fff;color:#0E1B33;margin:0 6px" onclick="exportPptChartsToPPTX()">📊 PPTX डाउनलोड करें</button><button class="btn-fill" style="background:#fff;color:#0E1B33;margin:0 6px" onclick="exportPptChartsToPDF()">📄 PDF डाउनलोड करें</button>');
   PPT_CHART_DEFS.forEach(_renderOneChart);
   renderTrend(base);
@@ -7510,7 +7595,8 @@ function downloadDashboardTable(){
     ['विवरण','मान'],
     ['कुल रिकॉर्ड (चयनित फ़िल्टर अनुसार)', set.length],
     ['खोज शब्द', dbState.search || '-'],
-    ['श्रेणी फ़िल्टर', (dbState.catFieldSet && dbState.catFieldSet.size) ? [...dbState.catFieldSet].map(f=>CHART_TITLES[f]).join(', ') : 'समस्त श्रेणी']
+    ['श्रेणी फ़िल्टर', (dbState.catFieldSet && dbState.catFieldSet.size) ? [...dbState.catFieldSet].map(f=>CHART_TITLES[f]).join(', ') : 'समस्त श्रेणी'],
+    ['स्थिति फ़िल्टर', dbState.statusSet.size ? [...dbState.statusSet].map(o=>DB_STATUS_LABEL[o]||o).join(', ') : 'समस्त स्थिति']
   ];
 
   exportRowsToXLSX('apradh-sankhyiki-fir-list.xlsx', [
@@ -9086,6 +9172,7 @@ const UNIV_PAGE_SIZE = 25;
 let univSrcSet=new Set(), univPsSet=new Set(), univYearSet=new Set(), univMonthSet=new Set(),
     univInfoSet=new Set(), univActSet=new Set(), univFrSet=new Set(), univCatFieldSet=new Set(), univCatValSet=new Set(), univPunishYearSet=new Set();
 let msUnivSrc=null, msUnivPs=null, msUnivYear=null, msUnivMonth=null, msUnivInfo=null, msUnivAct=null, msUnivFr=null, msUnivCatField=null, msUnivCatVal=null, msUnivPunishYear=null;
+let univStatusSet=new Set(), univOldSet=new Set(), msUnivStatus=null, univSortMode='default', univCharts={};
 const UNIV_ACT_LABELS = {ipc:'IPC', crpc:'CrPC', bns:'BNS', bnss:'BNSS', sll:'SLL (Special & Local Laws)'};
 
 function getActFlags(text){
@@ -9374,6 +9461,9 @@ function populateUnivFilters(){
   const catFieldKeys = ALL_CAT_FIELDS.filter(f=>catFieldCounts[f]);
   msUnivCatField = buildMultiSelect('univCatFieldFilter', catFieldKeys, univCatFieldSet, 'अपराध श्रेणी', ()=>{ populateUnivCatValueOptions(); runUniversalSearch(); }, f=>`${CHART_TITLES[f]} (${catFieldCounts[f]})`);
 
+  const stC={}; SEARCH_IDX.forEach(e=>{ const k=e.statusNorm||'other'; stC[k]=(stC[k]||0)+1; });
+  msUnivStatus = buildMultiSelect('univStatusFilter', US_ORDER.filter(k=>stC[k]), univStatusSet, 'स्थिति', runUniversalSearch, k=>`${US_LBL[k]} (${stC[k]})`);
+
   populateUnivCatValueOptions();
   populateUnivPivotSelectors();
   updateUnivFilterBadge();
@@ -9556,7 +9646,7 @@ function classifyActCategory(section){
   return 'OTHER';
 }
 
-function getUnivFilteredPool(){
+function getUnivFilteredPool(skipStatus){
   if(!SEARCH_IDX) SEARCH_IDX = buildSearchIndex();
   const yearNums = new Set([...univYearSet].map(y=>parseInt(y,10)));
   const monthNums = new Set([...univMonthSet].map(m=>parseInt(m,10)));
@@ -9571,12 +9661,14 @@ function getUnivFilteredPool(){
   if(univFrSet.size) pool = pool.filter(r=>univFrSet.has(r.frSub));
   if(univCatFieldSet.size || univCatValSet.size) pool = pool.filter(r=>entryMatchesCat(r, univCatFieldSet, univCatValSet));
   if(univPunishYearSet.size) pool = pool.filter(r=>univPunishYearSet.has(r.punishmentYear));
+  if(univOldSet.size) pool = pool.filter(r=>usIsPend(r.statusNorm||'other') && (univDays(r.date)||0)>365);
+  if(univStatusSet.size && !skipStatus) pool = pool.filter(r=>univStatusSet.has(r.statusNorm||'other'));
   return pool;
 }
 function univAnyFilterActive(){
-  return univSrcSet.size||univPsSet.size||univYearSet.size||univMonthSet.size||univInfoSet.size||univActSet.size||univFrSet.size||univCatFieldSet.size||univCatValSet.size||univPunishYearSet.size;
+  return univSrcSet.size||univPsSet.size||univYearSet.size||univMonthSet.size||univInfoSet.size||univActSet.size||univFrSet.size||univCatFieldSet.size||univCatValSet.size||univPunishYearSet.size||univStatusSet.size||univOldSet.size;
 }
-const UNIV_FILTER_SETS = [univSrcSet, univPsSet, univYearSet, univMonthSet, univInfoSet, univPunishYearSet, univActSet, univFrSet, univCatFieldSet, univCatValSet];
+const UNIV_FILTER_SETS = [univSrcSet, univPsSet, univYearSet, univMonthSet, univInfoSet, univPunishYearSet, univActSet, univFrSet, univCatFieldSet, univCatValSet, univStatusSet, univOldSet];
 function univFilterActiveCount(){
   return UNIV_FILTER_SETS.reduce((n,s)=>n+(s.size?1:0),0);
 }
@@ -9589,7 +9681,7 @@ function updateUnivFilterBadge(){
 }
 function clearAllUnivFilters(){
   UNIV_FILTER_SETS.forEach(s=>s.clear());
-  [msUnivSrc, msUnivPs, msUnivYear, msUnivMonth, msUnivInfo, msUnivPunishYear, msUnivAct, msUnivFr, msUnivCatField].forEach(m=>{ if(m) m.refresh(); });
+  [msUnivSrc, msUnivPs, msUnivYear, msUnivMonth, msUnivInfo, msUnivPunishYear, msUnivAct, msUnivFr, msUnivCatField, msUnivStatus].forEach(m=>{ if(m) m.refresh(); });
   populateUnivCatValueOptions(); // अपराध उपश्रेणी की सूची अपराध श्रेणी पर निर्भर है — दोबारा बनाएं
   runUniversalSearch();
 }
@@ -9763,11 +9855,184 @@ function renderUnivPage(){
     // जिस फ़ील्ड का मान किसी दूसरी फाइल से भरा गया हो (fallback fill), उस सेल पर टूलटिप से पता चलेगा
     const secTitle = so.section ? `स्रोत: ${so.section}` : '';
     const statTitle = so.status ? `स्रोत: ${so.status}` : '';
-    h+=`<tr><td>${srcChipsHTML(r.srcList)}</td><td>${r.psHi}</td><td>${r.fir||'-'}</td><td>${r.date||'-'}</td><td class="desc-td" title="${secTitle} — ${(r.section||'').replace(/"/g,'&quot;')}">${(r.section||'-').slice(0,90)}</td><td class="desc-td" title="${(r.invBaseSection||'').replace(/"/g,'&quot;')}">${(r.invBaseSection||'-').slice(0,90)}</td><td>${r.punishmentYear||'-'}</td><td title="${statTitle}">${r.statusDisplay||r.status||'-'}${frTxt}</td></tr>`;
+    h+=`<tr><td>${srcChipsHTML(r.srcList)}</td><td>${r.psHi}</td><td>${r.fir||'-'}</td><td>${r.date||'-'}</td><td class="desc-td" title="${secTitle} — ${(r.section||'').replace(/"/g,'&quot;')}">${(r.section||'-').slice(0,90)}</td><td class="desc-td" title="${(r.invBaseSection||'').replace(/"/g,'&quot;')}">${(r.invBaseSection||'-').slice(0,90)}</td><td>${r.punishmentYear||'-'}</td><td title="${statTitle}">${univStatusBadge(r)}${frTxt}</td></tr>`;
   });
   h+='</tbody></table></div>';
   h+=`<div class="pager"><button onclick="univPage=Math.max(0,univPage-1);renderUnivPage()">‹ पिछला</button><span>${start+1}-${end} / ${total}</span><button onclick="univPage=(univPage+1)*${UNIV_PAGE_SIZE}<${total}?univPage+1:univPage;renderUnivPage()">अगला ›</button></div>`;
   box.innerHTML = h;
+}
+
+/* ============================================================
+   v50 — यूनिवर्सल सर्च: स्थिति फ़िल्टर + एडवांस विश्लेषण (KPI, चार्ट, इनसाइट, Excel)
+   ============================================================ */
+const US_ORDER=['chargesheet','fr','pending','1939','other'];
+const US_LBL={chargesheet:'चालान',fr:'एफ.आर.',pending:'पैडिंग अनुसंधान','1939':'193(9) बीएनएसएस',other:'अन्य / अज्ञात'};
+const US_CLR={chargesheet:'#138808',fr:'#D97706',pending:'#DC2626','1939':'#7C3AED',other:'#94A3B8'};
+const usKey=r=>r.statusNorm||'other';
+const usIsPend=k=>k==='pending'||k==='1939';
+function univStatusBadge(r){ const k=usKey(r); return `<span class="us-badge" style="--c:${US_CLR[k]}">${escHtml(r.statusDisplay||r.status||US_LBL[k])}</span>`; }
+function univDays(d){ const t=Date.parse(String(d||'').slice(0,10)); return isNaN(t)?null:Math.floor((Date.now()-t)/864e5); }
+function univSetStatus(k){
+  if(k===null) univStatusSet.clear(); else if(univStatusSet.has(k)) univStatusSet.delete(k); else univStatusSet.add(k);
+  if(msUnivStatus) msUnivStatus.refresh();
+  runUniversalSearch();
+}
+// खोज-शब्द + फ़िल्टर का परिणाम (स्थिति-फ़िल्टर को चाहें तो छोड़कर) — चिप-गणना हेतु
+function univSearchPool(skipStatus){
+  const q=document.getElementById('univSearchInput').value.trim().toLowerCase();
+  const pool=getUnivFilteredPool(skipStatus);
+  if(q.length<2) return pool;
+  if(univActiveScope && univActiveScope!=='all') return pool.filter(r=>matchUnivScope(r,univActiveScope,q));
+  let m;
+  const fr=/^(fir|एफ\s*\.?\s*आई\s*\.?\s*आर\s*\.?|प्रकरण(?:\s*(?:सं(?:ख्या)?|नंबर|नं\.?))?)\s*[:.\-]?\s*(.+)$/i;
+  const sc=/^(धारा|dhara|u\/s|section|sec)\s*[:.\-]?\s*(.+)$/i;
+  if((m=q.match(fr)) && m[2].trim()) return pool.filter(r=>matchUnivScope(r,'fir',m[2].trim()));
+  if((m=q.match(sc)) && m[2].trim()) return pool.filter(r=>matchUnivScope(r,'section',m[2].trim()));
+  return pool.filter(r=>r.blob.includes(q));
+}
+function renderUnivStatusChips(){
+  const el=document.getElementById('univStatusChips'); if(!el) return;
+  const c={}; let tot=0;
+  univSearchPool(true).forEach(r=>{ const k=usKey(r); c[k]=(c[k]||0)+1; tot++; });
+  el.innerHTML=`<span class="us-chip-lbl">📌 स्थिति:</span><button type="button" class="us-chip${univStatusSet.size?'':' on'}" onclick="univSetStatus(null)">सभी <b>${tot}</b></button>`+
+    US_ORDER.filter(k=>c[k]||univStatusSet.has(k)).map(k=>`<button type="button" class="us-chip${univStatusSet.has(k)?' on':''}" style="--c:${US_CLR[k]}" onclick="univSetStatus('${k}')">${US_LBL[k]} <b>${c[k]||0}</b></button>`).join('');
+}
+function univAggregate(R){
+  const A={n:R.length,st:{},ps:{},yr:{},act:{},ages:[0,0,0,0,0],pend:0,old1:0,ageSum:0,ageN:0,full3:0,oldest:null};
+  R.forEach(r=>{
+    const k=usKey(r); A.st[k]=(A.st[k]||0)+1;
+    const pn=r.psHi||'—'; const p=A.ps[pn]=A.ps[pn]||{t:0}; p.t++; p[k]=(p[k]||0)+1;
+    const y=r.year||'—'; const yo=A.yr[y]=A.yr[y]||{}; yo[k]=(yo[k]||0)+1;
+    if(r.srcList && r.srcList.length>=3) A.full3++;
+    if(r.actFlags) Object.keys(r.actFlags).forEach(a=>{ if(r.actFlags[a]) A.act[a]=(A.act[a]||0)+1; });
+    if(usIsPend(k)){
+      A.pend++; const d=univDays(r.date);
+      if(d!==null && d>=0){ A.ageSum+=d; A.ageN++; A.ages[d<=60?0:d<=90?1:d<=180?2:d<=365?3:4]++; if(d>365) A.old1++; if(!A.oldest||d>A.oldest.d) A.oldest={d,r}; }
+    }
+  });
+  return A;
+}
+function univApplySort(){
+  if(univSortMode==='default' || !univResultsFull.length) return;
+  const t=d=>{ const x=Date.parse(String(d||'').slice(0,10)); return isNaN(x)?0:x; };
+  const cmp={ new:(a,b)=>t(b.date)-t(a.date), old:(a,b)=>t(a.date)-t(b.date),
+    ps:(a,b)=>String(a.psHi).localeCompare(String(b.psHi),'hi')||t(b.date)-t(a.date),
+    status:(a,b)=>US_ORDER.indexOf(usKey(a))-US_ORDER.indexOf(usKey(b))||t(b.date)-t(a.date) }[univSortMode];
+  if(cmp){ univResultsFull=univResultsFull.slice().sort(cmp); renderUnivPage(); }
+}
+function univAfterSearch(){
+  renderUnivStatusChips();
+  Object.values(univCharts).forEach(c=>{ try{c.destroy();}catch(e){} }); univCharts={};
+  const box=document.getElementById('univAnalytics'); if(!box) return;
+  univApplySort();
+  const q=document.getElementById('univSearchInput').value.trim();
+  const overall=(q.length<2 && !univAnyFilterActive());
+  const R=overall ? (SEARCH_IDX||[]) : univResultsFull;
+  if(!R || !R.length){ box.innerHTML=''; return; }
+  const A=univAggregate(R), pc=n=>(A.n?(n/A.n*100).toFixed(1):'0.0')+'%';
+  const pend=A.pend, disp=(A.st.chargesheet||0)+(A.st.fr||0);
+  const kpi=(c,n,l,s,k)=>`<div class="us-kpi${k?' click':''}" style="--c:${c}"${k?` onclick="univSetStatus('${k}')" title="इस स्थिति से फ़िल्टर करें"`:''}><div class="n">${n}</div><div class="l">${l}</div>${s?`<div class="s">${s}</div>`:''}</div>`;
+  const avgAge=A.ageN?Math.round(A.ageSum/A.ageN):0;
+  let h=`<div class="us-title">📊 विश्लेषण <small>${overall?'समस्त डेटा (कोई खोज/फ़िल्टर नहीं)':'वर्तमान खोज/फ़िल्टर परिणाम'}</small></div><div class="us-kpis">`+
+    kpi('#0E1B33',A.n.toLocaleString('en-IN'),'कुल प्रकरण',`${Object.keys(A.ps).length} थाने`)+
+    kpi(US_CLR.chargesheet,A.st.chargesheet||0,'चालान',pc(A.st.chargesheet||0),'chargesheet')+
+    kpi(US_CLR.fr,A.st.fr||0,'एफ.आर.',pc(A.st.fr||0),'fr')+
+    kpi(US_CLR.pending,pend,'पेंडिंग (अनुसंधान + 193(9))',pc(pend),'pending')+
+    kpi('#0891B2',pc(disp),'निस्तारण दर','चालान + एफ.आर.')+
+    kpi('#B91C1C',A.old1,'1 वर्ष से अधिक पेंडिंग',pend?(A.old1/pend*100).toFixed(1)+'% पेंडिंग का':'')+
+    kpi('#7C3AED',avgAge,'औसत पेंडिंग आयु (दिन)',A.ageN?`${A.ageN} प्रकरणों पर`:'')+
+    kpi('#2F6FED',A.full3,'तीनों स्रोतों में मिलान',pc(A.full3))+`</div>`;
+  // ---- स्वचालित इनसाइट ----
+  const psArr=Object.entries(A.ps).sort((a,b)=>b[1].t-a[1].t);
+  const rate=([n,o])=>({n,t:o.t,r:((o.pending||0)+(o['1939']||0))/o.t});
+  const worst=psArr.map(rate).filter(x=>x.t>=5).sort((a,b)=>b.r-a.r)[0];
+  const topAct=Object.entries(A.act).sort((a,b)=>b[1]-a[1])[0];
+  const ins=[];
+  if(psArr[0]) ins.push(`सर्वाधिक प्रकरण: <b>${escHtml(psArr[0][0])}</b> (${psArr[0][1].t}, ${pc(psArr[0][1].t)})`);
+  if(worst && worst.r>0) ins.push(`सर्वाधिक पेंडेंसी दर (≥5 प्रकरण): <b>${escHtml(worst.n)}</b> — ${(worst.r*100).toFixed(1)}% पेंडिंग`);
+  if(A.oldest) ins.push(`सबसे पुराना पेंडिंग: <b>${escHtml(A.oldest.r.psHi)}</b>, FIR ${escHtml(A.oldest.r.fir||'-')} — ${A.oldest.d} दिन (~${(A.oldest.d/365).toFixed(1)} वर्ष)`);
+  if(topAct) ins.push(`सर्वाधिक Act प्रकार: <b>${UNIV_ACT_LABELS[topAct[0]]||topAct[0]}</b> (${topAct[1]} प्रकरण)`);
+  if(A.st.other) ins.push(`⚠️ <b>${A.st.other}</b> प्रकरणों की स्थिति अज्ञात/अन्य है — डेटा-गुणवत्ता जाँचें`);
+  if(ins.length) h+=`<div class="us-insights"><h4>💡 मुख्य निष्कर्ष</h4><ul style="margin:0;padding:0">${ins.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
+  h+=`<div class="us-grid">
+    <div class="uac-card"><h4>स्थिति-वार वितरण <small style="font-weight:400;color:var(--soft)">(स्लाइस क्लिक = फ़िल्टर)</small></h4><div class="cv"><canvas id="ucv-st"></canvas></div></div>
+    <div class="uac-card"><h4>थाना-वार स्थिति (शीर्ष 12)</h4><div class="cv"><canvas id="ucv-ps"></canvas></div></div>
+    <div class="uac-card"><h4>वर्ष-वार प्रकरण व स्थिति</h4><div class="cv"><canvas id="ucv-yr"></canvas></div></div>
+    ${pend?`<div class="uac-card"><h4>पेंडिंग प्रकरणों की आयु-वितरण</h4><div class="cv"><canvas id="ucv-age"></canvas></div></div>`:''}
+  </div>`;
+  box.innerHTML=h;
+  if(typeof Chart==='undefined') return;
+  const keys=US_ORDER.filter(k=>A.st[k]);
+  const mk=(id,cfg)=>{ const c=document.getElementById(id); if(c) univCharts[id]=new Chart(c,cfg); };
+  const base={responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}}};
+  mk('ucv-st',{type:'doughnut',data:{labels:keys.map(k=>US_LBL[k]),datasets:[{data:keys.map(k=>A.st[k]),backgroundColor:keys.map(k=>US_CLR[k])}]},
+    options:{...base,cutout:'58%',onClick:(e,els)=>{ if(els.length) univSetStatus(keys[els[0].index]); }}});
+  const stack=(labels,pick)=>({labels,datasets:keys.map(k=>({label:US_LBL[k],backgroundColor:US_CLR[k],data:labels.map(l=>pick(l,k)||0)}))});
+  const top=psArr.slice(0,12).map(x=>x[0]);
+  mk('ucv-ps',{type:'bar',data:stack(top,(l,k)=>A.ps[l][k]),options:{...base,indexAxis:'y',scales:{x:{stacked:true,beginAtZero:true,ticks:{precision:0}},y:{stacked:true,ticks:{font:{size:10}}}}}});
+  const yrs=Object.keys(A.yr).sort((a,b)=>(parseInt(a,10)||9999)-(parseInt(b,10)||9999));
+  mk('ucv-yr',{type:'bar',data:stack(yrs,(l,k)=>A.yr[l][k]),options:{...base,scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true,ticks:{precision:0}}}}});
+  if(pend) mk('ucv-age',{type:'bar',data:{labels:['0–60 दिन','61–90','91–180','181–365','1 वर्ष+'],datasets:[{label:'पेंडिंग प्रकरण',data:A.ages,backgroundColor:['#16A34A','#84CC16','#F59E0B','#EA580C','#B91C1C']}]},
+    options:{...base,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
+}
+const _runUnivCore=runUniversalSearch;
+runUniversalSearch=function(){ _runUnivCore(); try{ univAfterSearch(); }catch(e){ console.error('विश्लेषण त्रुटि',e); } };
+
+function downloadUnivExcel(){
+  const R=univResultsFull&&univResultsFull.length?univResultsFull:null;
+  if(!R){ toast('पहले खोज/फ़िल्टर परिणाम प्राप्त करें'); return; }
+  const A=univAggregate(R), pc=n=>(A.n?(n/A.n*100):0).toFixed(1)+'%';
+  const filt=[]; if(univStatusSet.size) filt.push('स्थिति: '+[...univStatusSet].map(k=>US_LBL[k]).join(', '));
+  const sum=[['विवरण','मान'],['खोज शब्द',document.getElementById('univSearchInput').value||'-'],['सक्रिय फ़िल्टर',univFilterActiveCount()+' '+(filt.join(' | ')||'')],['कुल प्रकरण',A.n],
+    ...US_ORDER.filter(k=>A.st[k]).map(k=>[US_LBL[k],A.st[k]+' ('+pc(A.st[k])+')']),
+    ['निस्तारण दर (चालान+एफ.आर.)',pc((A.st.chargesheet||0)+(A.st.fr||0))],['1 वर्ष से अधिक पेंडिंग',A.old1],['औसत पेंडिंग आयु (दिन)',A.ageN?Math.round(A.ageSum/A.ageN):0],['तीनों स्रोतों में मिलान',A.full3]];
+  const psRows=Object.entries(A.ps).sort((a,b)=>b[1].t-a[1].t).map(([n,o])=>[n,o.t,o.chargesheet||0,o.fr||0,(o.pending||0)+(o['1939']||0),o.other||0,((((o.pending||0)+(o['1939']||0))/o.t)*100).toFixed(1)+'%']);
+  const rows=R.map((r,i)=>[i+1,r.src||'',r.psHi||'',r.fir||'',r.date||'',r.section||'',r.invBaseSection||'',r.punishmentYear||'',r.statusDisplay||r.status||'',r.frSub?(FR_SUB_LABELS[r.frSub]||r.frSub):'',r.io||'',r.infoSource||'']);
+  exportRowsToXLSX('universal-search-analysis.xlsx',[
+    {name:'सारांश',aoa:sum,colWidths:[34,40]},
+    {name:'थाना-वार',aoa:[['थाना','कुल','चालान','एफ.आर.','पेंडिंग','अन्य','पेंडेंसी %'],...psRows],colWidths:[22,8,9,9,9,8,12]},
+    {name:'परिणाम',aoa:[['क्र.','स्रोत','थाना','FIR नंबर','दिनांक','धारा / Act','INV. BASE ACT & SECTION','Punishment Year','स्थिति','F.R. उप-श्रेणी','IO','Information Source'],...rows],colWidths:[6,22,16,12,12,34,30,12,16,18,18,20],filter:true}
+  ]);
+}
+
+/* ===== v51 — गहन विश्लेषण: थाना-मैट्रिक्स, IO-वार पेंडिंग, मासिक रुझान, 1 वर्ष+ पेंडिंग फ़िल्टर ===== */
+function univToggleOld(){ if(univOldSet.size) univOldSet.clear(); else univOldSet.add('1'); runUniversalSearch(); }
+function univTogglePs(k){ if(univPsSet.has(k)) univPsSet.delete(k); else univPsSet.add(k); if(msUnivPs) msUnivPs.refresh(); runUniversalSearch(); }
+const _rscBase=renderUnivStatusChips;
+renderUnivStatusChips=function(){ _rscBase(); const el=document.getElementById('univStatusChips'); if(el) el.insertAdjacentHTML('beforeend',`<button type="button" class="us-chip${univOldSet.size?' on':''}" style="--c:#B91C1C" onclick="univToggleOld()" title="1 वर्ष से अधिक पुराने पेंडिंग प्रकरण">⏳ 1 वर्ष+ पेंडिंग</button>`); };
+const _uasBase=univAfterSearch;
+univAfterSearch=function(){ _uasBase(); try{ univDeep(); }catch(e){ console.error('गहन विश्लेषण त्रुटि',e); } };
+function univDeep(){
+  const box=document.getElementById('univDeep'); if(!box) return;
+  const q=document.getElementById('univSearchInput').value.trim();
+  const R=(q.length<2 && !univAnyFilterActive()) ? (SEARCH_IDX||[]) : univResultsFull;
+  if(!R || !R.length){ box.innerHTML=''; return; }
+  const ps={}, io={}, mon={};
+  R.forEach(r=>{
+    const k=usKey(r), pe=usIsPend(k), d=pe?univDays(r.date):null, old=d!==null && d>365;
+    const p=ps[r.ps]=ps[r.ps]||{n:r.psHi||r.ps||'—',t:0,c:0,f:0,p:0,o:0};
+    p.t++; if(k==='chargesheet') p.c++; else if(k==='fr') p.f++; else if(pe){ p.p++; if(old) p.o++; }
+    if(pe && r.io){ const i=io[r.io]=io[r.io]||{n:r.io,p:0,o:0,mx:0,ps:r.psHi||''}; i.p++; if(old) i.o++; if(d!==null && d>i.mx) i.mx=d; }
+    if(r.year && r.month){ const ym=r.year+'-'+String(r.month).padStart(2,'0'); const m=mon[ym]=mon[ym]||{t:0,p:0}; m.t++; if(pe) m.p++; }
+  });
+  const rate=o=>o.t?o.p/o.t*100:0, clr=v=>v>=50?'#DC2626':v>=30?'#EA580C':v>=15?'#D97706':'#16A34A';
+  const psRows=Object.entries(ps).sort((a,b)=>rate(b[1])-rate(a[1])||b[1].t-a[1].t).map(([k,o])=>{
+    const v=rate(o), on=univPsSet.has(k);
+    return `<tr data-ps="${escHtml(k)}" onclick="univTogglePs(this.dataset.ps)" style="cursor:pointer${on?';background:#eef4ff':''}" title="इस थाने से फ़िल्टर करें"><td style="text-align:left"><b>${escHtml(o.n)}</b></td><td>${o.t}</td><td>${o.c}</td><td>${o.f}</td><td>${o.p}</td><td>${o.o}</td><td style="min-width:130px"><div class="us-bar"><i style="width:${Math.min(100,v).toFixed(0)}%;background:${clr(v)}"></i><span>${v.toFixed(1)}%</span></div></td></tr>`;
+  }).join('');
+  const ioRows=Object.values(io).sort((a,b)=>b.p-a.p||b.mx-a.mx).slice(0,10).map((o,i)=>`<tr><td>${i+1}</td><td style="text-align:left"><b>${escHtml(o.n)}</b><br><small style="color:var(--soft)">${escHtml(o.ps)}</small></td><td>${o.p}</td><td>${o.o}</td><td>${o.mx}</td></tr>`).join('');
+  box.innerHTML=`<div class="us-title">🔬 गहन विश्लेषण <small>पंक्ति क्लिक = फ़िल्टर</small></div>
+   <div class="uac-card" style="margin-bottom:14px"><h4>🏢 थाना-वार पेंडेंसी मैट्रिक्स <small style="font-weight:400;color:var(--soft)">(पेंडेंसी % के क्रम में)</small></h4><div style="overflow-x:auto"><table class="data-tbl"><thead><tr><th style="text-align:left">थाना</th><th>कुल</th><th>चालान</th><th>एफ.आर.</th><th>पेंडिंग</th><th>1 वर्ष+</th><th>पेंडेंसी %</th></tr></thead><tbody>${psRows}</tbody></table></div></div>
+   <div class="us-grid">
+    <div class="uac-card"><h4>📈 मासिक रुझान (कुल बनाम पेंडिंग, अंतिम 24 माह)</h4><div class="cv"><canvas id="ucv-mon"></canvas></div></div>
+    <div class="uac-card"><h4>👮 IO-वार पेंडिंग (शीर्ष 10)</h4>${ioRows?`<div style="overflow-x:auto"><table class="data-tbl"><thead><tr><th>#</th><th style="text-align:left">IO / थाना</th><th>पेंडिंग</th><th>1 वर्ष+</th><th>सबसे पुराना (दिन)</th></tr></thead><tbody>${ioRows}</tbody></table></div>`:'<div class="note">IO का नाम केवल Generic Data में होता है — चयनित परिणामों में कोई पेंडिंग IO उपलब्ध नहीं।</div>'}</div>
+   </div>`;
+  if(typeof Chart==='undefined') return;
+  const ks=Object.keys(mon).sort().slice(-24), c=document.getElementById('ucv-mon');
+  if(c) univCharts['ucv-mon']=new Chart(c,{type:'line',data:{labels:ks,datasets:[
+    {label:'कुल',data:ks.map(k=>mon[k].t),borderColor:'#2F6FED',backgroundColor:'rgba(47,111,237,.12)',fill:true,tension:.3},
+    {label:'पेंडिंग',data:ks.map(k=>mon[k].p),borderColor:'#DC2626',backgroundColor:'transparent',tension:.3}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}},scales:{y:{beginAtZero:true,ticks:{precision:0}},x:{ticks:{font:{size:10},maxRotation:60}}}}});
 }
 
 // hook new pages into nav
@@ -9779,7 +10044,7 @@ go = function(id){
   if(id==='disp60') renderDisposalPage(60);
   if(id==='disp90') renderDisposalPage(90);
   if(id==='pendency') renderPendencyPage();
-  if(id==='univsearch'){ populateUnivFilters(); document.getElementById('univSearchResults').innerHTML='<div class="note">खोजने के लिए ऊपर बॉक्स में टाइप करें, या फ़िल्टर चुनें।</div>'; univResultsFull=[]; renderUnivPivot(); }
+  if(id==='univsearch'){ populateUnivFilters(); document.getElementById('univSearchResults').innerHTML='<div class="note">खोजने के लिए ऊपर बॉक्स में टाइप करें, या फ़िल्टर चुनें।</div>'; univResultsFull=[]; renderUnivPivot(); univAfterSearch(); }
 };
 
 
@@ -10313,7 +10578,7 @@ function renderHeadTable(){
   const selCat = document.getElementById('headCatSel').value;
   const selSub = document.getElementById('headSubSel').value;
 
-  let set = filterByPS(dbRecords).filter(r=> r.year===y && (m===0 || r.month===m));
+  let set = filterByStatus(filterByPS(dbRecords)).filter(r=> r.year===y && (m===0 || r.month===m));
 
   const defsToShow = selCat ? CHART_DEFS.filter(d=>d.key===selCat) : CHART_DEFS;
   let rowsHtml = '';
@@ -11623,6 +11888,200 @@ function apAdvInit(){
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', apAdvInit); else apAdvInit();
 
+/* ===================== मालखाना — एडवांस मॉड्यूल =====================
+   A) भरते समय: प्रारूप-अनुसार नियम-इंजन (योग/शेष/संचयी/न्यायालय-क्रम की जाँच), पिछले माह से तुलना, CCTNS संकेत, सेव से पहले गुणवत्ता-जाँच
+   B) पेज पर "मालखाना कमांड सेंटर": थाना×प्रारूप पूर्णता-मैट्रिक्स, जिला/वृत्त योग, थानावार तालिका, रुझान-चार्ट, विसंगति-सूची, समेकित Excel */
+var MK_CUM_FIELDS=['received','disposed','court_application','court_order','destroy_order','armoury_deposit','excise_deposit','disposal_order','court_rejected','sec52a','magistrate','verification','drug_committee','sec452'];
+var MK_ANNUAL=['format01_vehicle','format02_arms','format03_excise','format04_ndps','format05_other','item_wise_annual'];
+var MK_KEY_METRIC={ // प्रारूप → (जिला-टाइल में दिखने वाला "शेष")
+  malkhana_summary:{label:'माल का शेष',fn:function(d){return mkn(d,'data','balance');}},
+  vehicle_thana:{label:'थाना में खड़े वाहन (शेष)',fn:function(d){var s=0;['ndps','anya','mv','sec38'].forEach(function(c){s+=mkn(d,'purv_shesh',c)+mkn(d,'is_mah',c)-mkn(d,'nistarit',c);});return s;}},
+  vehicle_gic:{label:'GIC निस्तारित वाहन',fn:function(d){var s=0;['jila_committee','nyayalaya'].forEach(function(r){['dupahiya','chaupahiya','bade'].forEach(function(c){s+=mkn(d,r,c);});});return s;}},
+  format01_vehicle:{label:'शेष वाहन',fn:function(d){return mkn(d,'data','balance');}},
+  format02_arms:{label:'शेष आर्म्स',fn:function(d){return mkn(d,'data','balance');}},
+  format03_excise:{label:'शेष आबकारी माल',fn:function(d){return mkn(d,'data','balance');}},
+  format04_ndps:{label:'शेष NDPS माल',fn:function(d){return mkn(d,'data','balance');}},
+  format05_other:{label:'शेष अन्य माल',fn:function(d){return mkn(d,'data','balance');}},
+  item_wise_annual:{label:'मद-वार शेष',fn:function(d){var s=0;MALKHANA_FORMATS.item_wise_annual.cols.forEach(function(c){s+=mkn(d,'start_pending',c.k)+mkn(d,'received',c.k)-mkn(d,'disposed',c.k);});return s;}}
+};
+function mkn(d,r,c){ var v=d&&d[r]&&d[r][c]; var n=parseInt(v,10); return isNaN(n)?0:n; }
+function mkHasAny(d){ if(!d) return false; return Object.keys(d).some(function(r){ var o=d[r]; return o&&typeof o==='object'&&Object.keys(o).some(function(c){ return String(o[c]).trim()!==''&&o[c]!=null; }); }); }
+function mkPrev(fmt,thana,year,month){
+  var p=cpPrevMonth(year,month); if(MK_ANNUAL.indexOf(fmt)>=0 && p.year!==year) return null;
+  var s=loadData(sk('mk',fmt,thana,p.year,p.month)); return (s&&s.data)?s.data:null;
+}
+/* ---- नियम: लौटाता है [{lvl:'err|warn|info', msg, cells:['mk_row_col',...]}] ---- */
+function mkEvaluate(fmt, d, prev){
+  var out=[], N=function(r,c){return mkn(d,r,c);};
+  function add(l,m,cells){ out.push({lvl:l,msg:m,cells:cells||[]}); }
+  var cfg=MALKHANA_FORMATS[fmt]; if(!cfg) return out;
+  // सामान्य: ऋणात्मक संख्या
+  cfg.rows.forEach(function(row){ if(row.autoRow) return; cfg.cols.forEach(function(c){ if(c.auto) return; var v=d&&d[row.k]&&d[row.k][c.k]; if(v!==undefined&&v!==''&&parseInt(v,10)<0) add('err','ऋणात्मक संख्या नहीं हो सकती — '+(c.label),['mk_'+row.k+'_'+c.k]); }); });
+  var R='data', P=function(r,c){return prev?mkn(prev,r,c):null;};
+  if(fmt==='malkhana_summary'){
+    var tot=N(R,'start_pending')+N(R,'received'), bal=tot-N(R,'disposed'), ages=N(R,'age_1yr')+N(R,'age_1to5yr')+N(R,'age_5plus');
+    if(N(R,'disposed')>tot) add('err','माह में निस्तारण ('+N(R,'disposed')+') योग ('+tot+') से अधिक है',['mk_data_disposed']);
+    if((bal>0||ages>0) && ages!==bal) add('err','अवधिवार योग (1 वर्ष तक + 1–5 वर्ष + 5 वर्ष से अधिक) = '+ages+' है, पर माह के अंत में शेष = '+bal+' — दोनों बराबर होने चाहिए',['mk_data_age_1yr','mk_data_age_1to5yr','mk_data_age_5plus']);
+    if(prev && P(R,'balance')!==null && N(R,'start_pending')!==P(R,'balance') && (String(d&&d.data&&d.data.start_pending||'')!=='')) add('warn','माह के शुरू में पैंडिंग ('+N(R,'start_pending')+') पिछले माह के शेष ('+P(R,'balance')+') से भिन्न है',['mk_data_start_pending']);
+    if(!mkHasAny(d)) add('info','अभी कोई आँकड़ा नहीं भरा');
+  }
+  if(fmt==='vehicle_thana'){
+    ['ndps','anya','mv','sec38'].forEach(function(c){ var yog=N('purv_shesh',c)+N('is_mah',c); if(N('nistarit',c)>yog) add('err','निस्तारित ('+N('nistarit',c)+') योग ('+yog+') से अधिक है — '+MALKHANA_FORMATS.vehicle_thana.cols.filter(function(x){return x.k===c;})[0].label,['mk_nistarit_'+c]); });
+    if(prev) ['ndps','anya','mv','sec38'].forEach(function(c){ var ps=mkn(prev,'shesh',c); var cur=N('purv_shesh',c); if(prev.shesh!==undefined && ps!==cur && String(d&&d.purv_shesh&&d.purv_shesh[c]||'')!=='') add('warn','पूर्व शेष ('+cur+') पिछले माह के शेष ('+ps+') से भिन्न — '+c.toUpperCase(),['mk_purv_shesh_'+c]); });
+  }
+  if(fmt==='vehicle_gic'){
+    ['jila_committee','nyayalaya'].forEach(function(r){ var v=N(r,'dupahiya')+N(r,'chaupahiya')+N(r,'bade'), k=N(r,'keemat'); if(v>0&&k===0) add('warn','वाहन '+v+' निस्तारित, पर अनुमानित कीमत 0 है',['mk_'+r+'_keemat']); if(v===0&&k>0) add('warn','अनुमानित कीमत '+k+' है, पर वाहनों की संख्या 0 है',['mk_'+r+'_dupahiya']); });
+  }
+  if(fmt==='format01_vehicle'){
+    var b=N(R,'balance'); ['engine_missing','zipnet_pending','insurance_notice'].forEach(function(c){ if(N(R,c)>b) add('err',MALKHANA_FORMATS[fmt].cols.filter(function(x){return x.k===c;})[0].label+' ('+N(R,c)+') शेष ('+b+') से अधिक है',['mk_data_'+c]); });
+    if(N(R,'court_order')+N(R,'court_rejected')>N(R,'court_application')) add('err','न्यायालय आदेश + खारिज ('+(N(R,'court_order')+N(R,'court_rejected'))+') प्रस्तुत प्रार्थना पत्र ('+N(R,'court_application')+') से अधिक है',['mk_data_court_order','mk_data_court_rejected','mk_data_court_application']);
+    var s1=N(R,'court_application')+N(R,'application_not_filed'); if(s1>0&&s1!==b) add('warn','प्रार्थना पत्र प्रस्तुत + प्रस्तुत नहीं ('+s1+') शेष ('+b+') के बराबर होने चाहिए',['mk_data_court_application','mk_data_application_not_filed']);
+  }
+  if(fmt==='format02_arms'||fmt==='format03_excise'||fmt==='format04_ndps'||fmt==='format05_other'){
+    var bl=N(R,'balance');
+    var ca= fmt==='format04_ndps' ? N(R,'sec452') : N(R,'court_application');
+    var caKey= fmt==='format04_ndps' ? 'sec452':'court_application';
+    var outs = fmt==='format02_arms' ? ['destroy_order','armoury_deposit','court_rejected','court_pending'] : fmt==='format03_excise' ? ['destroy_order','excise_deposit','court_rejected','court_pending'] : fmt==='format04_ndps' ? ['disposal_order','court_rejected','court_pending'] : ['disposal_order','court_rejected','court_pending'];
+    var so=0; outs.forEach(function(c){ so+=N(R,c); });
+    if(so>ca) add('err','न्यायालय के परिणाम (आदेश/खारिज/पैंडिंग) का योग ('+so+') प्रस्तुत प्रार्थना पत्र ('+ca+') से अधिक है',outs.map(function(c){return 'mk_data_'+c;}).concat(['mk_data_'+caKey]));
+    else if(ca>0 && so!==ca) add('warn','न्यायालय के परिणामों का योग ('+so+') प्रस्तुत प्रार्थना पत्र ('+ca+') के बराबर होना चाहिए',outs.map(function(c){return 'mk_data_'+c;}).concat(['mk_data_'+caKey]));
+    if(fmt==='format02_arms' && N(R,'trial_pending')>bl) add('err','ट्रायल जेर शेष आर्म्स ('+N(R,'trial_pending')+') शेष ('+bl+') से अधिक है',['mk_data_trial_pending']);
+    if(fmt==='format05_other' && N(R,'party_notice')>bl) add('warn','पक्षकार को नोटिस ('+N(R,'party_notice')+') शेष ('+bl+') से अधिक है',['mk_data_party_notice']);
+    var s2=ca+N(R,'application_not_filed'); if(s2>bl && fmt!=='format04_ndps') add('warn','प्रार्थना पत्र प्रस्तुत + प्रस्तुत नहीं ('+s2+') शेष ('+bl+') से अधिक है',['mk_data_'+caKey,'mk_data_application_not_filed']);
+    if(fmt==='format04_ndps'){ if(N(R,'magistrate')>N(R,'sec52a')) add('warn','मजिस्ट्रेट नियुक्त ('+N(R,'magistrate')+') धारा 52ए प्रार्थना पत्र ('+N(R,'sec52a')+') से अधिक है',['mk_data_magistrate','mk_data_sec52a']); if(N(R,'verification')>N(R,'magistrate')) add('warn','सत्यापन रिपोर्ट ('+N(R,'verification')+') मजिस्ट्रेट नियुक्त ('+N(R,'magistrate')+') से अधिक है',['mk_data_verification','mk_data_magistrate']); }
+  }
+  if(fmt==='item_wise_annual'){ cfg.cols.forEach(function(c){ var t=N('start_pending',c.k)+N('received',c.k); if(N('disposed',c.k)>t) add('err','निस्तारण ('+N('disposed',c.k)+') योग ('+t+') से अधिक — '+(c.grp?c.grp+' ':'')+c.label,['mk_disposed_'+c.k]); }); }
+  // वार्षिक/संचयी प्रारूप: पिछले माह की तुलना
+  if(prev && MK_ANNUAL.indexOf(fmt)>=0 && fmt!=='item_wise_annual'){
+    if(String(d&&d.data&&d.data.start_pending||'')!=='' && P(R,'start_pending')!==null && N(R,'start_pending')!==P(R,'start_pending')) add('warn','"वर्ष शुरू में पैंडिंग" ('+N(R,'start_pending')+') पिछले माह ('+P(R,'start_pending')+') से भिन्न — यह पूरे वर्ष स्थिर रहना चाहिए',['mk_data_start_pending']);
+    MK_CUM_FIELDS.forEach(function(c){ if(MALKHANA_FORMATS[fmt].cols.some(function(x){return x.k===c;}) && String(d&&d.data&&d.data[c]||'')!=='' && N(R,c)<P(R,c)) add('warn','संचयी आँकड़ा पिछले माह ('+P(R,c)+') से घट गया ('+N(R,c)+') — '+MALKHANA_FORMATS[fmt].cols.filter(function(x){return x.k===c;})[0].label,['mk_data_'+c]); });
+  }
+  return out;
+}
+/* ---- CCTNS संकेत: SAS Export से वर्ष-अब-तक व माह की गिनती ---- */
+var MK_CCTNS_MAP={ format02_arms:{label:'आर्म्स एक्ट',sll:'Arms Act'}, format03_excise:{label:'आबकारी एक्ट',sll:'Excise Act'}, format04_ndps:{label:'NDPS एक्ट',sll:'NDPS Act'} };
+function mkCctnsCounts(thana,year,month){
+  var ps=hi2engPs(thana); var out={}; if(!ps||!RAW||!RAW.length) return null;
+  var y=String(year), mm=pad2(month);
+  Object.keys(MK_CCTNS_MAP).forEach(function(f){ out[f]={ytd:0,month:0}; });
+  RAW.forEach(function(r){
+    if(String(r[0]||'').toUpperCase()!==ps) return; var reg=String(r[1]||''); if(reg.slice(0,4)!==y) return; var m=reg.slice(5,7); if(m>mm) return;
+    Object.keys(MK_CCTNS_MAP).forEach(function(f){ if(r[4]===MK_CCTNS_MAP[f].sll){ out[f].ytd++; if(m===mm) out[f].month++; } });
+  });
+  return out;
+}
+function mkAdvBarHtml(){ return '<div id="mk-adv-bar" class="mkadv-bar"><div id="mk-adv-stats" class="apadv-stats"></div><div id="mk-adv-msgs"></div><div id="mk-adv-cctns"></div><div class="apadv-actions"><button type="button" onclick="mkTogglePrev()">📊 पिछले माह के आँकड़े दिखाएँ/छिपाएँ</button><span class="apadv-keys">⌨️ Tab अगला खाना • Ctrl+S सेव</span></div><div id="ap-draft-banner"></div></div>'; }
+var _mkTimer=null, _mkPrevOn=true;
+function mkTogglePrev(){ _mkPrevOn=!_mkPrevOn; var c=document.getElementById('entry-content'); if(c) c.classList.toggle('mk-hide-prev',!_mkPrevOn); }
+function mkAdvRefresh(){ clearTimeout(_mkTimer); _mkTimer=setTimeout(mkAdvRun,120); }
+function mkAdvRun(){
+  if(!entryCtx||entryCtx.branch!=='malkhana'||!entryCtx._cfg) return;
+  var fmt=entryCtx.type, d=collectMalkhanaData(), prev=mkPrev(fmt,entryCtx.thana,entryCtx.year,entryCtx.month);
+  var res=mkEvaluate(fmt,d,prev); window._mkLast=res;
+  document.querySelectorAll('#entry-content .mk-bad').forEach(function(e){ e.classList.remove('mk-bad'); });
+  var e=0,w=0; res.forEach(function(r){ if(r.lvl==='err') e++; else if(r.lvl==='warn') w++; if(r.lvl!=='info') r.cells.forEach(function(id){ var el=document.getElementById(id); if(el) el.classList.add('mk-bad'); }); });
+  var st=document.getElementById('mk-adv-stats'); if(st) st.innerHTML=(e||w? '' : '<span class="apadv-pill ok">✅ सभी जाँच ठीक</span>')+(e?'<span class="apadv-pill err">❌ त्रुटि <b>'+e+'</b></span>':'')+(w?'<span class="apadv-pill warn">⚠️ चेतावनी <b>'+w+'</b></span>':'')+(prev?'<span class="apadv-pill">📅 पिछले माह से तुलना चालू</span>':'<span class="apadv-pill soft">पिछले माह का डेटा नहीं</span>')+'<span id="ap-draft-state" class="apadv-pill soft">'+(window._apDraftAt?'💾 ड्राफ्ट '+window._apDraftAt:'')+'</span>';
+  var ms=document.getElementById('mk-adv-msgs'); if(ms) ms.innerHTML=res.filter(function(r){return r.lvl!=='info'||res.length===1;}).map(function(r){ return '<div class="mk-msg mk-m-'+r.lvl+'">'+(r.lvl==='err'?'❌ ':r.lvl==='warn'?'⚠️ ':'ℹ️ ')+escHtml(r.msg)+'</div>'; }).join('');
+}
+function mkAdvAfterRender(){
+  if(!entryCtx||entryCtx.branch!=='malkhana') return;
+  var fmt=entryCtx.type, cfg=entryCtx._cfg, prev=mkPrev(fmt,entryCtx.thana,entryCtx.year,entryCtx.month);
+  // पिछले माह की तुलना-लेबल
+  if(prev){ cfg.rows.forEach(function(row){ if(row.autoRow) return; cfg.cols.forEach(function(c){ if(c.auto) return; var el=document.getElementById('mk_'+row.k+'_'+c.k); if(!el||!prev[row.k]||prev[row.k][c.k]===undefined||prev[row.k][c.k]==='') return; var sp=document.createElement('div'); sp.className='mk-prev'; sp.setAttribute('data-prev-for',el.id); sp.textContent='पिछला: '+prev[row.k][c.k]; if(el.parentNode) el.parentNode.appendChild(sp); }); }); }
+  // CCTNS संकेत
+  var box=document.getElementById('mk-adv-cctns'), cm=MK_CCTNS_MAP[fmt];
+  if(box){ var cn=cm?mkCctnsCounts(entryCtx.thana,entryCtx.year,entryCtx.month):null;
+    box.innerHTML = (cm && cn) ? '<div class="mk-cctns">📡 <b>CCTNS संकेत ('+escHtml(entryCtx.thana)+'):</b> '+cm.label+' के प्रकरण — '+MONTHS[entryCtx.month-1]+' '+entryCtx.year+' में <b>'+cn[fmt].month+'</b>, जनवरी से अब तक <b>'+cn[fmt].ytd+'</b>। <span class="mk-cctns-note" id="mk-cctns-note"></span></div>' : ''; window._mkCctns=cn&&cm?cn[fmt]:null; }
+  mkAdvRefresh();
+}
+function mkCctnsNote(){
+  var el=document.getElementById('mk-cctns-note'); var c=window._mkCctns; if(!el||!c||!entryCtx) return;
+  var d=collectMalkhanaData(); var recv=mkn(d,'data','received'), start=mkn(d,'data','start_pending');
+  el.textContent = (c.ytd>0 && recv===0 && start===0) ? '⚠️ CCTNS में प्रकरण दर्ज हैं पर "वर्ष में अब तक प्राप्त" 0 है — माल की प्राप्ति दर्ज करना रह तो नहीं गया?' : '(संकेत मात्र — एक प्रकरण में कई मद या बिना जब्ती भी हो सकती है)';
+}
+function mkAdvGate(){
+  if(!entryCtx||entryCtx.branch!=='malkhana') return true;
+  var res=mkEvaluate(entryCtx.type,collectMalkhanaData(),mkPrev(entryCtx.type,entryCtx.thana,entryCtx.year,entryCtx.month));
+  var errs=res.filter(function(r){return r.lvl==='err';}), warns=res.filter(function(r){return r.lvl==='warn';});
+  if(errs.length){ var go=confirm('❌ '+errs.length+' त्रुटि मिलीं:\n• '+errs.slice(0,5).map(function(r){return r.msg;}).join('\n• ')+'\n\nफिर भी सेव करना चाहते हैं?'); if(!go){ var f=document.querySelector('#entry-content .mk-bad'); if(f) f.scrollIntoView({behavior:'smooth',block:'center'}); return false; } }
+  else if(warns.length) toast('⚠️ '+warns.length+' चेतावनियाँ हैं — सेव हो रहा है; जाँच लें');
+  return true;
+}
+/* ===================== B) कमांड सेंटर ===================== */
+var MK_FMT_ORDER=['malkhana_summary','vehicle_thana','vehicle_gic','format01_vehicle','format02_arms','format03_excise','format04_ndps','format05_other','item_wise_annual'];
+var _mkCc={year:null,month:null,fmt:'malkhana_summary',row:null};
+function mkLatestPeriod(){
+  var best=null; try{ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); var m=k&&k.match(/^dk_mk_.+_(\d{4})_(\d{1,2})$/); if(m){ var v=[+m[1],+m[2]]; if(!best||v[0]>best[0]||(v[0]===best[0]&&v[1]>best[1])) best=v; } } }catch(e){}
+  var n=new Date(); return best?{year:best[0],month:best[1]}:{year:n.getFullYear(),month:n.getMonth()+1};
+}
+function mkLoadAll(year,month){ var M={}; THANAS.forEach(function(t){ M[t]={}; MK_FMT_ORDER.forEach(function(f){ var s=loadData(sk('mk',f,t,year,month)); M[t][f]=(s&&s.data)?s:null; }); }); return M; }
+function mkIssuesAll(M,year,month){
+  var out=[]; THANAS.forEach(function(t){ MK_FMT_ORDER.forEach(function(f){ var s=M[t][f]; if(!s) return; var prev=mkPrev(f,t,year,month); mkEvaluate(f,s.data,prev).forEach(function(r){ if(r.lvl!=='info') out.push({thana:t,fmt:f,lvl:r.lvl,msg:r.msg}); }); }); });
+  return out;
+}
+function mkSvgTrend(vals,labels){
+  var W=560,H=170,pad=28,max=Math.max.apply(null,vals.concat([1])), bw=Math.min(36,(W-2*pad)/vals.length-8);
+  var bars=vals.map(function(v,i){ var x=pad+i*((W-2*pad)/vals.length)+4, h=Math.round((H-2*pad)*v/max), y=H-pad-h; return '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+h+'" rx="4" fill="#C2185B" opacity=".85"/><text x="'+(x+bw/2)+'" y="'+(y-4)+'" font-size="11" text-anchor="middle" fill="#333">'+v+'</text><text x="'+(x+bw/2)+'" y="'+(H-10)+'" font-size="10" text-anchor="middle" fill="#555">'+labels[i]+'</text>'; }).join('');
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:640px">'+bars+'</svg>';
+}
+function renderMkCommand(){
+  var host=document.getElementById('mk-cc'); if(!host) return;
+  if(!_mkCc.year){ var lp=mkLatestPeriod(); _mkCc.year=lp.year; _mkCc.month=lp.month; }
+  var Y=_mkCc.year, Mo=_mkCc.month, M=mkLoadAll(Y,Mo), issues=mkIssuesAll(M,Y,Mo);
+  var yrs=[]; var cy=new Date().getFullYear(); for(var y=cy+1;y>=cy-3;y--) yrs.push(y);
+  var filled=0,total=THANAS.length*MK_FMT_ORDER.length; THANAS.forEach(function(t){ MK_FMT_ORDER.forEach(function(f){ if(M[t][f]) filled++; }); });
+  var pct=Math.round(filled*100/total);
+  // टाइल
+  var tiles=MK_FMT_ORDER.map(function(f){ var km=MK_KEY_METRIC[f], s=0, n=0; THANAS.forEach(function(t){ if(M[t][f]){ n++; s+=km.fn(M[t][f].data); } }); var cfg=MALKHANA_FORMATS[f]; return '<div class="mkcc-tile"><div class="ic">'+cfg.icon+'</div><div class="num">'+s.toLocaleString('en-IN')+'</div><div class="lbl">'+km.label+'</div><div class="sub">'+n+'/'+THANAS.length+' थानों ने भरा</div></div>'; }).join('');
+  // मैट्रिक्स
+  var errBy={}; issues.forEach(function(i){ var k=i.thana+'|'+i.fmt; if(i.lvl==='err') errBy[k]='err'; else if(!errBy[k]) errBy[k]='warn'; });
+  var head='<tr><th>वृत्त</th><th>थाना</th>'+MK_FMT_ORDER.map(function(f){ var c=MALKHANA_FORMATS[f]; return '<th title="'+escHtml(c.title)+'">'+c.icon+'<br><small>'+escHtml(c.praroop)+'</small></th>'; }).join('')+'<th>भरे</th></tr>';
+  var rows=''; CIRCLES.forEach(function(ci){ ci.thanas.forEach(function(t,ix){ var n=0; var cells=MK_FMT_ORDER.map(function(f){ if(M[t][f]){ n++; var e=errBy[t+'|'+f]; return '<td class="mk-c '+(e==='err'?'e':e==='warn'?'w':'ok')+'" onclick="mkJump(\''+t.replace(/'/g,"\\'")+'\',\''+f+'\')" title="'+(e==='err'?'भरा — त्रुटि है':e==='warn'?'भरा — चेतावनी है':'भरा')+'">'+(e==='err'?'❌':e==='warn'?'⚠️':'✅')+'</td>'; } return '<td class="mk-c no" onclick="mkJump(\''+t.replace(/'/g,"\\'")+'\',\''+f+'\')" title="अभी नहीं भरा">⏳</td>'; }).join(''); rows+='<tr>'+(ix===0?'<td rowspan="'+ci.thanas.length+'" class="mk-circ">'+escHtml(ci.name)+'</td>':'')+'<td class="mk-th">'+escHtml(t)+'</td>'+cells+'<td><b>'+n+'/'+MK_FMT_ORDER.length+'</b></td></tr>'; }); });
+  var colTot='<tr class="mk-tot"><td colspan="2">भरे हुए थाने</td>'+MK_FMT_ORDER.map(function(f){ var n=0; THANAS.forEach(function(t){ if(M[t][f]) n++; }); return '<td><b>'+n+'</b>/'+THANAS.length+'</td>'; }).join('')+'<td><b>'+pct+'%</b></td></tr>';
+  // थानावार तालिका (चुना प्रारूप)
+  var cfg=MALKHANA_FORMATS[_mkCc.fmt]; var single=cfg.rows.length===1; var rowKeys=cfg.rows.filter(function(r){return !r.autoRow || true;});
+  if(!_mkCc.row || !cfg.rows.some(function(r){return r.k===_mkCc.row;})) _mkCc.row=cfg.rows[0].k;
+  var rk=_mkCc.row, rowDef=cfg.rows.filter(function(r){return r.k===rk;})[0];
+  function cellVal(d,c){ if(!d) return null; if(rowDef.autoRow){ var vals=(rowDef.of||[]).map(function(o){return mkn(d,o,c.k);}); return rowDef.autoRow==='sum'?vals.reduce(function(a,b){return a+b;},0):(vals[0]-vals[1]); } if(c.auto){ var v2=(c.of||[]).map(function(o){return mkn(d,rk,o);}); return c.auto==='sum'?v2.reduce(function(a,b){return a+b;},0):(v2[0]-v2[1]); } return mkn(d,rk,c.k); }
+  var th='<tr><th>वृत्त / थाना</th>'+cfg.cols.map(function(c){ return '<th>'+(c.grp?escHtml(c.grp)+' — ':'')+escHtml(c.label)+'</th>'; }).join('')+'</tr>';
+  var body='', gt=cfg.cols.map(function(){return 0;});
+  CIRCLES.forEach(function(ci){ var st=cfg.cols.map(function(){return 0;}); body+='<tr class="mk-cir"><td colspan="'+(cfg.cols.length+1)+'">'+escHtml(ci.name)+'</td></tr>'; ci.thanas.forEach(function(t){ var s=M[t][_mkCc.fmt]; body+='<tr><td class="mk-th">'+escHtml(t)+(s?'':' <small class="mk-nf">(नहीं भरा)</small>')+'</td>'+cfg.cols.map(function(c,i){ var v=s?cellVal(s.data,c):null; if(v!==null){ st[i]+=v; gt[i]+=v; } return '<td>'+(v===null?'—':v.toLocaleString('en-IN'))+'</td>'; }).join('')+'</tr>'; }); body+='<tr class="mk-sub"><td>'+escHtml(ci.name)+' योग</td>'+st.map(function(v){return '<td>'+v.toLocaleString('en-IN')+'</td>';}).join('')+'</tr>'; });
+  body+='<tr class="mk-tot"><td>जिला योग</td>'+gt.map(function(v){return '<td>'+v.toLocaleString('en-IN')+'</td>';}).join('')+'</tr>';
+  // रुझान: चुने प्रारूप का मुख्य मीट्रिक, जनवरी से चुने माह तक
+  var tv=[],tl=[]; for(var mo=1;mo<=Mo;mo++){ var s2=0; THANAS.forEach(function(t){ var sv=loadData(sk('mk',_mkCc.fmt,t,Y,mo)); if(sv&&sv.data) s2+=MK_KEY_METRIC[_mkCc.fmt].fn(sv.data); }); tv.push(s2); tl.push(MONTHS[mo-1].slice(0,3)); }
+  var iss=issues.length? '<div class="mk-iss">'+issues.slice(0,60).map(function(i){ return '<div class="mk-msg mk-m-'+i.lvl+'">'+(i.lvl==='err'?'❌':'⚠️')+' <b>'+escHtml(i.thana)+'</b> • '+escHtml(MALKHANA_FORMATS[i.fmt].praroop)+' — '+escHtml(i.msg)+'</div>'; }).join('')+(issues.length>60?'<div class="mk-msg">… और '+(issues.length-60)+'</div>':'')+'</div>' : '<div class="mk-msg mk-m-ok">✅ भरे हुए सभी प्रारूपों में कोई विसंगति नहीं मिली</div>';
+  var fsel=MK_FMT_ORDER.map(function(f){ return '<option value="'+f+'"'+(f===_mkCc.fmt?' selected':'')+'>'+MALKHANA_FORMATS[f].icon+' '+escHtml(MALKHANA_FORMATS[f].title)+'</option>'; }).join('');
+  var rsel=single?'':'<div><label>पंक्ति</label><select onchange="_mkCc.row=this.value;renderMkCommand()">'+cfg.rows.map(function(r){ return '<option value="'+r.k+'"'+(r.k===rk?' selected':'')+'>'+escHtml(r.label)+'</option>'; }).join('')+'</select></div>';
+  host.innerHTML='<div class="mkcc"><div class="mkcc-h"><div><div class="mkcc-t">📡 मालखाना कमांड सेंटर — जिला समेकित स्थिति</div><div class="mkcc-s">'+MONTHS[Mo-1]+' '+Y+' • पूर्णता <b>'+pct+'%</b> ('+filled+'/'+total+' प्रारूप भरे) • '+(issues.filter(function(i){return i.lvl==='err';}).length)+' त्रुटि, '+(issues.filter(function(i){return i.lvl==='warn';}).length)+' चेतावनी</div></div>'+
+   '<div class="mkcc-ctl"><div><label>वर्ष</label><select onchange="_mkCc.year=+this.value;renderMkCommand()">'+yrs.map(function(y){return '<option'+(y===Y?' selected':'')+'>'+y+'</option>';}).join('')+'</select></div><div><label>माह</label><select onchange="_mkCc.month=+this.value;renderMkCommand()">'+MONTHS.map(function(m,i){return '<option value="'+(i+1)+'"'+(i+1===Mo?' selected':'')+'>'+m+'</option>';}).join('')+'</select></div><button type="button" onclick="mkExportAll()">📥 समेकित Excel</button></div></div>'+
+   '<div class="mkcc-tiles">'+tiles+'</div>'+
+   '<div class="mkcc-box"><div class="mkcc-bt">✅ थाना × प्रारूप पूर्णता (खाने पर क्लिक करने पर वही प्रारूप खुलेगा)</div><div class="mk-scroll"><table class="mk-mx"><thead>'+head+'</thead><tbody>'+rows+colTot+'</tbody></table></div></div>'+
+   '<div class="mkcc-box"><div class="mkcc-bt">📋 थानावार / वृत्तवार तालिका</div><div class="mkcc-ctl2"><div><label>प्रारूप</label><select onchange="_mkCc.fmt=this.value;_mkCc.row=null;renderMkCommand()">'+fsel+'</select></div>'+rsel+'</div><div class="mk-scroll"><table class="mk-mx mk-nums"><thead>'+th+'</thead><tbody>'+body+'</tbody></table></div></div>'+
+   '<div class="mkcc-box"><div class="mkcc-bt">📈 रुझान — '+escHtml(MK_KEY_METRIC[_mkCc.fmt].label)+' (जनवरी से '+MONTHS[Mo-1]+' '+Y+' तक, जिला योग)</div>'+mkSvgTrend(tv,tl)+'</div>'+
+   '<div class="mkcc-box"><div class="mkcc-bt">🔎 विसंगति-सूची (भरे हुए आँकड़ों की स्वतः जाँच)</div>'+iss+'</div></div>';
+}
+function mkJump(thana,fmt){
+  var t=document.getElementById('mk-thana'), y=document.getElementById('mk-year'), m=document.getElementById('mk-month');
+  if(t){ t.value=thana; } if(y){ y.value=String(_mkCc.year); } if(m){ m.value=String(_mkCc.month); }
+  try{ mkCtxUpdate(); }catch(e){} openMalkhanaEntry(fmt);
+}
+function mkExportAll(){
+  var Y=_mkCc.year, Mo=_mkCc.month, M=mkLoadAll(Y,Mo), sheets=[];
+  var circOf={}; CIRCLES.forEach(function(c){ c.thanas.forEach(function(t){ circOf[t]=c.name; }); });
+  MK_FMT_ORDER.forEach(function(f){
+    var cfg=MALKHANA_FORMATS[f]; var head=['वृत्त','थाना'].concat(cfg.rows.length>1?['पंक्ति']:[]).concat(cfg.cols.map(function(c){return (c.grp?c.grp+' — ':'')+c.label;})).concat(['स्थिति']); var aoa=[head];
+    cfg.rows.forEach(function(rd){ var tot=cfg.cols.map(function(){return 0;});
+      THANAS.forEach(function(t){ var s=M[t][f]; var line=[circOf[t]||'',t]; if(cfg.rows.length>1) line.push(rd.label);
+        cfg.cols.forEach(function(c,i){ var v=''; if(s){ if(rd.autoRow){ var vals=(rd.of||[]).map(function(o){return mkn(s.data,o,c.k);}); v=rd.autoRow==='sum'?vals.reduce(function(a,b){return a+b;},0):(vals[0]-vals[1]); } else if(c.auto){ var v2=(c.of||[]).map(function(o){return mkn(s.data,rd.k,o);}); v=c.auto==='sum'?v2.reduce(function(a,b){return a+b;},0):(v2[0]-v2[1]); } else v=mkn(s.data,rd.k,c.k); tot[i]+=v; } line.push(v); });
+        line.push(s?'भरा':'नहीं भरा'); aoa.push(line); });
+      var tl=['','जिला योग']; if(cfg.rows.length>1) tl.push(rd.label); tot.forEach(function(v){tl.push(v);}); tl.push(''); aoa.push(tl); });
+    sheets.push({name:(cfg.praroop+' '+cfg.title).replace(/[\\\/\?\*\[\]:]/g,' ').slice(0,31), aoa:aoa, colWidths:[18,22,18].concat(cfg.cols.map(function(){return 14;})), filter:true});
+  });
+  var si=[['थाना','प्रारूप','स्तर','विसंगति']]; mkIssuesAll(M,Y,Mo).forEach(function(i){ si.push([i.thana,MALKHANA_FORMATS[i.fmt].title,i.lvl==='err'?'त्रुटि':'चेतावनी',i.msg]); });
+  sheets.push({name:'विसंगति-सूची',aoa:si,colWidths:[22,40,10,90],filter:true});
+  exportRowsToXLSX('malkhana-samekit-'+Y+'-'+pad2(Mo)+'.xlsx',sheets);
+}
+
 /* ===================== MASTER RENDER ===================== */
 function safeCall(fn){
   try{ fn(); }
@@ -12580,6 +13039,7 @@ function dkRerenderActivePage(){
   if(id==='pendency'&&typeof renderPendencyPage==='function') run(renderPendencyPage);
   if(id==='actWatch'&&typeof renderActWatch==='function') run(renderActWatch);
   if(id==='sensCases'&&typeof renderSensCases==='function') run(renderSensCases);
+  if(id==='malkhana'&&typeof renderMkCommand==='function') run(renderMkCommand);
   if(id==='perfMonitor'&&typeof renderPerfMonitor==='function') run(renderPerfMonitor);
   if(id==='dataQuality'&&typeof renderDataQuality==='function') run(renderDataQuality);
   if(id==='mcrBook'&&typeof renderMcrBook==='function') run(renderMcrBook);
