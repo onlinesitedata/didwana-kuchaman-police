@@ -1431,6 +1431,32 @@ table.mk-mx{border-collapse:separate;border-spacing:0;font-size:12.5px;width:100
 .us-insights h4{margin:0 0 6px;font-size:13.5px;color:var(--navy)}
 .us-insights li{font-size:12.8px;line-height:1.7;margin-left:16px}
 .us-bar{position:relative;height:20px;background:#eef1f6;border-radius:10px;overflow:hidden}.us-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:10px;opacity:.85}.us-bar span{position:relative;display:block;text-align:center;font-size:11.5px;font-weight:700;line-height:20px;color:#111}
+.univ-suggest-wrap{position:relative}
+.us-qclear{position:absolute;right:9px;top:11px;width:26px;height:26px;border:0;border-radius:50%;background:#e8edf5;color:#475569;font-size:13px;cursor:pointer;line-height:26px;padding:0}
+.us-recent{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
+.us-rc{border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 11px;font-size:12px;cursor:pointer;font-family:inherit}.us-rc:hover{background:#eef4ff}
+.us-res{width:100%;table-layout:fixed;font-size:12.5px}
+.us-res th,.us-res td{white-space:normal;word-break:break-word;overflow-wrap:anywhere;padding:7px 6px;vertical-align:top}
+.us-res .c-src{width:8%}.us-res .c-ps{width:13%}.us-res .c-fir{width:10%}.us-res .c-dt{width:11%}.us-res .c-st{width:19%}
+.us-res td.desc-td{text-align:left}
+.us-res tr.rw{cursor:pointer}.us-res tr.rw:hover,.us-res tr.rw.open{background:#eef4ff}
+.us-res tr.dt td{background:#f8fafc;padding:0}
+.us-detail{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:6px 16px;padding:10px 12px;font-size:12px;text-align:left}
+.us-detail b{display:block;font-size:10.5px;color:var(--soft);font-weight:600}
+mark{background:#fde68a;border-radius:3px;padding:0 1px}
+.us-pill{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center;background:#eef4ff;border:1.5px solid #2F6FED;color:#0E1B33;border-radius:12px;padding:7px 12px;font-size:13px}
+.us-pill button{border:0;background:#2F6FED;color:#fff;border-radius:8px;padding:3px 10px;cursor:pointer;font-family:inherit;font-size:12px}
+.us-res,.us-fit,.univ-pivot-tbl{min-width:0!important;max-width:100%}
+.us-fit{width:100%;font-size:12px}.us-fit th,.us-fit td{padding:6px 4px}
+.univ-pivot-tbl{width:100%;table-layout:fixed;font-size:11.5px}.univ-pivot-tbl th,.univ-pivot-tbl td{padding:5px 3px;word-break:break-word;white-space:normal}
+@media(max-width:640px){
+ .us-res,.us-res tbody{display:block}.us-res thead{display:none}
+ .us-res tr.rw{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;border:1px solid var(--line);border-radius:12px;margin:8px 0 0;padding:8px 10px;background:#fff}
+ .us-res tr.rw td{display:block;border:0;padding:1px 0;text-align:left}
+ .us-res tr.rw td::before{content:attr(data-l);display:block;font-size:10px;color:var(--soft)}
+ .us-res td.sec{grid-column:1/-1}
+ .us-res tr.dt{display:block;margin:0 0 4px}.us-res tr.dt td{display:block}
+}
 </style>
 </head>
 <body>
@@ -2513,7 +2539,9 @@ table.mk-mx{border-collapse:separate;border-spacing:0;font-size:12.5px;width:100
         <input type="text" id="univSearchInput" placeholder="जैसे: 363, MAKRANA, BNS-303, चालान, POCSO..." autocomplete="off" style="width:100%;padding:11px 12px;border-radius:12px;border:1.5px solid var(--line);font-size:14px;"
           oninput="onUnivSearchInput()" onfocus="onUnivSearchInput()" onkeydown="univSuggestKeyNav(event)">
         <div id="univSuggestBox" class="univ-suggest-box" style="display:none;"></div>
+        <button type="button" id="univQClear" class="us-qclear" onclick="univClearQ()" title="खोज साफ़ करें" style="display:none">✕</button>
       </div>
+      <div id="univRecent" class="us-recent"></div>
 
       <div id="univStatusChips" class="us-chips"></div>
 
@@ -2589,6 +2617,7 @@ table.mk-mx{border-collapse:separate;border-spacing:0;font-size:12.5px;width:100
 
       <div class="univ-filter-actions-row">
         <div id="univSearchCount" class="univ-search-count"></div>
+        <select class="us-sort" onchange="UNIV_PAGE_SIZE=+this.value;univPage=0;renderUnivPage()" title="प्रति पृष्ठ परिणाम"><option value="25">25 / पृष्ठ</option><option value="50">50 / पृष्ठ</option><option value="100">100 / पृष्ठ</option><option value="250">250 / पृष्ठ</option></select>
         <select id="univSortSel" class="us-sort" onchange="univSortMode=this.value;runUniversalSearch()" title="क्रम चुनें">
           <option value="default">↕ क्रम: डिफ़ॉल्ट</option><option value="new">नवीनतम पहले</option><option value="old">पुराने पहले</option><option value="ps">थाना अनुसार</option><option value="status">स्थिति अनुसार</option>
         </select>
@@ -9166,13 +9195,13 @@ async function generateDeadlineLetterPDF(limits){
 let SEARCH_IDX = null;
 let univResultsFull = [];
 let univPage = 0;
-const UNIV_PAGE_SIZE = 25;
+let UNIV_PAGE_SIZE = 25;
 
 // multi-select state for Universal Search filters (Set = खाली माने "सभी")
 let univSrcSet=new Set(), univPsSet=new Set(), univYearSet=new Set(), univMonthSet=new Set(),
     univInfoSet=new Set(), univActSet=new Set(), univFrSet=new Set(), univCatFieldSet=new Set(), univCatValSet=new Set(), univPunishYearSet=new Set();
 let msUnivSrc=null, msUnivPs=null, msUnivYear=null, msUnivMonth=null, msUnivInfo=null, msUnivAct=null, msUnivFr=null, msUnivCatField=null, msUnivCatVal=null, msUnivPunishYear=null;
-let univStatusSet=new Set(), univOldSet=new Set(), msUnivStatus=null, univSortMode='default', univCharts={};
+let univStatusSet=new Set(), univOldSet=new Set(), univOffSet=new Set(), univSllSet=new Set(), univOffLabel='', msUnivStatus=null, univSortMode='default', univCharts={};
 const UNIV_ACT_LABELS = {ipc:'IPC', crpc:'CrPC', bns:'BNS', bnss:'BNSS', sll:'SLL (Special & Local Laws)'};
 
 function getActFlags(text){
@@ -9279,13 +9308,15 @@ function firById(id){ const k='ID#'+normFirId(id); return getFirDB().get(k)||nul
 function normStatusKey(s){
   const t = String(s||'').trim();
   if(!t) return '';
+  if(/refus|रिफ्यूज|रिफ़्यूज|अस्वीकृत/i.test(t)) return 'refuse';
+  if(/re-?\s?open|री-?\s?ओपन|रीओपन|पुनः\s*(?:जांच|अन्वेषण)/i.test(t)) return 'reopen';
   if(/चालान|charge\s*sheet/i.test(t)) return 'chargesheet';
   if(/एफ\s*\.?\s*आर|f\.?\s*r\.?\b|final\s*report/i.test(t)) return 'fr';
   if(/193\s*\(\s*9\s*\)|173\s*\(\s*8\s*\)/i.test(t)) return '1939';
   if(/पैडिंग|pending|under\s*investigation/i.test(t)) return 'pending';
   return 'other';
 }
-const STATUS_LABEL_HI = {chargesheet:'चालान', fr:'एफ आर', '1939':'193(9) बीएनएसएस', pending:'पैडिंग अनुसंधान', other:null};
+const STATUS_LABEL_HI = {chargesheet:'चालान', fr:'एफ आर', '1939':'193(9) बीएनएसएस', pending:'पैडिंग अनुसंधान', refuse:'रिफ्यूज FIR', reopen:'री-ओपन', other:null};
 
 // ---------- यूनिवर्सल सर्च इंडेक्स — Power Query के "Merge Queries" (Full Outer Join) जैसा ----------
 // तीनों स्रोत फाइलों (Generic Data, SAS Export, FIR Current Status) को FIR_REG_NUM (सटीक मिलान) या
@@ -9462,7 +9493,8 @@ function populateUnivFilters(){
   msUnivCatField = buildMultiSelect('univCatFieldFilter', catFieldKeys, univCatFieldSet, 'अपराध श्रेणी', ()=>{ populateUnivCatValueOptions(); runUniversalSearch(); }, f=>`${CHART_TITLES[f]} (${catFieldCounts[f]})`);
 
   const stC={}; SEARCH_IDX.forEach(e=>{ const k=e.statusNorm||'other'; stC[k]=(stC[k]||0)+1; });
-  msUnivStatus = buildMultiSelect('univStatusFilter', US_ORDER.filter(k=>stC[k]), univStatusSet, 'स्थिति', runUniversalSearch, k=>`${US_LBL[k]} (${stC[k]})`);
+  const oldC=SEARCH_IDX.reduce((n,e)=>n+((usIsPend(e.statusNorm||'other')&&(univDays(e.date)||0)>365)?1:0),0);
+  msUnivStatus = buildMultiSelect('univStatusFilter', [...US_ORDER.filter(k=>stC[k]||k==='refuse'||k==='reopen'),'old1'], univStatusSet, 'स्थिति', runUniversalSearch, k=>`${US_LBL[k]} (${k==='old1'?oldC:(stC[k]||0)})`);
 
   populateUnivCatValueOptions();
   populateUnivPivotSelectors();
@@ -9483,6 +9515,7 @@ const UNIV_PIVOT_DIMS = [
   {key:'frSubLabel', label:'F.R. उप-श्रेणी (SAS)'},
   {key:'actLabel', label:'Act प्रकार (बहु-मान)'},
   {key:'catLabel', label:'अपराध श्रेणी (बहु-मान)'},
+  {key:'offence', label:'अपराध प्रकार — BNS/IPC धारा अनुसार (बहु-मान)'},
 ];
 function univPivotValues(r, key){
   // बहु-मान (multi-value) फ़ील्ड एक से अधिक मान लौटा सकते हैं
@@ -9502,6 +9535,7 @@ function univPivotValues(r, key){
       const keys = Object.keys(r.actFlags).filter(k=>r.actFlags[k]);
       return keys.length ? keys.map(k=>UNIV_ACT_LABELS[k]||k) : ['—'];
     }
+    case 'offence': return univOffTitles(r);
     case 'catLabel': {
       if(!r.cats) return ['—'];
       const vals = Object.values(r.cats).filter(Boolean);
@@ -9661,14 +9695,15 @@ function getUnivFilteredPool(skipStatus){
   if(univFrSet.size) pool = pool.filter(r=>univFrSet.has(r.frSub));
   if(univCatFieldSet.size || univCatValSet.size) pool = pool.filter(r=>entryMatchesCat(r, univCatFieldSet, univCatValSet));
   if(univPunishYearSet.size) pool = pool.filter(r=>univPunishYearSet.has(r.punishmentYear));
-  if(univOldSet.size) pool = pool.filter(r=>usIsPend(r.statusNorm||'other') && (univDays(r.date)||0)>365);
-  if(univStatusSet.size && !skipStatus) pool = pool.filter(r=>univStatusSet.has(r.statusNorm||'other'));
+  if(univOffSet.size) pool = pool.filter(r=>{ for(const k of univRecKeys(r)) if(univOffSet.has(k)) return true; return false; });
+  if(univSllSet.size) pool = pool.filter(r=>{ const T=univSllText(r); return [...univSllSet].some(id=>OFF_SLL_BY[id].re.test(T)); });
+  if(univStatusSet.size && !skipStatus) pool = pool.filter(r=>{ const k=r.statusNorm||'other'; return univStatusSet.has(k) || (univStatusSet.has('old1') && usIsPend(k) && (univDays(r.date)||0)>365); });
   return pool;
 }
 function univAnyFilterActive(){
-  return univSrcSet.size||univPsSet.size||univYearSet.size||univMonthSet.size||univInfoSet.size||univActSet.size||univFrSet.size||univCatFieldSet.size||univCatValSet.size||univPunishYearSet.size||univStatusSet.size||univOldSet.size;
+  return univSrcSet.size||univPsSet.size||univYearSet.size||univMonthSet.size||univInfoSet.size||univActSet.size||univFrSet.size||univCatFieldSet.size||univCatValSet.size||univPunishYearSet.size||univStatusSet.size||univOldSet.size||univOffSet.size||univSllSet.size;
 }
-const UNIV_FILTER_SETS = [univSrcSet, univPsSet, univYearSet, univMonthSet, univInfoSet, univPunishYearSet, univActSet, univFrSet, univCatFieldSet, univCatValSet, univStatusSet, univOldSet];
+const UNIV_FILTER_SETS = [univSrcSet, univPsSet, univYearSet, univMonthSet, univInfoSet, univPunishYearSet, univActSet, univFrSet, univCatFieldSet, univCatValSet, univStatusSet, univOldSet, univOffSet, univSllSet];
 function univFilterActiveCount(){
   return UNIV_FILTER_SETS.reduce((n,s)=>n+(s.size?1:0),0);
 }
@@ -9865,11 +9900,11 @@ function renderUnivPage(){
 /* ============================================================
    v50 — यूनिवर्सल सर्च: स्थिति फ़िल्टर + एडवांस विश्लेषण (KPI, चार्ट, इनसाइट, Excel)
    ============================================================ */
-const US_ORDER=['chargesheet','fr','pending','1939','other'];
-const US_LBL={chargesheet:'चालान',fr:'एफ.आर.',pending:'पैडिंग अनुसंधान','1939':'193(9) बीएनएसएस',other:'अन्य / अज्ञात'};
-const US_CLR={chargesheet:'#138808',fr:'#D97706',pending:'#DC2626','1939':'#7C3AED',other:'#94A3B8'};
+const US_ORDER=['chargesheet','fr','pending','reopen','1939','refuse','other'];
+const US_LBL={chargesheet:'चालान',fr:'एफ.आर.',pending:'पैडिंग अनुसंधान',reopen:'री-ओपन','1939':'193(9) बीएनएसएस',refuse:'रिफ्यूज FIR',old1:'⏳ पेंडिंग — 1 वर्ष से अधिक',other:'अन्य / अज्ञात'};
+const US_CLR={chargesheet:'#138808',fr:'#D97706',pending:'#DC2626',reopen:'#EA580C','1939':'#7C3AED',refuse:'#0EA5E9',other:'#94A3B8'};
 const usKey=r=>r.statusNorm||'other';
-const usIsPend=k=>k==='pending'||k==='1939';
+const usIsPend=k=>k==='pending'||k==='1939'||k==='reopen';
 function univStatusBadge(r){ const k=usKey(r); return `<span class="us-badge" style="--c:${US_CLR[k]}">${escHtml(r.statusDisplay||r.status||US_LBL[k])}</span>`; }
 function univDays(d){ const t=Date.parse(String(d||'').slice(0,10)); return isNaN(t)?null:Math.floor((Date.now()-t)/864e5); }
 function univSetStatus(k){
@@ -9889,13 +9924,6 @@ function univSearchPool(skipStatus){
   if((m=q.match(fr)) && m[2].trim()) return pool.filter(r=>matchUnivScope(r,'fir',m[2].trim()));
   if((m=q.match(sc)) && m[2].trim()) return pool.filter(r=>matchUnivScope(r,'section',m[2].trim()));
   return pool.filter(r=>r.blob.includes(q));
-}
-function renderUnivStatusChips(){
-  const el=document.getElementById('univStatusChips'); if(!el) return;
-  const c={}; let tot=0;
-  univSearchPool(true).forEach(r=>{ const k=usKey(r); c[k]=(c[k]||0)+1; tot++; });
-  el.innerHTML=`<span class="us-chip-lbl">📌 स्थिति:</span><button type="button" class="us-chip${univStatusSet.size?'':' on'}" onclick="univSetStatus(null)">सभी <b>${tot}</b></button>`+
-    US_ORDER.filter(k=>c[k]||univStatusSet.has(k)).map(k=>`<button type="button" class="us-chip${univStatusSet.has(k)?' on':''}" style="--c:${US_CLR[k]}" onclick="univSetStatus('${k}')">${US_LBL[k]} <b>${c[k]||0}</b></button>`).join('');
 }
 function univAggregate(R){
   const A={n:R.length,st:{},ps:{},yr:{},act:{},ages:[0,0,0,0,0],pend:0,old1:0,ageSum:0,ageN:0,full3:0,oldest:null};
@@ -9937,7 +9965,9 @@ function univAfterSearch(){
     kpi('#0E1B33',A.n.toLocaleString('en-IN'),'कुल प्रकरण',`${Object.keys(A.ps).length} थाने`)+
     kpi(US_CLR.chargesheet,A.st.chargesheet||0,'चालान',pc(A.st.chargesheet||0),'chargesheet')+
     kpi(US_CLR.fr,A.st.fr||0,'एफ.आर.',pc(A.st.fr||0),'fr')+
-    kpi(US_CLR.pending,pend,'पेंडिंग (अनुसंधान + 193(9))',pc(pend),'pending')+
+    kpi(US_CLR.pending,(A.st.pending||0)+(A.st['1939']||0),'पेंडिंग (अनुसंधान + 193(9))',pc((A.st.pending||0)+(A.st['1939']||0)),'pending')+
+    kpi(US_CLR.reopen,A.st.reopen||0,'री-ओपन',pc(A.st.reopen||0),'reopen')+
+    kpi(US_CLR.refuse,A.st.refuse||0,'रिफ्यूज FIR',pc(A.st.refuse||0),'refuse')+
     kpi('#0891B2',pc(disp),'निस्तारण दर','चालान + एफ.आर.')+
     kpi('#B91C1C',A.old1,'1 वर्ष से अधिक पेंडिंग',pend?(A.old1/pend*100).toFixed(1)+'% पेंडिंग का':'')+
     kpi('#7C3AED',avgAge,'औसत पेंडिंग आयु (दिन)',A.ageN?`${A.ageN} प्रकरणों पर`:'')+
@@ -9954,26 +9984,11 @@ function univAfterSearch(){
   if(topAct) ins.push(`सर्वाधिक Act प्रकार: <b>${UNIV_ACT_LABELS[topAct[0]]||topAct[0]}</b> (${topAct[1]} प्रकरण)`);
   if(A.st.other) ins.push(`⚠️ <b>${A.st.other}</b> प्रकरणों की स्थिति अज्ञात/अन्य है — डेटा-गुणवत्ता जाँचें`);
   if(ins.length) h+=`<div class="us-insights"><h4>💡 मुख्य निष्कर्ष</h4><ul style="margin:0;padding:0">${ins.map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
-  h+=`<div class="us-grid">
-    <div class="uac-card"><h4>स्थिति-वार वितरण <small style="font-weight:400;color:var(--soft)">(स्लाइस क्लिक = फ़िल्टर)</small></h4><div class="cv"><canvas id="ucv-st"></canvas></div></div>
-    <div class="uac-card"><h4>थाना-वार स्थिति (शीर्ष 12)</h4><div class="cv"><canvas id="ucv-ps"></canvas></div></div>
-    <div class="uac-card"><h4>वर्ष-वार प्रकरण व स्थिति</h4><div class="cv"><canvas id="ucv-yr"></canvas></div></div>
-    ${pend?`<div class="uac-card"><h4>पेंडिंग प्रकरणों की आयु-वितरण</h4><div class="cv"><canvas id="ucv-age"></canvas></div></div>`:''}
-  </div>`;
+  if(pend){
+    const lb=['0–60 दिन','61–90 दिन','91–180 दिन','181–365 दिन','1 वर्ष से अधिक'], cl=['#16A34A','#84CC16','#F59E0B','#EA580C','#B91C1C'], mx=Math.max(...A.ages,1);
+    h+=`<div class="uac-card" style="margin-bottom:14px"><h4>⏳ पेंडिंग प्रकरणों की आयु <small style="font-weight:400;color:var(--soft)">(री-ओपन सहित)</small></h4>${lb.map((l,i)=>`<div style="display:grid;grid-template-columns:105px 1fr 42px;gap:8px;align-items:center;margin:5px 0;font-size:12.5px"><span>${l}</span><div class="us-bar"><i style="width:${(A.ages[i]/mx*100).toFixed(0)}%;background:${cl[i]}"></i></div><b>${A.ages[i]}</b></div>`).join('')}</div>`;
+  }
   box.innerHTML=h;
-  if(typeof Chart==='undefined') return;
-  const keys=US_ORDER.filter(k=>A.st[k]);
-  const mk=(id,cfg)=>{ const c=document.getElementById(id); if(c) univCharts[id]=new Chart(c,cfg); };
-  const base={responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}}};
-  mk('ucv-st',{type:'doughnut',data:{labels:keys.map(k=>US_LBL[k]),datasets:[{data:keys.map(k=>A.st[k]),backgroundColor:keys.map(k=>US_CLR[k])}]},
-    options:{...base,cutout:'58%',onClick:(e,els)=>{ if(els.length) univSetStatus(keys[els[0].index]); }}});
-  const stack=(labels,pick)=>({labels,datasets:keys.map(k=>({label:US_LBL[k],backgroundColor:US_CLR[k],data:labels.map(l=>pick(l,k)||0)}))});
-  const top=psArr.slice(0,12).map(x=>x[0]);
-  mk('ucv-ps',{type:'bar',data:stack(top,(l,k)=>A.ps[l][k]),options:{...base,indexAxis:'y',scales:{x:{stacked:true,beginAtZero:true,ticks:{precision:0}},y:{stacked:true,ticks:{font:{size:10}}}}}});
-  const yrs=Object.keys(A.yr).sort((a,b)=>(parseInt(a,10)||9999)-(parseInt(b,10)||9999));
-  mk('ucv-yr',{type:'bar',data:stack(yrs,(l,k)=>A.yr[l][k]),options:{...base,scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true,ticks:{precision:0}}}}});
-  if(pend) mk('ucv-age',{type:'bar',data:{labels:['0–60 दिन','61–90','91–180','181–365','1 वर्ष+'],datasets:[{label:'पेंडिंग प्रकरण',data:A.ages,backgroundColor:['#16A34A','#84CC16','#F59E0B','#EA580C','#B91C1C']}]},
-    options:{...base,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
 }
 const _runUnivCore=runUniversalSearch;
 runUniversalSearch=function(){ _runUnivCore(); try{ univAfterSearch(); }catch(e){ console.error('विश्लेषण त्रुटि',e); } };
@@ -9995,11 +10010,8 @@ function downloadUnivExcel(){
   ]);
 }
 
-/* ===== v51 — गहन विश्लेषण: थाना-मैट्रिक्स, IO-वार पेंडिंग, मासिक रुझान, 1 वर्ष+ पेंडिंग फ़िल्टर ===== */
-function univToggleOld(){ if(univOldSet.size) univOldSet.clear(); else univOldSet.add('1'); runUniversalSearch(); }
+/* ===== v53 — गहन विश्लेषण (बिना चार्ट): थाना-मैट्रिक्स व IO-वार पेंडिंग ===== */
 function univTogglePs(k){ if(univPsSet.has(k)) univPsSet.delete(k); else univPsSet.add(k); if(msUnivPs) msUnivPs.refresh(); runUniversalSearch(); }
-const _rscBase=renderUnivStatusChips;
-renderUnivStatusChips=function(){ _rscBase(); const el=document.getElementById('univStatusChips'); if(el) el.insertAdjacentHTML('beforeend',`<button type="button" class="us-chip${univOldSet.size?' on':''}" style="--c:#B91C1C" onclick="univToggleOld()" title="1 वर्ष से अधिक पुराने पेंडिंग प्रकरण">⏳ 1 वर्ष+ पेंडिंग</button>`); };
 const _uasBase=univAfterSearch;
 univAfterSearch=function(){ _uasBase(); try{ univDeep(); }catch(e){ console.error('गहन विश्लेषण त्रुटि',e); } };
 function univDeep(){
@@ -10007,33 +10019,189 @@ function univDeep(){
   const q=document.getElementById('univSearchInput').value.trim();
   const R=(q.length<2 && !univAnyFilterActive()) ? (SEARCH_IDX||[]) : univResultsFull;
   if(!R || !R.length){ box.innerHTML=''; return; }
-  const ps={}, io={}, mon={};
+  const ps={}, io={};
   R.forEach(r=>{
     const k=usKey(r), pe=usIsPend(k), d=pe?univDays(r.date):null, old=d!==null && d>365;
-    const p=ps[r.ps]=ps[r.ps]||{n:r.psHi||r.ps||'—',t:0,c:0,f:0,p:0,o:0};
-    p.t++; if(k==='chargesheet') p.c++; else if(k==='fr') p.f++; else if(pe){ p.p++; if(old) p.o++; }
+    const p=ps[r.ps]=ps[r.ps]||{n:r.psHi||r.ps||'—',t:0,c:0,f:0,p:0,o:0,x:0};
+    p.t++; if(k==='chargesheet') p.c++; else if(k==='fr') p.f++; else if(pe){ p.p++; if(old) p.o++; } else p.x++;
     if(pe && r.io){ const i=io[r.io]=io[r.io]||{n:r.io,p:0,o:0,mx:0,ps:r.psHi||''}; i.p++; if(old) i.o++; if(d!==null && d>i.mx) i.mx=d; }
-    if(r.year && r.month){ const ym=r.year+'-'+String(r.month).padStart(2,'0'); const m=mon[ym]=mon[ym]||{t:0,p:0}; m.t++; if(pe) m.p++; }
   });
   const rate=o=>o.t?o.p/o.t*100:0, clr=v=>v>=50?'#DC2626':v>=30?'#EA580C':v>=15?'#D97706':'#16A34A';
   const psRows=Object.entries(ps).sort((a,b)=>rate(b[1])-rate(a[1])||b[1].t-a[1].t).map(([k,o])=>{
     const v=rate(o), on=univPsSet.has(k);
-    return `<tr data-ps="${escHtml(k)}" onclick="univTogglePs(this.dataset.ps)" style="cursor:pointer${on?';background:#eef4ff':''}" title="इस थाने से फ़िल्टर करें"><td style="text-align:left"><b>${escHtml(o.n)}</b></td><td>${o.t}</td><td>${o.c}</td><td>${o.f}</td><td>${o.p}</td><td>${o.o}</td><td style="min-width:130px"><div class="us-bar"><i style="width:${Math.min(100,v).toFixed(0)}%;background:${clr(v)}"></i><span>${v.toFixed(1)}%</span></div></td></tr>`;
+    return `<tr data-ps="${escHtml(k)}" onclick="univTogglePs(this.dataset.ps)" style="cursor:pointer${on?';background:#eef4ff':''}" title="इस थाने से फ़िल्टर करें"><td style="text-align:left"><b>${escHtml(o.n)}</b></td><td>${o.t}</td><td>${o.c}</td><td>${o.f}</td><td>${o.p}</td><td>${o.o}</td><td>${o.x}</td><td style="min-width:80px"><div class="us-bar"><i style="width:${Math.min(100,v).toFixed(0)}%;background:${clr(v)}"></i><span>${v.toFixed(1)}%</span></div></td></tr>`;
   }).join('');
-  const ioRows=Object.values(io).sort((a,b)=>b.p-a.p||b.mx-a.mx).slice(0,10).map((o,i)=>`<tr><td>${i+1}</td><td style="text-align:left"><b>${escHtml(o.n)}</b><br><small style="color:var(--soft)">${escHtml(o.ps)}</small></td><td>${o.p}</td><td>${o.o}</td><td>${o.mx}</td></tr>`).join('');
-  box.innerHTML=`<div class="us-title">🔬 गहन विश्लेषण <small>पंक्ति क्लिक = फ़िल्टर</small></div>
-   <div class="uac-card" style="margin-bottom:14px"><h4>🏢 थाना-वार पेंडेंसी मैट्रिक्स <small style="font-weight:400;color:var(--soft)">(पेंडेंसी % के क्रम में)</small></h4><div style="overflow-x:auto"><table class="data-tbl"><thead><tr><th style="text-align:left">थाना</th><th>कुल</th><th>चालान</th><th>एफ.आर.</th><th>पेंडिंग</th><th>1 वर्ष+</th><th>पेंडेंसी %</th></tr></thead><tbody>${psRows}</tbody></table></div></div>
-   <div class="us-grid">
-    <div class="uac-card"><h4>📈 मासिक रुझान (कुल बनाम पेंडिंग, अंतिम 24 माह)</h4><div class="cv"><canvas id="ucv-mon"></canvas></div></div>
-    <div class="uac-card"><h4>👮 IO-वार पेंडिंग (शीर्ष 10)</h4>${ioRows?`<div style="overflow-x:auto"><table class="data-tbl"><thead><tr><th>#</th><th style="text-align:left">IO / थाना</th><th>पेंडिंग</th><th>1 वर्ष+</th><th>सबसे पुराना (दिन)</th></tr></thead><tbody>${ioRows}</tbody></table></div>`:'<div class="note">IO का नाम केवल Generic Data में होता है — चयनित परिणामों में कोई पेंडिंग IO उपलब्ध नहीं।</div>'}</div>
-   </div>`;
-  if(typeof Chart==='undefined') return;
-  const ks=Object.keys(mon).sort().slice(-24), c=document.getElementById('ucv-mon');
-  if(c) univCharts['ucv-mon']=new Chart(c,{type:'line',data:{labels:ks,datasets:[
-    {label:'कुल',data:ks.map(k=>mon[k].t),borderColor:'#2F6FED',backgroundColor:'rgba(47,111,237,.12)',fill:true,tension:.3},
-    {label:'पेंडिंग',data:ks.map(k=>mon[k].p),borderColor:'#DC2626',backgroundColor:'transparent',tension:.3}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}},scales:{y:{beginAtZero:true,ticks:{precision:0}},x:{ticks:{font:{size:10},maxRotation:60}}}}});
+  const ioRows=Object.values(io).sort((a,b)=>b.p-a.p||b.mx-a.mx).slice(0,10).map((o,i)=>`<tr><td>${i+1}</td><td style="text-align:left"><b>${escHtml(o.n)}</b> <small style="color:var(--soft)">${escHtml(o.ps)}</small></td><td>${o.p}</td><td>${o.o}</td><td>${o.mx}</td></tr>`).join('');
+  box.innerHTML=`<div class="us-title">🔬 गहन विश्लेषण <small>थाना-पंक्ति क्लिक = फ़िल्टर</small></div>
+   <div class="uac-card" style="margin-bottom:14px"><h4>🏢 थाना-वार स्थिति मैट्रिक्स <small style="font-weight:400;color:var(--soft)">(पेंडेंसी % के क्रम में; पेंडिंग में री-ओपन सम्मिलित)</small></h4><div><table class="data-tbl us-fit"><thead><tr><th style="text-align:left">थाना</th><th>कुल</th><th>चालान</th><th>एफ.आर.</th><th>पेंडिंग</th><th>1 वर्ष+</th><th>अन्य*</th><th>पेंडेंसी %</th></tr></thead><tbody>${psRows}</tbody></table></div><small style="color:var(--soft)">*अन्य = रिफ्यूज FIR व अज्ञात स्थिति</small></div>
+   ${ioRows?`<div class="uac-card" style="margin-bottom:14px"><h4>👮 IO-वार पेंडिंग (शीर्ष 10)</h4><div><table class="data-tbl us-fit"><thead><tr><th>#</th><th style="text-align:left">IO / थाना</th><th>पेंडिंग</th><th>1 वर्ष+</th><th>सबसे पुराना (दिन)</th></tr></thead><tbody>${ioRows}</tbody></table></div></div>`:''}`;
 }
+
+/* ===== v53 — अपराध-प्रकार कैटलॉग (दिल्ली पुलिस अकादमी की BNS पुस्तिका: धारा-सारणी IPC↔BNS) + गूगल-जैसी सुझाव सूची ===== */
+const BNS_CAT={"1":["",["1","2","3","4","5"],-1,-1],"2":["",["20","24","25","26","28","29","29A","30","31","39","40","41","42","43","44","45","46","47","48","49","51","52","52A"],-1,-1],"3":["",["6","7","27","32","34","35","36","37","38"],-1,-1],"4":["",["53"],-1,-1],"6":["",["57"],-1,-1],"7":["",["60"],-1,-1],"8":["",["63","64","65","66","67","70"],-1,-1],"9":["",["71"],-1,-1],"10":["",["72"],-1,-1],"11":["",["73"],-1,-1],"12":["",["74"],-1,-1],"13":["",["75"],-1,-1],"14":["",["76"],-1,-1],"15":["",["77"],-1,-1],"16":["",["78"],-1,-1],"17":["",["79"],-1,-1],"18":["",["80"],-1,-1],"19":["",["81"],-1,-1],"20":["",["82"],-1,-1],"21":["",["83"],-1,-1],"22":["",["84"],-1,-1],"23":["",["85"],-1,-1],"24":["",["86"],-1,-1],"25":["",["87"],-1,-1],"26":["",["88"],-1,-1],"27":["",["89"],-1,-1],"28":["",["90"],-1,-1],"29":["",["91"],-1,-1],"30":["",["92"],-1,-1],"31":["",["93"],-1,-1],"32":["",["94"],-1,-1],"33":["",["95"],-1,-1],"34":["",["96"],-1,-1],"35":["",["97"],-1,-1],"36":["",["98"],-1,-1],"37":["",["99"],-1,-1],"38":["",["100"],-1,-1],"39":["",["101"],-1,-1],"40":["",["102"],-1,-1],"41":["",["103"],-1,-1],"42":["",["104"],-1,-1],"43":["",["105"],-1,-1],"44":["",["106"],-1,-1],"45":["",["107"],-1,-1],"46":["",["108"],-1,-1],"47":["",["108A"],-1,-1],"48":["",[],-1,-1],"49":["",["109"],-1,-1],"50":["",["110"],-1,-1],"51":["",["111"],-1,-1],"52":["",["112"],-1,-1],"53":["",["113"],-1,-1],"54":["",["114"],-1,-1],"55":["",["115"],1,0],"56":["",["116"],-1,-1],"57":["",["117"],-1,-1],"58":["",["118"],1,0],"59":["",["119"],1,0],"61":["आपराधिक षड्यंत्र|conspiracy",["120A","120B"],-1,-1],"62":["",["511"],0,1],"63":["बलात्कार (परिभाषा)|rape",["375"],1,0],"64":["बलात्कार का दण्ड|rape punishment",["376"],1,0],"65":["16/12 वर्ष से कम आयु से बलात्कार|rape minor child",["376AB","376DA","376DB"],-1,-1],"66":["बलात्कार से मृत्यु/निष्क्रिय अवस्था|rape death",["376A"],1,0],"67":["",["376B"],1,1],"68":["",["376C"],1,0],"69":["",[],-1,-1],"70":["सामूहिक बलात्कार|gang rape",["376D"],1,0],"71":["",["376E"],1,0],"72":["पीड़िता की पहचान प्रकट करना|victim identity",["228A"],-1,-1],"74":["स्त्री की लज्जा भंग (हमला/बल)|outraging modesty molestation",["354"],1,0],"75":["यौन उत्पीड़न|sexual harassment",["354A"],1,0],"76":["निर्वस्त्र करने के आशय से हमला|disrobe",["354B"],1,0],"77":["दृश्यरतिकता|voyeurism",["354C"],1,1],"78":["पीछा करना|stalking",["354D"],1,1],"79":["स्त्री की लज्जा का अपमान|insult modesty eve teasing",["509"],1,1],"80":["दहेज मृत्यु|dowry death",["304B"],1,0],"81":["",["493"],0,0],"82":["द्विविवाह|bigamy",["494","495"],0,1],"83":["",["496"],0,0],"84":["",["498"],0,1],"85":["पति/रिश्तेदार द्वारा क्रूरता|cruelty husband 498a",["498A"],1,0],"86":["",["498"],-1,-1],"87":["विवाह हेतु स्त्री का अपहरण|kidnap woman marriage",["366"],1,0],"88":["गर्भपात कारित करना|miscarriage abortion",["312"],0,1],"89":["",["313"],1,0],"90":["",["314"],1,0],"91":["",["315"],1,0],"92":["",["316"],1,0],"93":["",["317"],1,1],"94":["",["318"],1,1],"95":["",[],-1,-1],"96":["",["366A"],1,0],"97":["",["369"],1,0],"98":["",["372"],1,0],"99":["",["373"],1,0],"100":["",["299"],-1,-1],"101":["",["300"],-1,-1],"102":["",["301"],-1,-1],"103":["हत्या|murder",["302"],1,0],"104":["",["303"],1,0],"105":["आपराधिक मानव वध (हत्या नहीं)|culpable homicide",["304"],1,0],"106":["उपेक्षा से मृत्यु|negligence death accident",["304A"],1,1],"107":["बालक/विक्षिप्त की आत्महत्या का दुष्प्रेरण|abetment suicide child",["305"],1,0],"108":["आत्महत्या का दुष्प्रेरण|abetment suicide",["306"],1,0],"109":["हत्या का प्रयास|attempt murder",["307"],1,0],"110":["आपराधिक मानव वध का प्रयास|attempt culpable homicide",["308"],1,0],"111":["संगठित अपराध|organised crime",[],1,0],"112":["छोटा संगठित अपराध|petty organised crime",[],-1,-1],"113":["आतंकवादी कृत्य|terror terrorism",[],1,0],"114":["",["319"],-1,-1],"115":["स्वेच्छया चोट (उपहति)|hurt marpeet assault",["321","323"],0,1],"116":["",["320"],-1,-1],"117":["स्वेच्छया घोर उपहति|grievous hurt",["322","325"],1,1],"118":["खतरनाक हथियार/साधन से चोट|hurt dangerous weapon",["324","326"],1,0],"119":["",["327","329"],1,0],"120":["",["330","331"],1,1],"121":["लोक सेवक को चोट|hurt public servant",["332","333"],1,0],"122":["",["334","335"],0,1],"123":["विष आदि द्वारा चोट|poison hurt",["328"],1,0],"124":["तेज़ाब हमला|acid attack",["326A","326B"],1,0],"125":["जीवन/सुरक्षा को खतरे में डालना|endanger life",["336","337","338"],1,1],"126":["सदोष अवरोध|wrongful restraint",["339","341"],1,1],"127":["सदोष परिरोध|wrongful confinement",["340","342","343","344","345","346","347","348"],1,1],"128":["",["349"],-1,-1],"129":["",["350"],-1,-1],"130":["",["351"],-1,-1],"131":["आपराधिक बल|criminal force",["352"],0,1],"132":["लोक सेवक पर हमला|assault public servant",["353"],1,0],"133":["",["355"],0,1],"134":["",["356"],1,1],"135":["",["357"],1,1],"136":["",["358"],0,1],"137":["व्यपहरण|kidnapping",["359","360","361","363"],-1,-1],"138":["अपहरण|abduction",["362"],-1,-1],"139":["",[],1,0],"140":["फिरौती/हत्या हेतु व्यपहरण|ransom kidnap",["364","364A","365","367"],1,0],"141":["",["366B"],1,0],"142":["",["368"],1,0],"143":["मानव तस्करी|trafficking",["370"],1,0],"144":["",["370A"],1,0],"145":["",["371"],1,0],"146":["",["374"],1,1],"147":["",["121"],1,0],"148":["",["121A"],1,0],"149":["",["122"],1,0],"150":["",["123"],1,0],"151":["",["124"],1,0],"152":["",[],-1,-1],"153":["",["125"],1,0],"154":["",["126"],1,0],"155":["",["127"],1,0],"156":["",["128"],1,0],"157":["",["129"],1,1],"158":["",["130"],1,0],"159":["",["131"],1,0],"160":["",["132"],1,0],"161":["",["133"],1,0],"162":["",["134"],1,0],"163":["",["135"],1,1],"164":["",["136"],1,1],"165":["",["137"],0,1],"166":["",["138"],1,1],"167":["",["139"],-1,-1],"168":["",["140"],1,1],"169":["",["171A"],-1,-1],"170":["",["171B"],-1,-1],"171":["",["171C"],-1,-1],"172":["",["171D"],-1,-1],"173":["",["171E"],0,1],"174":["",["171F"],0,1],"175":["",["171G"],0,1],"176":["",["171H"],0,1],"177":["",["171I"],0,1],"178":["",["255","489A"],1,0],"179":["",["254","258","260","489B"],1,0],"180":["",["259","489C"],1,0],"181":["",["489D"],1,0],"182":["",["489E"],0,1],"183":["",["261"],1,1],"184":["",["262"],1,1],"185":["",["263"],1,1],"186":["",["263A"],1,1],"187":["",["244"],1,0],"188":["",["245"],1,0],"189":["विधिविरुद्ध जमाव|unlawful assembly",["141","144","145","150","151","157","158"],1,1],"190":["",["149"],0,1],"191":["बलवा/दंगा|riot",["146","147","148"],1,1],"192":["",["153"],1,1],"193":["",["154","155","156"],0,1],"194":["मारपीट/उपद्रव|affray",["159","160"],1,1],"195":["",["152"],1,1],"196":["वर्गों में शत्रुता फैलाना|enmity",["153A"],1,0],"197":["",["153B"],1,0],"198":["",["166"],0,1],"199":["",["166A"],1,1],"200":["",["166B"],0,1],"201":["",["167"],1,1],"202":["",["168"],0,1],"203":["",["169"],0,1],"204":["",["170"],1,0],"205":["",["171"],1,1],"206":["",["172"],0,1],"207":["",["173"],0,1],"208":["",["174"],0,1],"209":["",["174A"],1,0],"210":["",["175"],0,1],"211":["",["176"],0,1],"212":["",["177"],0,1],"213":["",["178"],0,1],"214":["",["179"],0,1],"215":["",["180"],0,1],"216":["",["181"],0,1],"217":["",["182"],0,1],"218":["",["183"],0,1],"219":["",["184"],0,1],"220":["",["185"],0,1],"221":["लोक सेवक के कार्य में बाधा|obstruct public servant",["186"],0,1],"222":["",["187"],0,1],"223":["लोक सेवक के आदेश की अवज्ञा|disobey order 188",["188"],1,1],"224":["",["189"],0,1],"225":["",["190"],0,1],"226":["",["309"],0,1],"227":["",["191"],-1,-1],"228":["",["192"],-1,-1],"229":["झूठा साक्ष्य|false evidence",["193"],1,1],"230":["",["194"],0,0],"231":["",["195"],0,0],"232":["",["195A"],1,0],"233":["",["196"],0,0],"234":["",["197"],0,1],"235":["",["198"],0,1],"236":["",["199"],0,1],"237":["",["200"],0,1],"238":["साक्ष्य मिटाना|destroy evidence",["201"],0,1],"239":["",["202"],0,1],"240":["",["203"],0,1],"241":["",["204"],0,1],"242":["",["205"],0,1],"243":["",["206"],0,1],"244":["",["207"],0,1],"245":["",["208"],0,1],"246":["",["209"],0,1],"247":["",["210"],0,1],"248":["",["211"],0,1],"249":["",["212"],1,1],"250":["",["213"],1,1],"251":["",["214"],0,1],"252":["",["215"],1,1],"253":["",["216"],1,1],"254":["",["216A"],1,1],"255":["",["217"],0,1],"256":["",["218"],1,1],"257":["",["219"],0,1],"258":["",["220"],0,1],"260":["",[],1,0],"261":["",["223"],0,1],"262":["",["224"],1,1],"263":["",["225"],1,1],"264":["",["225A"],0,1],"265":["",["225B"],1,1],"266":["",["227"],1,0],"267":["",["228"],0,1],"268":["",["229"],0,1],"269":["",["229A"],1,0],"270":["",["268"],-1,-1],"271":["",["269"],1,1],"272":["",["270"],1,1],"273":["",["271"],0,1],"274":["",["272"],0,1],"275":["",["273"],0,1],"276":["",["274"],0,0],"277":["",["275"],0,1],"278":["",["276"],0,1],"279":["",["277"],1,1],"280":["",["278"],0,1],"281":["उतावलेपन से वाहन चलाना|rash driving",["279"],1,1],"282":["",["280"],1,1],"283":["",["281"],1,1],"284":["",["282"],1,1],"285":["लोक मार्ग में संकट/बाधा|danger public way",["283"],1,1],"286":["",["284"],1,1],"287":["",["285"],1,1],"288":["",["286"],1,1],"289":["",["287"],0,1],"290":["",["288"],0,1],"291":["",["289"],1,1],"292":["अश्लील सामग्री|obscene",["290"],0,1],"293":["",["291"],1,1],"294":["",["292"],1,1],"295":["",["293"],1,1],"296":["सार्वजनिक स्थान पर अश्लील कृत्य|obscene acts",["294"],1,1],"297":["",["294A"],0,1],"298":["पूजा स्थल को क्षति/अपवित्र करना|desecrate worship place",["295"],1,0],"299":["धार्मिक भावनाओं को आहत करना|religious feelings",["295A"],1,0],"300":["",["296"],1,1],"301":["",["297"],1,1],"302":["",["298"],0,1],"303":["चोरी|theft chori",["378","379"],1,0],"304":["झपटमारी|snatching",[],1,0],"305":["आवास/परिवहन/पूजा-स्थल में चोरी|theft dwelling",["380"],1,0],"306":["नौकर द्वारा चोरी|theft servant",["381"],1,0],"307":["",["382"],1,0],"308":["उद्दापन (वसूली/ब्लैकमेल)|extortion blackmail",["383","384","385","386","387","388","389"],1,0],"309":["लूट|robbery loot",["392","393","394"],1,0],"310":["डकैती|dacoity",["391","395","396","399","400","402"],1,0],"311":["",["397"],1,0],"312":["",["398"],1,0],"313":["",["401"],1,0],"314":["आपराधिक दुर्विनियोग|misappropriation",["403"],0,1],"315":["",["404"],0,1],"316":["आपराधिक न्यासभंग (विश्वासघात)|breach of trust",["405","406","407","408","409"],1,0],"317":["चोरी की संपत्ति|stolen property",["410","411","412","413","414"],1,0],"318":["छल/धोखाधड़ी/ठगी|cheating fraud",["415","417","418","420"],0,1],"319":["प्रतिरूपण द्वारा छल|personation",["416","419"],1,1],"320":["",["421"],0,1],"321":["",["422"],0,1],"322":["",["423"],0,1],"323":["",["424"],0,1],"324":["रिष्टि (नुकसान पहुँचाना)|mischief",["425","426","427","440"],0,1],"326":["आग/विस्फोटक से रिष्टि|mischief fire arson",["430","431","432","433","434","435","436"],1,1],"327":["",["437","438"],1,0],"328":["",["439"],1,0],"329":["आपराधिक अतिचार|trespass",["441","442","447","448"],1,1],"330":["गृह-अतिचार|house trespass",["443","445"],-1,-1],"331":["गृह-भेदन/सेंधमारी|house breaking",["453","454","455","456","457","458","459","460"],1,0],"332":["",["449","450","451"],1,0],"333":["",["452"],1,0],"334":["",["461","462"],1,0],"335":["कूटरचित दस्तावेज|forged document",["464"],-1,-1],"336":["जालसाजी|forgery",["463","465","468","469"],0,1],"337":["",["466"],0,0],"338":["मूल्यवान प्रतिभूति की जालसाजी|forgery valuable security",["467"],0,0],"339":["",["474"],1,1],"340":["कूटरचित दस्तावेज का उपयोग|using forged",["470","471"],1,1],"341":["",["472","473"],1,1],"342":["",["475","476"],0,1],"343":["",["477"],0,0],"344":["",["477A"],0,1],"345":["",["479","481","482"],0,1],"346":["",["489"],0,1],"347":["",["483","484"],0,1],"348":["",["485"],0,1],"349":["",["486"],0,1],"350":["",["487","488"],0,1],"351":["आपराधिक अभित्रास (धमकी)|criminal intimidation threat",["503","506","507"],0,1],"352":["शांति भंग हेतु साशय अपमान|insult provoke",["504"],0,1],"353":["",["505"],0,0],"354":["",["508"],0,1],"355":["",["510"],0,1],"356":["मानहानि|defamation",["499","500","501","502"],0,1],"357":["",["491"],0,1],"358":["",[],-1,-1],"361":["",[],-1,-1],"363":["",[],1,1],"376":["",[],1,0],"377":["",[],-1,-1],"390":["",[],-1,-1],"444":["",[],-1,-1],"446":["",[],-1,-1],"478":["",[],-1,-1],"480":["",[],-1,-1],"490":["",[],-1,-1],"492":["",[],-1,-1],"497":["",[],-1,-1]}; // {बीएनएस धारा: [शीर्षक|English, [आईपीसी धाराएँ], संज्ञेय(1/0), जमानतीय(1/0)]}
+const BNS_IPC2B=(()=>{const m={};Object.keys(BNS_CAT).forEach(b=>BNS_CAT[b][1].forEach(i=>{(m[i]=m[i]||[]).push(b);}));return m;})();
+function bnsRange(a,z){const o=[];for(let n=a;n<=z;n++){const k=String(n);if(BNS_CAT[k])o.push(k);}return o;}
+const OFF_GROUPS=[
+ {id:'women',ic:'👩',l:'महिलाओं व बच्चों के विरुद्ध अपराध (समस्त)',kw:'महिला स्त्री बच्चे बालक women child',k:bnsRange(63,99)},
+ {id:'rape',ic:'⚠️',l:'बलात्कार संबंधी अपराध',kw:'बलात्कार दुष्कर्म rape पॉक्सो',k:bnsRange(63,73)},
+ {id:'molest',ic:'🚺',l:'छेड़छाड़ / लज्जा भंग / यौन उत्पीड़न / पीछा करना',kw:'छेड़छाड़ छेड़खानी लज्जा स्टॉकिंग यौन molestation harassment eve',k:bnsRange(74,79)},
+ {id:'dowry',ic:'💍',l:'दहेज मृत्यु व पति/रिश्तेदारों द्वारा क्रूरता',kw:'दहेज क्रूरता ससुराल dowry cruelty 498',k:['80','85','86'].filter(k=>BNS_CAT[k])},
+ {id:'murder',ic:'🔪',l:'हत्या व मानव वध संबंधी (हत्या, प्रयास, लापरवाही से मृत्यु)',kw:'हत्या मर्डर मानव वध मृत्यु murder homicide',k:bnsRange(100,110)},
+ {id:'suicide',ic:'🕊️',l:'आत्महत्या का दुष्प्रेरण',kw:'आत्महत्या सुसाइड suicide उकसाना',k:['107','108'].filter(k=>BNS_CAT[k])},
+ {id:'hurt',ic:'🩹',l:'चोट / मारपीट / हमला संबंधी',kw:'मारपीट चोट उपहति हमला झगड़ा hurt assault',k:[...bnsRange(115,125),...bnsRange(131,133)]},
+ {id:'kidnap',ic:'🚸',l:'व्यपहरण / अपहरण / मानव तस्करी',kw:'अपहरण गुमशुदा भगाना kidnapping abduction trafficking',k:bnsRange(137,146)},
+ {id:'theft',ic:'👜',l:'चोरी व चोरी की संपत्ति संबंधी',kw:'चोरी चोर झपटमारी theft chori snatching',k:[...bnsRange(303,307),'317'].filter(k=>BNS_CAT[k])},
+ {id:'robbery',ic:'💰',l:'लूट व डकैती',kw:'लूट डकैती robbery dacoity loot',k:bnsRange(309,313)},
+ {id:'cheat',ic:'🧾',l:'धोखाधड़ी / ठगी / विश्वासघात / दुर्विनियोग',kw:'धोखाधड़ी ठगी छल फ्रॉड विश्वासघात cheating fraud 420',k:bnsRange(314,320)},
+ {id:'property',ic:'🏠',l:'संपत्ति के विरुद्ध अपराध (समस्त)',kw:'संपत्ति property',k:bnsRange(303,334)},
+ {id:'mischief',ic:'🔥',l:'रिष्टि / आगजनी / नुकसान',kw:'रिष्टि आगजनी तोड़फोड़ नुकसान mischief arson',k:bnsRange(324,328)},
+ {id:'trespass',ic:'🚪',l:'अतिचार / सेंधमारी / गृह-भेदन',kw:'अतिचार सेंधमारी घर में घुसना trespass housebreaking',k:bnsRange(329,334)},
+ {id:'forgery',ic:'📄',l:'जालसाजी / कूटरचना / फर्जी दस्तावेज',kw:'जालसाजी फर्जी कूटरचित दस्तावेज forgery',k:bnsRange(335,348)},
+ {id:'threat',ic:'🗯️',l:'धमकी / अपमान / मानहानि',kw:'धमकी अभित्रास मानहानि अपमान threat intimidation defamation',k:bnsRange(351,356)},
+ {id:'riot',ic:'👥',l:'दंगा / विधिविरुद्ध जमाव / सार्वजनिक शांति भंग',kw:'दंगा बलवा जमाव riot unlawful assembly',k:bnsRange(189,197)},
+ {id:'road',ic:'🚗',l:'सड़क दुर्घटना / लापरवाही से वाहन चलाना',kw:'दुर्घटना एक्सीडेंट वाहन accident rash driving',k:['106',...bnsRange(281,285)].filter(k=>BNS_CAT[k])},
+ {id:'org',ic:'🕸️',l:'संगठित अपराध / आतंकवादी कृत्य',kw:'संगठित गिरोह आतंकवाद organised terror gang',k:bnsRange(111,113)},
+ {id:'obscene',ic:'🔞',l:'अश्लीलता संबंधी अपराध',kw:'अश्लील obscene',k:bnsRange(294,296)},
+ {id:'religion',ic:'🛐',l:'धार्मिक भावना / पूजा स्थल संबंधी अपराध',kw:'धार्मिक धर्म पूजा स्थल religion',k:bnsRange(298,302)},
+ {id:'evidence',ic:'⚖️',l:'झूठा साक्ष्य / न्याय में बाधा / लोक सेवक संबंधी',kw:'झूठा साक्ष्य न्यायालय लोक सेवक false evidence',k:[...bnsRange(221,226),...bnsRange(227,248)]}
+].filter(g=>g.k.length);
+const OFF_SLL=[
+ {id:'ndps',ic:'💊',l:'NDPS एक्ट (मादक पदार्थ) के समस्त प्रकरण',kw:'ndps मादक पदार्थ अफीम गांजा स्मैक नशा drugs',re:/NDPS|N\.D\.P\.S/},
+ {id:'pocso',ic:'🧒',l:'POCSO एक्ट के समस्त प्रकरण',kw:'pocso पॉक्सो बालक यौन',re:/POCSO|पॉक्सो/},
+ {id:'scst',ic:'🛡️',l:'SC/ST एक्ट के समस्त प्रकरण',kw:'sc st अनुसूचित जाति जनजाति atrocities',re:/SC\s*\/\s*ST|SCST|S\.C\.\s*\/?\s*S\.T|SC-ST|ATROCIT/},
+ {id:'arms',ic:'🔫',l:'आर्म्स एक्ट के समस्त प्रकरण',kw:'आर्म्स हथियार अवैध arms',re:/ARMS\s*ACT|\bARMS\b|आर्म्स/},
+ {id:'it',ic:'💻',l:'IT एक्ट / साइबर अपराध के प्रकरण',kw:'it एक्ट साइबर ऑनलाइन cyber',re:/\bIT\s*ACT|INFORMATION\s*TECH|\bI\.?T\.?\s*ACT|साइबर/},
+ {id:'excise',ic:'🍺',l:'आबकारी एक्ट (अवैध शराब) के प्रकरण',kw:'आबकारी शराब excise liquor',re:/EXCISE|आबकारी/},
+ {id:'gamb',ic:'🎲',l:'जुआ / सट्टा (गैम्बलिंग एक्ट) के प्रकरण',kw:'जुआ सट्टा gambling',re:/GAMBL|जुआ|सट्टा/},
+ {id:'dowact',ic:'💍',l:'दहेज प्रतिषेध अधिनियम के प्रकरण',kw:'दहेज प्रतिषेध dowry prohibition',re:/DOWRY\s*PROHIB|दहेज\s*प्रतिषेध|\bD\.?P\.?\s*ACT/},
+ {id:'mv',ic:'🚙',l:'मोटर वाहन अधिनियम के प्रकरण',kw:'मोटर वाहन mv act motor vehicle',re:/MOTOR\s*VEHICLE|\bM\.?V\.?\s*ACT/},
+ {id:'expl',ic:'💥',l:'विस्फोटक पदार्थ अधिनियम के प्रकरण',kw:'विस्फोटक explosive',re:/EXPLOSIVE|विस्फोटक/},
+ {id:'bovine',ic:'🐄',l:'गौवंश अधिनियम के प्रकरण',kw:'गौवंश गोवंश गाय bovine cow',re:/BOVINE|गौवंश|गोवंश/}
+];
+const OFF_SLL_BY={}; OFF_SLL.forEach(x=>OFF_SLL_BY[x.id]=x);
+function univSllText(r){ return ((r.section||'')+' '+(r.invBaseSection||'')).toUpperCase(); }
+// धारा-पाठ से BNS/IPC धारा-संख्याएँ निकालना (उदा. "BNS-331(4),305(a) ARMS ACT-25" → bns:[331,305])
+function univSecKeys(txt){
+  const T=String(txt||'').toUpperCase().replace(/\([^)]*\)/g,' ');
+  const re=/\b(BNSS|BNS|IPC|CRPC)\b|\b(?:[A-Z][A-Z.\/&]*\s){0,3}(?:ACT|ORDINANCE|ORD)\b|\b(?:POCSO|NDPS|SCST|SC\/ST)\b/g;
+  const ms=[]; let m; while((m=re.exec(T))) ms.push({a:m[1]||null,s:m.index,e:re.lastIndex});
+  const out={bns:[],ipc:[]};
+  ms.forEach((x,i)=>{
+    if(x.a!=='BNS'&&x.a!=='IPC') return;
+    const next=i+1<ms.length?ms[i+1].s:T.length, prevEnd=i?ms[i-1].e:0;
+    let seg=T.slice(x.e,next); if(!/\d/.test(seg)) seg=T.slice(prevEnd,x.s);
+    const nr=/(?<![\dA-Z])(\d{1,3})(?:-?([A-Z])(?![A-Z]))?(?!\d)/g; let n;
+    while((n=nr.exec(seg))) out[x.a.toLowerCase()].push(n[1]+(n[2]||''));
+  });
+  return out;
+}
+function univRecKeys(r){
+  if(r._ok) return r._ok;
+  const p=univSecKeys((r.section||'')+' ; '+(r.invBaseSection||'')), s=new Set(p.bns.filter(k=>BNS_CAT[k]&&parseInt(k,10)>=5));
+  p.ipc.forEach(k=>{ (BNS_IPC2B[k]||[]).forEach(b=>{ if(parseInt(b,10)>=5) s.add(b); }); });
+  return (r._ok=s);
+}
+function univOffTitles(r){
+  let ks=[...univRecKeys(r)]; if(univOffSet.size) ks=ks.filter(k=>univOffSet.has(k));
+  if(!ks.length) return ['अन्य / विशेष अधिनियम / धारा अज्ञात'];
+  return ks.map(k=>{ const e=BNS_CAT[k]; return `BNS ${k}${e[1].length?' / IPC '+e[1][0]:''} — ${e[0]?e[0].split('|')[0]:'धारा '+k}`; });
+}
+function bnsCompact(keys){ const a=[...keys].sort((x,y)=>parseInt(x,10)-parseInt(y,10)); return a.length>6?`${a[0]}–${a[a.length-1]} (${a.length} धाराएँ)`:a.join(', '); }
+function univOffMatches(q){
+  const ql=q.toLowerCase(), num=/^\d{1,3}[a-z]?$/i.test(q)?q.toUpperCase():null, hit=(t)=>t.toLowerCase().includes(ql);
+  const out=[];
+  OFF_GROUPS.filter(x=>!num&&(hit(x.l)||hit(x.kw))).slice(0,4).forEach(x=>out.push({t:'g',id:x.id,ic:x.ic,l:x.l,sub:'BNS '+bnsCompact(x.k),keys:new Set(x.k)}));
+  OFF_SLL.filter(x=>!num&&(hit(x.l)||hit(x.kw))).slice(0,3).forEach(x=>out.push({t:'l',id:x.id,ic:x.ic,l:x.l,sub:'विशेष एवं स्थानीय विधि',re:x.re}));
+  let n=0;
+  Object.keys(BNS_CAT).forEach(k=>{
+    if(n>=8) return; const [t,ipc,c,b]=BNS_CAT[k];
+    const ok=num?(k===num||ipc.includes(num)):(t&&hit(t+' '+k));
+    if(!ok) return; n++;
+    out.push({t:'s',id:k,ic:'⚖️',l:`${t?t.split('|')[0]:'धारा'} — BNS ${k}`,sub:(ipc.length?'IPC '+ipc.slice(0,4).join(', ')+(ipc.length>4?'…':'')+' · ':'')+(c===1?'संज्ञेय':c===0?'असंज्ञेय':'')+(b===1?' · जमानतीय':b===0?' · अजमानतीय':''),keys:new Set([k])});
+  });
+  return out;
+}
+function univOffInject(){
+  const input=document.getElementById('univSearchInput'), sbox=document.getElementById('univSuggestBox');
+  const q=input.value.trim(); if(q.length<2||!sbox) return;
+  const pool=getUnivFilteredPool();
+  const items=univOffMatches(q).map(o=>{ o.cnt=pool.reduce((n,r)=>{ if(o.t==='l') return n+(o.re.test(univSllText(r))?1:0); for(const k of univRecKeys(r)) if(o.keys.has(k)) return n+1; return n; },0); return o; }).filter(o=>o.cnt>0);
+  if(!items.length) return;
+  const h=`<div class="univ-suggest-cat">📚 अपराध-प्रकार (BNS/IPC सूची) — चुनने पर उस प्रकार के समस्त प्रकरणों की सूची व पिवट खुलेगा</div>`+
+    items.map(o=>`<div class="univ-suggest-item" onclick="applyUnivOffence('${o.t}','${o.id}')"><span class="usi-icon">${o.ic}</span><span class="usi-txt">${escHtml(o.l)}<br><small style="color:var(--soft)">${escHtml(o.sub)}</small></span><span class="usi-cnt">${o.cnt}</span></div>`).join('');
+  const none=/किसी भी फ़ील्ड में कोई परिणाम नहीं/.test(sbox.innerHTML);
+  sbox.innerHTML=h+(none?'':sbox.innerHTML); sbox.style.display='block';
+}
+const _bus=buildUnivSuggestions;
+buildUnivSuggestions=function(){ _bus(); try{ univOffInject(); }catch(e){ console.error('अपराध-सुझाव त्रुटि',e); } };
+function applyUnivOffence(t,id){
+  univOffSet.clear(); univSllSet.clear(); univOffLabel='';
+  if(t==='g'){ const g=OFF_GROUPS.find(x=>x.id===id); g.k.forEach(k=>univOffSet.add(k)); univOffLabel=g.l; }
+  else if(t==='s'){ univOffSet.add(id); const e=BNS_CAT[id]; univOffLabel=(e[0]?e[0].split('|')[0]:'धारा')+' (BNS '+id+(e[1].length?' / IPC '+e[1].join(', '):'')+')'; }
+  else { univSllSet.add(id); univOffLabel=OFF_SLL_BY[id].l; }
+  const inp=document.getElementById('univSearchInput'); inp.value=''; univActiveScope=null; hideUnivSuggestions();
+  populateUnivPivotSelectors();
+  const rs=document.getElementById('univPivotRow'), cs=document.getElementById('univPivotCol');
+  if(rs&&cs){ rs.value=(t==='g')?'offence':'psHi'; cs.value='status'; }
+  runUniversalSearch();
+}
+function univClearOff(){ univOffSet.clear(); univSllSet.clear(); univOffLabel=''; runUniversalSearch(); }
+function renderUnivStatusChips(){ // अब यह केवल चयनित "अपराध-प्रकार" की पट्टी दिखाता है (स्थिति केवल ड्रॉप-डाउन में)
+  const el=document.getElementById('univStatusChips'); if(!el) return;
+  el.innerHTML=(univOffSet.size||univSllSet.size)?`<span class="us-pill">⚖️ अपराध-प्रकार: <b>${escHtml(univOffLabel)}</b>${univOffSet.size>1?` <small>(BNS ${bnsCompact(univOffSet)})</small>`:''} <button type="button" onclick="univClearOff()">✕ हटाएं</button></span>`:'';
+}
+
+/* ===== v52 — खोज में सहूलियत + बिना साइड-स्क्रॉल वाली परिणाम सारणी ===== */
+let univOpen=new Set();
+function univHl(t,q){ const e=escHtml(t); if(!q||q.length<2) return e; try{ return e.replace(new RegExp('('+escHtml(q).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>'); }catch(x){ return e; } }
+function univToggleRow(i){ const r=univResultsFull[i]; if(!r) return; if(univOpen.has(r)) univOpen.delete(r); else univOpen.add(r); renderUnivPage(); }
+function renderUnivPage(){
+  const box=document.getElementById('univSearchResults'), countEl=document.getElementById('univSearchCount');
+  const total=univResultsFull.length; countEl.textContent=total+' परिणाम मिले';
+  if(!total){ box.innerHTML='<div class="note">कोई परिणाम नहीं मिला। फ़िल्टर घटाकर या दूसरा शब्द लिखकर देखें।</div>'; return; }
+  const sz=UNIV_PAGE_SIZE, pages=Math.max(1,Math.ceil(total/sz)); if(univPage>=pages) univPage=pages-1; if(univPage<0) univPage=0;
+  const start=univPage*sz, end=Math.min(start+sz,total);
+  const q=document.getElementById('univSearchInput').value.trim().replace(/^(fir|धारा|section|sec|u\/s|dhara)\s*[:.\-]?\s*/i,'');
+  const C={'Generic Data':['GEN','#2563EB'],'SAS Export':['SAS','#B45309'],'Current Status':['FDC','#138808']};
+  const chips=l=>(l||[]).map(s=>`<span title="${s}" style="display:inline-block;margin:1px;padding:1px 5px;border-radius:8px;font-size:10px;font-weight:700;color:#fff;background:${(C[s]||[0,'#666'])[1]}">${(C[s]||[s])[0]}</span>`).join('');
+  let h=`<table class="data-tbl us-res"><thead><tr><th class="c-src">स्रोत</th><th class="c-ps">थाना</th><th class="c-fir">FIR नंबर</th><th class="c-dt">दिनांक</th><th class="desc-th">धारा / Act</th><th class="c-st">स्थिति <span style="font-weight:400;font-size:10px">(विवरण हेतु पंक्ति क्लिक करें)</span></th></tr></thead><tbody>`;
+  for(let i=start;i<end;i++){
+    const r=univResultsFull[i], open=univOpen.has(r);
+    const fr=r.frSub?` <small style="color:var(--soft)">(${(FR_SUB_LABELS[r.frSub]||'').split(' (')[0]})</small>`:'';
+    h+=`<tr class="rw${open?' open':''}" onclick="univToggleRow(${i})"><td data-l="स्रोत">${chips(r.srcList)}</td><td data-l="थाना">${univHl(r.psHi||'-',q)}</td><td data-l="FIR नंबर">${univHl(r.fir||'-',q)}</td><td data-l="दिनांक">${escHtml(r.date||'-')}</td><td class="desc-td sec" data-l="धारा / Act">${univHl((r.section||'-').slice(0,150),q)}</td><td data-l="स्थिति">${univStatusBadge(r)}${fr}</td></tr>`;
+    if(open){
+      const so=r.srcOf||{}, f=(l,v)=>v?`<div><b>${l}</b>${escHtml(v)}</div>`:'';
+      h+=`<tr class="dt"><td colspan="6"><div class="us-detail">${f('पूर्ण धारा / Act',r.section)}${f('INV. BASE ACT & SECTION',r.invBaseSection)}${f('जाँच अधिकारी (IO)',r.io)}${f('Information Source',r.infoSource)}${f('Punishment Year',r.punishmentYear)}${f('सर्कल',r.circle)}${f('F.R. उप-श्रेणी',r.frSub?FR_SUB_LABELS[r.frSub]:'')}${f('स्थिति का स्रोत',so.status)}${f('डेटा स्रोत',r.src)}${f('FIR ID',r.firId)}</div></td></tr>`;
+    }
+  }
+  h+=`</tbody></table><div class="pager"><button onclick="univPage=0;renderUnivPage()">«</button><button onclick="univPage=Math.max(0,univPage-1);renderUnivPage()">‹ पिछला</button><span>${start+1}-${end} / ${total} (पृष्ठ ${univPage+1}/${pages})</span><button onclick="univPage=Math.min(${pages-1},univPage+1);renderUnivPage()">अगला ›</button><button onclick="univPage=${pages-1};renderUnivPage()">»</button></div>`;
+  box.innerHTML=h;
+}
+function univClearQ(){ const i=document.getElementById('univSearchInput'); i.value=''; univActiveScope=null; const sb=document.getElementById('univSuggestBox'); if(sb) sb.style.display='none'; runUniversalSearch(); i.focus(); }
+function univRecentGet(){ try{ return JSON.parse(localStorage.getItem('dkUnivRecent')||'[]'); }catch(e){ return []; } }
+function univSaveRecent(){
+  const q=document.getElementById('univSearchInput').value.trim();
+  if(q.length<2 || !univResultsFull.length) return;
+  try{ const l=univRecentGet().filter(x=>x!==q); l.unshift(q); localStorage.setItem('dkUnivRecent',JSON.stringify(l.slice(0,8))); }catch(e){}
+  univRenderRecent();
+}
+function univUseQ(q){ const i=document.getElementById('univSearchInput'); i.value=q; univActiveScope=null; runUniversalSearch(); }
+function univClearRecent(){ try{ localStorage.removeItem('dkUnivRecent'); }catch(e){} univRenderRecent(); }
+function univRenderRecent(){
+  const el=document.getElementById('univRecent'); if(!el) return;
+  const rec=univRecentGet(), ex=['BNS 303','POCSO','NDPS','चालान','धारा 420'].filter(x=>!rec.includes(x));
+  const b=x=>`<button type="button" class="us-rc" data-q="${escHtml(x)}" onclick="univUseQ(this.dataset.q)">${escHtml(x)}</button>`;
+  el.innerHTML=(rec.length?`<span class="us-chip-lbl">🕘 हाल की खोजें:</span>${rec.map(b).join('')}<button type="button" class="us-rc" onclick="univClearRecent()" title="इतिहास मिटाएं">🗑</button>`:'')+
+    `<span class="us-chip-lbl">💡 सुझाव:</span>${ex.slice(0,rec.length?2:5).map(b).join('')}`;
+}
+let _univBound=false;
+const _uasBase2=univAfterSearch;
+univAfterSearch=function(){
+  _uasBase2();
+  const i=document.getElementById('univSearchInput'); if(!i) return;
+  if(!_univBound){ _univBound=true; i.addEventListener('keydown',e=>{ if(e.key==='Enter') univSaveRecent(); }); i.addEventListener('blur',()=>setTimeout(univSaveRecent,250)); univRenderRecent(); }
+  const c=document.getElementById('univQClear'); if(c) c.style.display=i.value?'block':'none';
+};
 
 // hook new pages into nav
 const _origGo = go;
