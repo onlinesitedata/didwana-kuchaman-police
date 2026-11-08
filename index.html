@@ -1449,6 +1449,8 @@ table.mk-mx{border-collapse:separate;border-spacing:0;font-size:12.5px;width:100
 mark{background:#fde68a;border-radius:3px;padding:0 1px}
 .us-pill{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center;background:#eef4ff;border:1.5px solid #2F6FED;color:#0E1B33;border-radius:12px;padding:7px 12px;font-size:13px}
 .us-pill button{border:0;background:#2F6FED;color:#fff;border-radius:8px;padding:3px 10px;cursor:pointer;font-family:inherit;font-size:12px}
+.us-ai{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}.us-ai-hint{font-size:12px;color:var(--soft);flex:1;min-width:200px}
+.us-ainote{display:inline-block;background:linear-gradient(135deg,#f3ecff,#eef4ff);border:1.5px solid #7C3AED;border-radius:12px;padding:6px 12px;font-size:12.5px;margin:0 6px 6px 0}
 .us-res .c-ck{width:4%}.us-res td.ck,.us-res th.c-ck{text-align:center;padding:7px 2px}
 .us-adv{margin-top:10px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:0 14px}
 .us-adv summary{cursor:pointer;font-weight:700;padding:10px 0;color:var(--navy);font-size:13.5px}
@@ -2560,6 +2562,7 @@ mark{background:#fde68a;border-radius:3px;padding:0 1px}
         <div id="univSuggestBox" class="univ-suggest-box" style="display:none;"></div>
         <button type="button" id="univQClear" class="us-qclear" onclick="univClearQ()" title="खोज साफ़ करें" style="display:none">✕</button>
       </div>
+      <div class="us-ai"><button type="button" class="btn-fill" onclick="univAiSearch()" style="background:linear-gradient(135deg,#7C3AED,#2F6FED)">✨ AI खोज</button><span class="us-ai-hint">सामान्य भाषा में लिखें, जैसे: <i>"पिछले 6 माह में मकराना में नाबालिग अपहरण के पेंडिंग प्रकरण"</i></span><button type="button" class="us-rc" onclick="univAiSettings()" title="AI सेटिंग">⚙️ <span id="univAiState">AI बंद</span></button></div>
       <div id="univRecent" class="us-recent"></div>
 
       <details id="univAdv" class="us-adv"><summary>⚙️ एडवांस खोज विकल्प <span id="univAdvBadge" style="color:#2F6FED;font-weight:700"></span></summary>
@@ -3967,7 +3970,16 @@ function setSyncConfig(url,secret){
 }
 
 /** एक एंट्री को केंद्रीय सर्वर पर भेजता है (असफल होने पर भी localStorage सुरक्षित रहता है) */
+/** सूचना पोर्टल में थाने द्वारा भरा डेटा Google Sheet में भी (टैब "S_<शाखा>_<प्रारूप>") दर्ज करता है — पृष्ठभूमि में, क्रम से */
+let _soochnaQ=Promise.resolve();
+function mirrorSoochnaToSheet(key,branch,type,thana,year,month,monthName,payload){
+  if(typeof SHEET_WRITE_URL==='undefined'||!SHEET_WRITE_URL) return;
+  if(['apradh','summon','malkhana','custom'].indexOf(branch)<0||!payload||typeof payload!=='object') return;
+  const body=JSON.stringify({secret:getSheetWriteSecret(),type:'soochna',branch,stype:type,key,thana,year,month,monthName,payload});
+  _soochnaQ=_soochnaQ.then(()=>fetch(SHEET_WRITE_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body,redirect:'follow'}).then(r=>r.text()).catch(()=>{})).catch(()=>{});
+}
 async function syncToServer(key,branch,type,thana,year,month,monthName,payload){
+  try{ mirrorSoochnaToSheet(key,branch,type,thana,year,month,monthName,payload); }catch(e){}
   if(!isSyncConfigured()) return {ok:false,offline:true};
   try{
     // Apps Script: POST को no-cors नहीं चलता, इसलिए URL params में secret डालें + body में data
@@ -10442,6 +10454,118 @@ function univExportReport(R,cols,gb,kind,fname){
   else { const f=document.createElement('iframe'); f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0'; document.body.appendChild(f); f.srcdoc=page; setTimeout(()=>f.remove(),60000); }
   toast('प्रिंट विंडो में "PDF के रूप में सहेजें" चुनें');
 }
+
+/* ===== v58 — AI खोज: सामान्य भाषा के वाक्य को फ़िल्टर में बदलना (AI न हो तो स्थानीय स्मार्ट-खोज) ===== */
+let univAiNote='';
+function univAiCfg(){ try{ return JSON.parse(localStorage.getItem('dkAiCfg')||'{}'); }catch(e){ return {}; } }
+function univAiOn(){ const c=univAiCfg(); return !!((c.mode==='proxy'&&c.url)||(c.mode==='key'&&c.key)); }
+function univAiSystem(){
+  const ps=[...new Set((SEARCH_IDX||[]).map(e=>e.ps).filter(Boolean))].sort().map(p=>p+'='+(ENG2HI_PS[p]||p)).join(', ');
+  const secs=Object.keys(BNS_CAT).filter(k=>BNS_CAT[k][0]).map(k=>`${k}: ${BNS_CAT[k][0].split('|')[0]}${BNS_CAT[k][1].length?' (IPC '+BNS_CAT[k][1].slice(0,3).join('/')+')':''}`).join('\n');
+  const t=new Date(), iso=t.toISOString().slice(0,10);
+  return `तुम राजस्थान पुलिस (जिला डीडवाना-कुचामन) के पोर्टल की "खोज-समझ" सहायक हो। उपयोगकर्ता का वाक्य (हिंदी/अंग्रेज़ी/मिश्रित) पढ़कर केवल एक JSON ऑब्जेक्ट लौटाओ — कोई अन्य शब्द नहीं।
+आज की तारीख: ${iso}. सापेक्ष समय ("पिछले 6 माह", "इस वर्ष") को इसी से YYYY-MM-DD में बदलो।
+JSON के फ़ील्ड (सभी वैकल्पिक, खाली हो तो [] या ""):
+{"offence_groups":[समूह-id],"sections":[BNS धारा-संख्या स्ट्रिंग],"sll":[विशेष-कानून id],"status":[स्थिति-कुंजी],"thana":[थाना-कुंजी],"year":[संख्या],"month":[1-12],"date_from":"YYYY-MM-DD","date_to":"YYYY-MM-DD","text":"बचे हुए खोज-शब्द (नाम/FIR नंबर आदि) या खाली","explain":"एक पंक्ति हिंदी में कि तुमने क्या समझा"}
+केवल नीचे की सूचियों के मान प्रयोग करो; अनुमान से नए मान मत गढ़ो। आईपीसी धारा हो तो उसकी BNS धारा लो।
+अपराध-समूह id:
+${OFF_GROUPS.map(g=>g.id+': '+g.l).join('\n')}
+विशेष-कानून id:
+${OFF_SLL.map(g=>g.id+': '+g.l).join('\n')}
+स्थिति-कुंजी: chargesheet=चालान, fr=एफ.आर., pending=पैडिंग अनुसंधान, reopen=री-ओपन, 1939=193(9) बीएनएसएस, refuse=रिफ्यूज FIR, old1=पेंडिंग 1 वर्ष से अधिक पुराने
+थाना-कुंजी=नाम: ${ps}
+मुख्य BNS धाराएँ:
+${secs}
+समूह सबसे उपयुक्त हो तो sections खाली रखो; किसी एक ख़ास धारा की बात हो तभी sections भरो।`;
+}
+async function univAiCall(q){
+  const c=univAiCfg(), body={model:c.model||'claude-haiku-5-5',max_tokens:600,system:univAiSystem(),messages:[{role:'user',content:q}]};
+  const ac=new AbortController(), tm=setTimeout(()=>ac.abort(),25000); let res;
+  try{
+    if(c.mode==='proxy') res=await fetch(c.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({secret:c.secret||'',payload:body}),signal:ac.signal});
+    else res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':c.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body),signal:ac.signal});
+  } finally { clearTimeout(tm); }
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const j=await res.json(); if(j.error) throw new Error(typeof j.error==='string'?j.error:(j.error.message||'त्रुटि'));
+  const m=(j.content||[]).map(x=>x.text||'').join('').match(/\{[\s\S]*\}/); if(!m) throw new Error('उत्तर में JSON नहीं');
+  return JSON.parse(m[0]);
+}
+// ---- स्थानीय स्मार्ट-खोज (AI के बिना): तारीख/वर्ष/थाना/स्थिति/अपराध-प्रकार पहचानना ----
+function univNLLocal(q){
+  let r=' '+q.toLowerCase()+' '; const p={offence_groups:[],sections:[],sll:[],status:[],thana:[],year:[],month:[],date_from:'',date_to:'',text:'',explain:''};
+  const f=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'), t=new Date(), cut=re=>{ const m=r.match(re); if(m) r=r.replace(re,' '); return m; };
+  let m;
+  if((m=cut(/पिछले\s*(\d+)\s*(माह|महीने|महीनों|दिन|दिनों|सप्ताह|हफ्ते|वर्ष|साल)/))){ const n=+m[1], u=m[2], s=new Date(t); if(/माह|महीन/.test(u)) s.setMonth(s.getMonth()-n); else if(/दिन/.test(u)) s.setDate(s.getDate()-n); else if(/सप्ताह|हफ्ते/.test(u)) s.setDate(s.getDate()-7*n); else s.setFullYear(s.getFullYear()-n); p.date_from=f(s); p.date_to=f(t); }
+  else if(cut(/इस\s*(माह|महीने)/)){ p.date_from=f(new Date(t.getFullYear(),t.getMonth(),1)); p.date_to=f(t); }
+  else if(cut(/पिछले\s*(माह|महीने)|पिछला\s*(माह|महीना)/)){ p.date_from=f(new Date(t.getFullYear(),t.getMonth()-1,1)); p.date_to=f(new Date(t.getFullYear(),t.getMonth(),0)); }
+  else if(cut(/इस\s*(वर्ष|साल)/)){ p.date_from=t.getFullYear()+'-01-01'; p.date_to=f(t); }
+  else if(cut(/पिछले\s*(वर्ष|साल)|पिछला\s*(वर्ष|साल)/)){ p.date_from=(t.getFullYear()-1)+'-01-01'; p.date_to=(t.getFullYear()-1)+'-12-31'; }
+  while((m=r.match(/\b(20\d\d)\b/))){ p.year.push(+m[1]); r=r.replace(m[0],' '); }
+  [[/1\s*(वर्ष|साल)\s*(से)?\s*(अधिक|ज्यादा|पुराने|पुराना)|एक\s*वर्ष\s*से\s*(अधिक|पुराने)/,'old1'],[/पेंडिंग|पैडिंग|लंबित|लम्बित|pending/,'pending'],[/री-?\s?ओपन|reopen|re-open/,'reopen'],[/रिफ्यूज|refus/,'refuse'],[/चालान|चार्जशीट|chargesheet/,'chargesheet'],[/एफ\.?\s?आर\.?|\bf\.?r\.?\b/,'fr'],[/193\s*\(?9\)?|बीएनएसएस/,'1939']].forEach(([re,k])=>{ if(cut(re)) p.status.push(k); });
+  const names=[...new Set((SEARCH_IDX||[]).map(e=>e.ps).filter(Boolean))];
+  names.forEach(ps=>{ const hi=(ENG2HI_PS[ps]||'').toLowerCase(), en=ps.toLowerCase(); if(hi&&hi.length>2&&r.includes(hi)){ p.thana.push(ps); r=r.replace(hi,' '); } else if(en.length>3&&r.includes(en)){ p.thana.push(ps); r=r.replace(en,' '); } });
+  r=r.replace(/\b(में|के|की|का|को|से|थाने|थाना|थानों|प्रकरण|प्रकरणों|केस|दर्ज|वाले|वाली|जो|हैं|है)\b/g,' ').replace(/\s+/g,' ').trim();
+  if(r.length>=2){ const it=univOffMatches(r); const g=it.filter(x=>x.t==='g'), l=it.filter(x=>x.t==='l'), s=it.filter(x=>x.t==='s');
+    if(g.length){ p.offence_groups.push(g[0].id); r=''; } else if(l.length){ p.sll.push(l[0].id); r=''; } else if(s.length){ p.sections.push(s[0].id); r=''; } }
+  p.text=r; const ex=[]; if(p.date_from) ex.push('दिनांक '+p.date_from+' से '+(p.date_to||'आज')); if(p.year.length) ex.push('वर्ष '+p.year.join(',')); if(p.thana.length) ex.push('थाना '+p.thana.map(k=>ENG2HI_PS[k]||k).join(',')); if(p.status.length) ex.push('स्थिति '+p.status.map(k=>US_LBL[k]).join(',')); p.offence_groups.forEach(id=>ex.push(OFF_GROUPS.find(g=>g.id===id).l)); p.sll.forEach(id=>ex.push(OFF_SLL_BY[id].l)); p.sections.forEach(k=>ex.push('BNS '+k)); if(p.text) ex.push('शब्द: '+p.text); p.explain=ex.join(' • ')||'कोई विशेष फ़िल्टर नहीं पहचाना';
+  return p;
+}
+function univApplyPlan(p,src){
+  UNIV_FILTER_SETS.forEach(s=>s.clear()); univDateFrom=''; univDateTo=''; univActiveScope=null; univOffLabel='';
+  const arr=x=>Array.isArray(x)?x:(x==null||x===''?[]:[x]), labels=[], parts=[];
+  const gs=arr(p.offence_groups).map(id=>OFF_GROUPS.find(g=>g.id===id)).filter(Boolean); gs.forEach(g=>{ g.k.forEach(k=>univOffSet.add(k)); labels.push(g.l); });
+  arr(p.sections).map(String).filter(k=>BNS_CAT[k]).forEach(k=>{ univOffSet.add(k); labels.push((BNS_CAT[k][0]?BNS_CAT[k][0].split('|')[0]:'धारा')+' (BNS '+k+')'); });
+  if(labels.length) univOffLabel=labels.join(' + ');
+  arr(p.sll).filter(id=>OFF_SLL_BY[id]).forEach(id=>{ univSllSet.add(id); univOffLabel+=(univOffLabel?' + ':'')+OFF_SLL_BY[id].l; });
+  arr(p.status).filter(k=>US_LBL[k]).forEach(k=>univStatusSet.add(k));
+  const have=new Set((SEARCH_IDX||[]).map(e=>e.ps)), hi={}; have.forEach(k=>hi[(ENG2HI_PS[k]||k).toLowerCase()]=k);
+  arr(p.thana).forEach(x=>{ const k=have.has(x)?x:(have.has(String(x).toUpperCase())?String(x).toUpperCase():hi[String(x).toLowerCase()]); if(k) univPsSet.add(k); });
+  arr(p.year).map(Number).filter(y=>y>=2000&&y<=2100).forEach(y=>univYearSet.add(String(y)));
+  arr(p.month).map(Number).filter(m=>m>=1&&m<=12).forEach(m=>univMonthSet.add(String(m)));
+  const okd=d=>/^\d{4}-\d{2}-\d{2}$/.test(d||''); if(okd(p.date_from)) univDateFrom=p.date_from; if(okd(p.date_to)) univDateTo=p.date_to;
+  document.getElementById('univSearchInput').value=String(p.text||'').trim(); univSel.clear(); univSyncDates();
+  [msUnivSrc,msUnivPs,msUnivYear,msUnivMonth,msUnivInfo,msUnivPunishYear,msUnivAct,msUnivFr,msUnivCatField,msUnivStatus].forEach(m=>{ if(m) m.refresh(); });
+  univAiNote=`<span class="us-ainote">${src==='ai'?'🤖 AI ने समझा':'🧠 स्मार्ट-खोज ने समझा'}: <b>${escHtml(p.explain||'फ़िल्टर लागू किए गए')}</b> <small>— गलत लगे तो नीचे फ़िल्टर बदलें</small></span>`;
+  runUniversalSearch();
+}
+async function univAiSearch(q){
+  const inp=document.getElementById('univSearchInput'); q=(q||inp.value).trim();
+  if(q.length<3){ toast('सामान्य भाषा में पूरा वाक्य लिखें'); return; }
+  hideUnivSuggestions();
+  const el=document.getElementById('univStatusChips'); if(el) el.innerHTML='<span class="us-ainote">🤖 समझ रहा है…</span>';
+  let plan,src='local';
+  if(univAiOn()){ try{ plan=await univAiCall(q); src='ai'; }catch(e){ console.error(e); toast('AI उपलब्ध नहीं ('+(e.message||'त्रुटि')+') — स्थानीय स्मार्ट-खोज चलाई'); } }
+  if(!plan){ plan=univNLLocal(q); if(!univAiOn()) plan.explain+=' (AI जुड़ा नहीं — ⚙️ से जोड़ें)'; }
+  univApplyPlan(plan,src);
+}
+function univAiHint(){
+  const q=document.getElementById('univSearchInput').value.trim(), sb=document.getElementById('univSuggestBox');
+  if(!sb||q.split(/\s+/).length<3||q.length<8) return;
+  sb.insertAdjacentHTML('afterbegin',`<div class="univ-suggest-item" onclick="univAiSearch()"><span class="usi-icon">✨</span><span class="usi-txt">इस वाक्य को ${univAiOn()?'AI':'स्मार्ट-खोज'} से समझकर खोजें<br><small style="color:var(--soft)">थाना, तारीख, स्थिति व अपराध-प्रकार अपने-आप चुने जाएँगे</small></span></div>`);
+  sb.style.display='block';
+}
+const _bus2=buildUnivSuggestions; buildUnivSuggestions=function(){ _bus2(); try{ univAiHint(); }catch(e){} };
+const _rsc2=renderUnivStatusChips;
+renderUnivStatusChips=function(){ _rsc2(); const el=document.getElementById('univStatusChips'); if(el&&univAiNote) el.insertAdjacentHTML('afterbegin',univAiNote+' '); const s=document.getElementById('univAiState'); if(s) s.textContent=univAiOn()?'AI चालू':'AI बंद'; };
+const _caf2=clearAllUnivFilters; clearAllUnivFilters=function(){ univAiNote=''; _caf2(); };
+// ---- AI सेटिंग ----
+function univAiSettings(){
+  const c=univAiCfg(); let m=document.getElementById('univAiModal');
+  if(!m){ m=document.createElement('div'); m.id='univAiModal'; m.className='us-modal'; document.body.appendChild(m); m.addEventListener('click',e=>{ if(e.target===m) m.style.display='none'; }); }
+  m.innerHTML=`<div class="us-mbox"><h3>⚙️ AI खोज सेटिंग</h3>
+   <div class="us-mrow" style="font-size:12px;color:var(--soft)">AI को केवल आपका लिखा खोज-वाक्य व अपराध/थाना/धारा की सूची जाती है — <b>प्रकरणों का कोई डेटा नहीं</b>। AI न जोड़ें तो भी स्थानीय स्मार्ट-खोज चलती है।</div>
+   <div class="us-mrow"><b>जुड़ने का तरीका</b><label><input type="radio" name="aiMode" value="proxy" ${c.mode!=='key'?'checked':''}> प्रॉक्सी URL (सुझाया — कुंजी सुरक्षित)</label><label><input type="radio" name="aiMode" value="key" ${c.mode==='key'?'checked':''}> सीधे API कुंजी</label></div>
+   <div class="us-mrow"><b>प्रॉक्सी URL</b><input id="aiUrl" style="flex:1;min-width:220px;padding:6px;border:1.5px solid var(--line);border-radius:8px" placeholder="वही Google Sheet वाली स्क्रिप्ट का /exec URL" value="${escHtml(c.url||(typeof SHEET_WRITE_URL!=='undefined'?SHEET_WRITE_URL:''))}"></div>
+   <div class="us-mrow"><b>AI पासवर्ड (AI_SECRET)</b><input id="aiSecret" type="password" style="padding:6px;border:1.5px solid var(--line);border-radius:8px" value="${escHtml(c.secret||'')}"></div>
+   <div class="us-mrow"><b>API कुंजी</b><input id="aiKey" type="password" style="flex:1;min-width:220px;padding:6px;border:1.5px solid var(--line);border-radius:8px" placeholder="sk-ant-… (इसी ब्राउज़र में सहेजी जाएगी)" value="${escHtml(c.key||'')}"></div>
+   <div class="us-mrow"><b>मॉडल</b><input id="aiModel" style="padding:6px;border:1.5px solid var(--line);border-radius:8px" value="${escHtml(c.model||'claude-haiku-5-5')}"></div>
+   <div class="us-mact"><button type="button" onclick="univAiTest()">🧪 परीक्षण</button><button type="button" onclick="univAiOff()">AI बंद करें</button><button type="button" class="btn-fill" onclick="univAiSave()">💾 सहेजें</button></div></div>`;
+  m.style.display='flex';
+}
+function univAiRead(){ const g=id=>document.getElementById(id).value.trim(); return {mode:document.querySelector('input[name=aiMode]:checked').value,url:g('aiUrl'),secret:g('aiSecret'),key:g('aiKey'),model:g('aiModel')||'claude-haiku-5-5'}; }
+function univAiSave(){ try{ localStorage.setItem('dkAiCfg',JSON.stringify(univAiRead())); }catch(e){} document.getElementById('univAiModal').style.display='none'; renderUnivStatusChips(); toast(univAiOn()?'AI खोज चालू':'AI जुड़ा नहीं — स्थानीय स्मार्ट-खोज चलेगी'); }
+function univAiOff(){ try{ localStorage.removeItem('dkAiCfg'); }catch(e){} document.getElementById('univAiModal').style.display='none'; renderUnivStatusChips(); toast('AI बंद — स्थानीय स्मार्ट-खोज चलेगी'); }
+async function univAiTest(){ try{ localStorage.setItem('dkAiCfg',JSON.stringify(univAiRead())); }catch(e){} toast('परीक्षण हो रहा है…'); try{ const p=await univAiCall('पिछले 3 माह में मकराना थाने में चोरी के पेंडिंग प्रकरण'); toast('✅ AI जुड़ा: '+(p.explain||JSON.stringify(p)).slice(0,90)); }catch(e){ toast('❌ AI नहीं जुड़ा: '+(e.message||e)); } }
 
 // hook new pages into nav
 const _origGo = go;
