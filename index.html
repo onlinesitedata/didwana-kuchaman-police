@@ -2562,7 +2562,7 @@ mark{background:#fde68a;border-radius:3px;padding:0 1px}
         <div id="univSuggestBox" class="univ-suggest-box" style="display:none;"></div>
         <button type="button" id="univQClear" class="us-qclear" onclick="univClearQ()" title="खोज साफ़ करें" style="display:none">✕</button>
       </div>
-      <div class="us-ai"><button type="button" class="btn-fill" onclick="univAiSearch()" style="background:linear-gradient(135deg,#7C3AED,#2F6FED)">✨ AI खोज</button><span class="us-ai-hint">सामान्य भाषा में लिखें, जैसे: <i>"पिछले 6 माह में मकराना में नाबालिग अपहरण के पेंडिंग प्रकरण"</i></span><button type="button" class="us-rc" onclick="univAiSettings()" title="AI सेटिंग">⚙️ <span id="univAiState">AI बंद</span></button></div>
+      <div class="us-ai"><button type="button" class="btn-fill" onclick="univAiSearch()" style="background:linear-gradient(135deg,#7C3AED,#2F6FED)">✨ AI खोज</button><span class="us-ai-hint">सामान्य भाषा में लिखें, जैसे: <i>"पिछले 6 माह में मकराना में नाबालिग अपहरण के पेंडिंग प्रकरण"</i></span><span class="us-rc" style="cursor:default" title="AI खोज हमेशा चालू है">🤖 <span id="univAiState">AI चालू</span></span></div>
       <div id="univRecent" class="us-recent"></div>
 
       <details id="univAdv" class="us-adv"><summary>⚙️ एडवांस खोज विकल्प <span id="univAdvBadge" style="color:#2F6FED;font-weight:700"></span></summary>
@@ -10457,8 +10457,8 @@ function univExportReport(R,cols,gb,kind,fname){
 
 /* ===== v58 — AI खोज: सामान्य भाषा के वाक्य को फ़िल्टर में बदलना (AI न हो तो स्थानीय स्मार्ट-खोज) ===== */
 let univAiNote='';
-function univAiCfg(){ try{ return JSON.parse(localStorage.getItem('dkAiCfg')||'{}'); }catch(e){ return {}; } }
-function univAiOn(){ const c=univAiCfg(); return !!((c.mode==='proxy'&&c.url)||(c.mode==='key'&&c.key)); }
+function univAiCfg(){ return {mode:'proxy',url:(typeof SHEET_WRITE_URL!=='undefined'?SHEET_WRITE_URL:''),secret:'',model:'claude-haiku-5-5'}; }
+function univAiOn(){ return !!univAiCfg().url; }
 function univAiSystem(){
   const ps=[...new Set((SEARCH_IDX||[]).map(e=>e.ps).filter(Boolean))].sort().map(p=>p+'='+(ENG2HI_PS[p]||p)).join(', ');
   const secs=Object.keys(BNS_CAT).filter(k=>BNS_CAT[k][0]).map(k=>`${k}: ${BNS_CAT[k][0].split('|')[0]}${BNS_CAT[k][1].length?' (IPC '+BNS_CAT[k][1].slice(0,3).join('/')+')':''}`).join('\n');
@@ -10533,9 +10533,9 @@ async function univAiSearch(q){
   if(q.length<3){ toast('सामान्य भाषा में पूरा वाक्य लिखें'); return; }
   hideUnivSuggestions();
   const el=document.getElementById('univStatusChips'); if(el) el.innerHTML='<span class="us-ainote">🤖 समझ रहा है…</span>';
-  let plan,src='local';
-  if(univAiOn()){ try{ plan=await univAiCall(q); src='ai'; }catch(e){ console.error(e); toast('AI उपलब्ध नहीं ('+(e.message||'त्रुटि')+') — स्थानीय स्मार्ट-खोज चलाई'); } }
-  if(!plan){ plan=univNLLocal(q); if(!univAiOn()) plan.explain+=' (AI जुड़ा नहीं — ⚙️ से जोड़ें)'; }
+  let plan,src='local',failed=false;
+  if(univAiOn()){ try{ plan=await univAiCall(q); src='ai'; }catch(e){ console.error(e); failed=true; toast('AI अभी उपलब्ध नहीं ('+(e.message||'त्रुटि')+') — स्थानीय स्मार्ट-खोज चलाई'); } }
+  if(!plan){ plan=univNLLocal(q); if(failed) plan.explain+=' (AI अभी उपलब्ध नहीं — स्थानीय स्मार्ट-खोज चली)'; }
   univApplyPlan(plan,src);
 }
 function univAiHint(){
@@ -10548,24 +10548,6 @@ const _bus2=buildUnivSuggestions; buildUnivSuggestions=function(){ _bus2(); try{
 const _rsc2=renderUnivStatusChips;
 renderUnivStatusChips=function(){ _rsc2(); const el=document.getElementById('univStatusChips'); if(el&&univAiNote) el.insertAdjacentHTML('afterbegin',univAiNote+' '); const s=document.getElementById('univAiState'); if(s) s.textContent=univAiOn()?'AI चालू':'AI बंद'; };
 const _caf2=clearAllUnivFilters; clearAllUnivFilters=function(){ univAiNote=''; _caf2(); };
-// ---- AI सेटिंग ----
-function univAiSettings(){
-  const c=univAiCfg(); let m=document.getElementById('univAiModal');
-  if(!m){ m=document.createElement('div'); m.id='univAiModal'; m.className='us-modal'; document.body.appendChild(m); m.addEventListener('click',e=>{ if(e.target===m) m.style.display='none'; }); }
-  m.innerHTML=`<div class="us-mbox"><h3>⚙️ AI खोज सेटिंग</h3>
-   <div class="us-mrow" style="font-size:12px;color:var(--soft)">AI को केवल आपका लिखा खोज-वाक्य व अपराध/थाना/धारा की सूची जाती है — <b>प्रकरणों का कोई डेटा नहीं</b>। AI न जोड़ें तो भी स्थानीय स्मार्ट-खोज चलती है।</div>
-   <div class="us-mrow"><b>जुड़ने का तरीका</b><label><input type="radio" name="aiMode" value="proxy" ${c.mode!=='key'?'checked':''}> प्रॉक्सी URL (सुझाया — कुंजी सुरक्षित)</label><label><input type="radio" name="aiMode" value="key" ${c.mode==='key'?'checked':''}> सीधे API कुंजी</label></div>
-   <div class="us-mrow"><b>प्रॉक्सी URL</b><input id="aiUrl" style="flex:1;min-width:220px;padding:6px;border:1.5px solid var(--line);border-radius:8px" placeholder="वही Google Sheet वाली स्क्रिप्ट का /exec URL" value="${escHtml(c.url||(typeof SHEET_WRITE_URL!=='undefined'?SHEET_WRITE_URL:''))}"></div>
-   <div class="us-mrow"><b>AI पासवर्ड (AI_SECRET)</b><input id="aiSecret" type="password" style="padding:6px;border:1.5px solid var(--line);border-radius:8px" value="${escHtml(c.secret||'')}"></div>
-   <div class="us-mrow"><b>API कुंजी</b><input id="aiKey" type="password" style="flex:1;min-width:220px;padding:6px;border:1.5px solid var(--line);border-radius:8px" placeholder="sk-ant-… (इसी ब्राउज़र में सहेजी जाएगी)" value="${escHtml(c.key||'')}"></div>
-   <div class="us-mrow"><b>मॉडल</b><input id="aiModel" style="padding:6px;border:1.5px solid var(--line);border-radius:8px" value="${escHtml(c.model||'claude-haiku-5-5')}"></div>
-   <div class="us-mact"><button type="button" onclick="univAiTest()">🧪 परीक्षण</button><button type="button" onclick="univAiOff()">AI बंद करें</button><button type="button" class="btn-fill" onclick="univAiSave()">💾 सहेजें</button></div></div>`;
-  m.style.display='flex';
-}
-function univAiRead(){ const g=id=>document.getElementById(id).value.trim(); return {mode:document.querySelector('input[name=aiMode]:checked').value,url:g('aiUrl'),secret:g('aiSecret'),key:g('aiKey'),model:g('aiModel')||'claude-haiku-5-5'}; }
-function univAiSave(){ try{ localStorage.setItem('dkAiCfg',JSON.stringify(univAiRead())); }catch(e){} document.getElementById('univAiModal').style.display='none'; renderUnivStatusChips(); toast(univAiOn()?'AI खोज चालू':'AI जुड़ा नहीं — स्थानीय स्मार्ट-खोज चलेगी'); }
-function univAiOff(){ try{ localStorage.removeItem('dkAiCfg'); }catch(e){} document.getElementById('univAiModal').style.display='none'; renderUnivStatusChips(); toast('AI बंद — स्थानीय स्मार्ट-खोज चलेगी'); }
-async function univAiTest(){ try{ localStorage.setItem('dkAiCfg',JSON.stringify(univAiRead())); }catch(e){} toast('परीक्षण हो रहा है…'); try{ const p=await univAiCall('पिछले 3 माह में मकराना थाने में चोरी के पेंडिंग प्रकरण'); toast('✅ AI जुड़ा: '+(p.explain||JSON.stringify(p)).slice(0,90)); }catch(e){ toast('❌ AI नहीं जुड़ा: '+(e.message||e)); } }
 
 // hook new pages into nav
 const _origGo = go;
