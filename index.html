@@ -1448,6 +1448,7 @@ table.mk-mx{border-collapse:separate;border-spacing:0;font-size:12.5px;width:100
 .us-detail b{display:block;font-size:10.5px;color:var(--soft);font-weight:600}
 mark{background:#fde68a;border-radius:3px;padding:0 1px}
 .us-pill{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center;background:#eef4ff;border:1.5px solid #2F6FED;color:#0E1B33;border-radius:12px;padding:7px 12px;font-size:13px}
+.usi-and{margin-left:8px;border:1px solid #2F6FED;color:#2F6FED;border-radius:999px;padding:2px 8px;font-size:11px;white-space:nowrap;cursor:pointer;background:#fff}.us-and{background:#fff;border:1px solid #7C3AED;border-radius:10px;padding:2px 8px;font-size:12px}.us-and a{color:#B91C1C;text-decoration:none;margin-left:4px}
 .us-pill button{border:0;background:#2F6FED;color:#fff;border-radius:8px;padding:3px 10px;cursor:pointer;font-family:inherit;font-size:12px}
 .us-ai{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}.us-ai-hint{font-size:12px;color:var(--soft);flex:1;min-width:200px}
 .us-ainote{display:inline-block;background:linear-gradient(135deg,#f3ecff,#eef4ff);border:1.5px solid #7C3AED;border-radius:12px;padding:6px 12px;font-size:12.5px;margin:0 6px 6px 0}
@@ -2570,6 +2571,7 @@ mark{background:#fde68a;border-radius:3px;padding:0 1px}
           <div class="us-adv-row"><b>📅 दिनांक सीमा (FIR दिनांक)</b><span><input type="date" id="univDF" onchange="univDateChange()"> से <input type="date" id="univDT" onchange="univDateChange()"> तक</span></div>
           <div class="us-adv-row"><span class="us-presets"><button type="button" onclick="univDatePreset('today')">आज</button><button type="button" onclick="univDatePreset('7')">7 दिन</button><button type="button" onclick="univDatePreset('30')">30 दिन</button><button type="button" onclick="univDatePreset('90')">90 दिन</button><button type="button" onclick="univDatePreset('m')">इस माह</button><button type="button" onclick="univDatePreset('pm')">पिछला माह</button><button type="button" onclick="univDatePreset('y')">इस वर्ष</button><button type="button" onclick="univDatePreset('py')">पिछला वर्ष</button><button type="button" onclick="univDatePreset('')">सभी तिथि</button></span></div>
           <div class="us-adv-row"><b>🔎 खोज के नियम</b><span class="us-presets"><button type="button" data-q="चोरी मकराना" onclick="univUseQ(this.dataset.q)">चोरी मकराना <small>(दोनों शब्द)</small></button><button type="button" data-q="चोरी|लूट|डकैती" onclick="univUseQ(this.dataset.q)">चोरी|लूट|डकैती <small>(कोई एक)</small></button><button type="button" data-q="हत्या -प्रयास" onclick="univUseQ(this.dataset.q)">हत्या -प्रयास <small>(छोड़ें)</small></button><button type="button" data-q='"गोवंश तस्करी"' onclick="univUseQ(this.dataset.q)">"गोवंश तस्करी" <small>(सटीक वाक्यांश)</small></button></span></div>
+          <div class="us-adv-row"><b>⚖️ धारा का आधार</b><select id="univSecBasisSel" onchange="univSetBasis(this.value)"><option value="all">सभी धाराएँ (REG Act Section + INV. BASE)</option><option value="base">FIR दर्ज धारा — INV. BASE ACT &amp; SECTION</option><option value="reg">केवल REG Act Section</option></select></div>
           <div class="us-adv-row"><b>💾 सहेजी खोज</b><span><select id="univSavedSel"></select> <button type="button" onclick="univSaveSearch()">💾 सहेजें</button> <button type="button" onclick="univLoadSaved()">▶ लागू करें</button> <button type="button" onclick="univDelSaved()">🗑</button></span></div>
         </div>
       </details>
@@ -9738,12 +9740,13 @@ function getUnivFilteredPool(skipStatus){
   if(univPunishYearSet.size) pool = pool.filter(r=>univPunishYearSet.has(r.punishmentYear));
   if(univOffSet.size) pool = pool.filter(r=>{ for(const k of univRecKeys(r)) if(univOffSet.has(k)) return true; return false; });
   if(univSllSet.size) pool = pool.filter(r=>{ const T=univSllText(r); return [...univSllSet].some(id=>OFF_SLL_BY[id].re.test(T)); });
+  if(univOffReq.length) pool = pool.filter(r=>univOffReq.every(q=>univReqOk(r,q)));
   if(univDateFrom||univDateTo) pool = pool.filter(r=>{ const d=String(r.date||'').slice(0,10); if(!d) return false; return (!univDateFrom||d>=univDateFrom)&&(!univDateTo||d<=univDateTo); });
   if(univStatusSet.size && !skipStatus) pool = pool.filter(r=>{ const k=r.statusNorm||'other'; return univStatusSet.has(k) || (univStatusSet.has('old1') && usIsPend(k) && (univDays(r.date)||0)>365); });
   return pool;
 }
 function univAnyFilterActive(){
-  return univSrcSet.size||univPsSet.size||univYearSet.size||univMonthSet.size||univInfoSet.size||univActSet.size||univFrSet.size||univCatFieldSet.size||univCatValSet.size||univPunishYearSet.size||univStatusSet.size||univOldSet.size||univOffSet.size||univSllSet.size||!!univDateFrom||!!univDateTo;
+  return univSrcSet.size||univPsSet.size||univYearSet.size||univMonthSet.size||univInfoSet.size||univActSet.size||univFrSet.size||univCatFieldSet.size||univCatValSet.size||univPunishYearSet.size||univStatusSet.size||univOldSet.size||univOffSet.size||univSllSet.size||!!univDateFrom||!!univDateTo||univOffReq.length>0;
 }
 const UNIV_FILTER_SETS = [univSrcSet, univPsSet, univYearSet, univMonthSet, univInfoSet, univPunishYearSet, univActSet, univFrSet, univCatFieldSet, univCatValSet, univStatusSet, univOldSet, univOffSet, univSllSet];
 function univFilterActiveCount(){
@@ -10058,10 +10061,14 @@ const BNS_IPC2B=(()=>{const m={};Object.keys(BNS_CAT).forEach(b=>BNS_CAT[b][1].f
 function bnsRange(a,z){const o=[];for(let n=a;n<=z;n++){const k=String(n);if(BNS_CAT[k])o.push(k);}return o;}
 const OFF_GROUPS=[
  {id:'women',ic:'👩',l:'महिलाओं व बच्चों के विरुद्ध अपराध (समस्त)',kw:'महिला स्त्री बच्चे बालक women child',k:bnsRange(63,99)},
- {id:'rape',ic:'⚠️',l:'बलात्कार संबंधी अपराध',kw:'बलात्कार दुष्कर्म rape पॉक्सो',k:bnsRange(63,73)},
+ {id:'rape',ic:'⚠️',l:'बलात्कार संबंधी अपराध',kw:'बलात्कार दुष्कर्म rape',k:bnsRange(63,73)},
  {id:'molest',ic:'🚺',l:'छेड़छाड़ / लज्जा भंग / यौन उत्पीड़न / पीछा करना',kw:'छेड़छाड़ छेड़खानी लज्जा स्टॉकिंग यौन molestation harassment eve',k:bnsRange(74,79)},
  {id:'dowry',ic:'💍',l:'दहेज मृत्यु व पति/रिश्तेदारों द्वारा क्रूरता',kw:'दहेज क्रूरता ससुराल dowry cruelty 498',k:['80','85','86'].filter(k=>BNS_CAT[k])},
- {id:'murder',ic:'🔪',l:'हत्या व मानव वध संबंधी (हत्या, प्रयास, लापरवाही से मृत्यु)',kw:'हत्या मर्डर मानव वध मृत्यु murder homicide',k:bnsRange(100,110)},
+ {id:'murder1',ic:'🔪',l:'हत्या — BNS 103/104 (IPC 302/303)',kw:'हत्या मर्डर कत्ल murder 302',main:['हत्या','मर्डर','कत्ल','murder','302'],k:['103','104'].filter(k=>BNS_CAT[k])},
+ {id:'attempt',ic:'🗡️',l:'हत्या का प्रयास — BNS 109/110 (IPC 307/308)',kw:'हत्या प्रयास हत्या का प्रयास attempt to murder 307 308',main:['हत्या प्रयास','हत्या का प्रयास','प्रयास','attempt','attempt murder','attempt to murder','307'],k:['109','110'].filter(k=>BNS_CAT[k])},
+ {id:'negl',ic:'⚠️',l:'लापरवाही / उपेक्षा से मृत्यु — BNS 106 (IPC 304A)',kw:'लापरवाही उपेक्षा से मृत्यु हत्या लापरवाही दुर्घटना negligence 304a',main:['लापरवाही','लापरवाही से मृत्यु','हत्या लापरवाही','लापरवाही से हत्या','उपेक्षा से मृत्यु','negligence','304a'],k:['106'].filter(k=>BNS_CAT[k])},
+ {id:'culpable',ic:'🧾',l:'आपराधिक मानव वध (हत्या की श्रेणी में नहीं) — BNS 105 (IPC 304)',kw:'आपराधिक मानव वध culpable homicide 304',main:['मानव वध','आपराधिक मानव वध','culpable homicide','304'],k:['105'].filter(k=>BNS_CAT[k])},
+ {id:'homicide',ic:'🔪',l:'हत्या व मानव वध संबंधी — सभी (हत्या + प्रयास + लापरवाही + मानव वध)',kw:'मानव वध सभी homicide समस्त',k:bnsRange(100,110)},
  {id:'suicide',ic:'🕊️',l:'आत्महत्या का दुष्प्रेरण',kw:'आत्महत्या सुसाइड suicide उकसाना',k:['107','108'].filter(k=>BNS_CAT[k])},
  {id:'hurt',ic:'🩹',l:'चोट / मारपीट / हमला संबंधी',kw:'मारपीट चोट उपहति हमला झगड़ा hurt assault',k:[...bnsRange(115,125),...bnsRange(131,133)]},
  {id:'kidnap',ic:'🚸',l:'व्यपहरण / अपहरण / मानव तस्करी',kw:'अपहरण गुमशुदा भगाना kidnapping abduction trafficking',k:bnsRange(137,146)},
@@ -10098,7 +10105,7 @@ const OFF_SLL=[
  {id:'cm',ic:'👰',l:'बाल विवाह निषेध अधिनियम के प्रकरण',kw:'बाल विवाह child marriage',re:/CHILD\s+MARRIAGE|बाल\s*विवाह/},
  {id:'itpa',ic:'🚫',l:'अनैतिक व्यापार (निवारण) अधिनियम के प्रकरण',kw:'अनैतिक व्यापार देह व्यापार immoral traffic',re:/IMMORAL\s+TRAFFIC/},
  {id:'ndps',ic:'💊',l:'NDPS एक्ट (मादक पदार्थ) के समस्त प्रकरण',kw:'ndps मादक पदार्थ अफीम गांजा स्मैक नशा drugs',re:/NDPS|N\.D\.P\.S|NARCOTIC\s+DRUGS|PSYCHOTROPIC/},
- {id:'pocso',ic:'🧒',l:'POCSO एक्ट के समस्त प्रकरण',kw:'pocso पॉक्सो बालक यौन',re:/POCSO|PROTECTION\s+OF\s+CHILDREN\s+FROM\s+SEXUAL|पॉक्सो/},
+ {id:'pocso',ic:'🧒',l:'POCSO एक्ट के समस्त प्रकरण',kw:'pocso पॉक्सो पोक्सो पाक्सो बालक यौन',re:/POCSO|PROTECTION\s+OF\s+CHILDREN\s+FROM\s+SEXUAL|पॉक्सो|पोक्सो/},
  {id:'scst',ic:'🛡️',l:'SC/ST एक्ट के समस्त प्रकरण',kw:'sc st अनुसूचित जाति जनजाति atrocities',re:/SC\s*\/\s*ST|SCST|S\.C\.\s*\/?\s*S\.T|SC-ST|ATROCIT/},
  {id:'arms',ic:'🔫',l:'आर्म्स एक्ट के समस्त प्रकरण',kw:'आर्म्स हथियार अवैध arms',re:/ARMS\s*ACT|\bARMS\b|आर्म्स/},
  {id:'it',ic:'💻',l:'IT एक्ट / साइबर अपराध के प्रकरण',kw:'it एक्ट साइबर ऑनलाइन cyber',re:/\bIT\s*ACT|INFORMATION\s*TECH|\bI\.?T\.?\s*ACT|साइबर/},
@@ -10110,7 +10117,7 @@ const OFF_SLL=[
  {id:'bovine',ic:'🐄',l:'गौवंश अधिनियम के प्रकरण',kw:'गौवंश गोवंश गाय bovine cow',re:/BOVINE|गौवंश|गोवंश/}
 ];
 const OFF_SLL_BY={}; OFF_SLL.forEach(x=>OFF_SLL_BY[x.id]=x);
-function univSllText(r){ return ((r.section||'')+' '+(r.invBaseSection||'')).toUpperCase(); }
+function univSllText(r){ return univSecText(r).toUpperCase(); }
 // धारा-पाठ से BNS/IPC धारा-संख्याएँ निकालना (उदा. "BNS-331(4),305(a) ARMS ACT-25" → bns:[331,305])
 function univSecKeys(txt){
   const out={bns:[],ipc:[]}, T=String(txt||'').toUpperCase();
@@ -10135,14 +10142,16 @@ function univSecKeys(txt){
   }
   return out;
 }
+let univSecBasis='all';   // all = REG Act Section + INV. BASE | base = INV. BASE ACT & SECTION (FIR दर्ज धारा का आधार) | reg = केवल REG Act Section
+function univSecText(r){ return univSecBasis==='base'?(r.invBaseSection||r.section||''):univSecBasis==='reg'?(r.section||''):((r.section||'')+' ; '+(r.invBaseSection||'')); }
 function univRecKeys(r){
-  if(r._ok) return r._ok;
-  const p=univSecKeys((r.section||'')+' ; '+(r.invBaseSection||'')), s=new Set(p.bns.filter(k=>BNS_CAT[k]));
-  p.ipc.forEach(k=>{ (BNS_IPC2B[k]||[]).forEach(b=>s.add(b)); });
-  return (r._ok=s);
+  const ck='_ok_'+univSecBasis; if(r[ck]) return r[ck];
+  const p=univSecKeys(univSecText(r)), s=new Set(p.bns.filter(k=>BNS_CAT[k]&&parseInt(k,10)>=5));
+  p.ipc.forEach(k=>{ (BNS_IPC2B[k]||[]).forEach(b=>{ if(parseInt(b,10)>=5) s.add(b); }); });
+  return (r[ck]=s);
 }
 function univOffTitles(r){
-  let ks=[...univRecKeys(r)]; if(univOffSet.size) ks=ks.filter(k=>univOffSet.has(k));
+  let ks=[...univRecKeys(r)]; if(univOffSet.size||univOffReq.length){ const al=new Set([...univOffSet]); univOffReq.forEach(q=>{ if(q.k) q.k.forEach(k=>al.add(k)); }); ks=ks.filter(k=>al.has(k)); }
   if(!ks.length) return ['अन्य / विशेष अधिनियम / धारा अज्ञात'];
   return ks.map(k=>{ const e=BNS_CAT[k]; return `BNS ${k}${e[1].length?' / IPC '+e[1][0]:''} — ${e[0]?e[0].split('|')[0]:'धारा '+k}`; });
 }
@@ -10161,9 +10170,11 @@ const UNIV_SYN=[
  ['बलात्कार','दुष्कर्म','रेप','rape'],['महिला','स्त्री','औरत','women'],['दहेज','dowry']];
 function univTokens(q){ return q.toLowerCase().split(/[\s,;|\/()\-]+/).filter(t=>t.length>=2&&!UNIV_STOP.has(t)); }
 function univExpand(t){ const s=new Set([t]); UNIV_SYN.forEach(g=>{ if(g.some(w=>w===t||(t.length>=3&&(w.startsWith(t)||(w.length>=3&&t.startsWith(w)))))) g.forEach(w=>s.add(w)); }); return [...s]; }
-function univHayOk(hay,toks,q){ hay=hay.toLowerCase(); return hay.includes(q.toLowerCase())||(toks.length>0&&toks.every(t=>univExpand(t).some(c=>hay.includes(c)))); }
+function univHayOk(hay,toks,q){ const N=x=>String(x).toLowerCase().replace(/ॉ/g,'ो'); hay=N(hay); return hay.includes(N(q))||(toks.length>0&&toks.every(t=>univExpand(N(t)).some(c=>hay.includes(N(c))))); }
 function univOffMatches(q){
   const qn=q.replace(/(धारा|section|sec\.?|bns|ipc|u\/s|बीएनएस|आईपीसी)/gi,' ').replace(/\([^)]*\)/g,'').trim(), num=/^\d{1,3}[a-z]?$/i.test(qn)?qn.toUpperCase():null, toks=univTokens(q), ok=h=>univHayOk(h,toks,q), out=[];
+  const NQ=univNormQ(q), exactG=num?[]:OFF_GROUPS.filter(x=>x.main&&x.main.some(m=>univNormQ(m)===NQ));
+  if(exactG.length) return exactG.map(x=>({t:'g',id:x.id,ic:x.ic,l:x.l,sub:'BNS '+bnsCompact(x.k),keys:new Set(x.k)}));
   if(!num){
     OFF_GROUPS.filter(x=>ok(x.l+' '+x.kw)).map(x=>({x,sc:toks.filter(w=>(x.l+' '+x.kw).toLowerCase().includes(w)).length})).sort((a,b)=>b.sc-a.sc).map(y=>y.x).slice(0,5).forEach(x=>out.push({t:'g',id:x.id,ic:x.ic,l:x.l,sub:'BNS '+bnsCompact(x.k),keys:new Set(x.k)}));
     OFF_SLL.filter(x=>ok(x.l+' '+x.kw)).slice(0,3).forEach(x=>out.push({t:'l',id:x.id,ic:x.ic,l:x.l,sub:'विशेष एवं स्थानीय विधि',re:x.re}));
@@ -10188,7 +10199,7 @@ function univOffInject(){
   const items=univOffCounted(q);
   if(!items.length) return;
   const h=`<div class="univ-suggest-cat">📚 अपराध-प्रकार (BNS/IPC सूची) — चुनने पर उस प्रकार के समस्त प्रकरणों की सूची व पिवट खुलेगा</div>`+
-    items.map(o=>`<div class="univ-suggest-item" onclick="applyUnivOffence('${o.t}','${o.id}')"><span class="usi-icon">${o.ic}</span><span class="usi-txt">${escHtml(o.l)}<br><small style="color:var(--soft)">${escHtml(o.sub)}</small></span><span class="usi-cnt">${o.cnt}</span></div>`).join('');
+    items.map(o=>`<div class="univ-suggest-item" onclick="applyUnivOffence('${o.t}','${o.id}')"><span class="usi-icon">${o.ic}</span><span class="usi-txt">${escHtml(o.l)}<br><small style="color:var(--soft)">${escHtml(o.sub)}</small></span><span class="usi-cnt">${o.cnt}</span><span class="usi-and" onclick="event.stopPropagation();addUnivOffAnd('${o.t}','${o.id}')" title="पहले से चुने अपराध के साथ भी (एक ही प्रकरण में दोनों)">＋साथ</span></div>`).join('');
   const none=/किसी भी फ़ील्ड में कोई परिणाम नहीं/.test(sbox.innerHTML);
   sbox.innerHTML=h+(none?'':sbox.innerHTML); sbox.style.display='block';
 }
@@ -10204,11 +10215,6 @@ function applyUnivOffence(t,id){
   const rs=document.getElementById('univPivotRow'), cs=document.getElementById('univPivotCol');
   if(rs&&cs){ rs.value=(t==='g')?'offence':'psHi'; cs.value='status'; }
   runUniversalSearch();
-}
-function univClearOff(){ univOffSet.clear(); univSllSet.clear(); univOffLabel=''; runUniversalSearch(); }
-function renderUnivStatusChips(){ // अब यह केवल चयनित "अपराध-प्रकार" की पट्टी दिखाता है (स्थिति केवल ड्रॉप-डाउन में)
-  const el=document.getElementById('univStatusChips'); if(!el) return;
-  el.innerHTML=(univOffSet.size||univSllSet.size)?`<span class="us-pill">⚖️ अपराध-प्रकार: <b>${escHtml(univOffLabel)}</b>${univOffSet.size>1?` <small>(BNS ${bnsCompact(univOffSet)})</small>`:''} <button type="button" onclick="univClearOff()">✕ हटाएं</button></span>`:'';
 }
 
 // सीधी खोज में कुछ न मिले तो समान अपराध-प्रकार स्वतः सुझाना
@@ -10326,10 +10332,11 @@ const UDL_COLS=[
  ['fir','FIR नंबर',r=>r.fir||'',1],['date','दिनांक',r=>r.date||'',1],['year','वर्ष',r=>r.year||'',0],['month','माह',r=>r.month?(MONTH_NAMES_HI[r.month]||r.month):'',0],
  ['sec','धारा / Act',r=>r.section||'',1],['inv','INV. BASE ACT & SECTION',r=>r.invBaseSection||'',0],
  ['off','अपराध प्रकार (BNS/IPC)',r=>[...univRecKeys(r)].map(k=>{ const e=BNS_CAT[k]; return 'BNS '+k+(e[0]?' '+e[0].split('|')[0]:''); }).join('; '),0],
+ ['cat','CCTNS श्रेणी › उपश्रेणी',r=>univCatLabelOf(r),0],
  ['st','स्थिति',r=>r.statusDisplay||r.status||'',1],['fr','F.R. उप-श्रेणी',r=>r.frSub?(FR_SUB_LABELS[r.frSub]||r.frSub):'',0],
  ['age','पेंडिंग आयु (दिन)',r=>{ if(!usIsPend(usKey(r))) return ''; const d=univDays(r.date); return d===null?'':d; },0],
  ['io','IO',r=>r.io||'',0],['info','Information Source',r=>r.infoSource||'',0],['py','Punishment Year',r=>r.punishmentYear||'',0],['id','FIR ID',r=>r.firId||'',0]];
-function univOpenDl(sc,fmt){
+function univOpenDl(sc,fmt,gb){
   if(!univResultsFull.length){ toast('पहले खोज/फ़िल्टर परिणाम प्राप्त करें'); return; }
   let m=document.getElementById('univDlModal');
   if(!m){ m=document.createElement('div'); m.id='univDlModal'; m.className='us-modal'; document.body.appendChild(m); m.addEventListener('click',e=>{ if(e.target===m) m.style.display='none'; }); }
@@ -10339,11 +10346,11 @@ function univOpenDl(sc,fmt){
   m.innerHTML=`<div class="us-mbox"><h3>⬇️ डाउनलोड विकल्प</h3>
    <div class="us-mrow"><b>कौन-सा डेटा?</b><label><input type="radio" name="udlScope" value="all" ${sc==='all'?'checked':''}> सभी परिणाम (${N})</label><label><input type="radio" name="udlScope" value="sel" ${sc==='sel'?'checked':''} ${K?'':'disabled'}> चयनित पंक्तियाँ (${K})</label><label><input type="radio" name="udlScope" value="page" ${sc==='page'?'checked':''}> वर्तमान पृष्ठ (${pg})</label></div>
    <div class="us-mrow"><b>फ़ॉर्मेट</b><label><input type="radio" name="udlFmt" value="xlsx" ${(fmt||'xlsx')==='xlsx'?'checked':''}> Excel (.xlsx)</label><label><input type="radio" name="udlFmt" value="pdf" ${fmt==='pdf'?'checked':''}> 📄 PDF (आकर्षक रिपोर्ट)</label><label><input type="radio" name="udlFmt" value="doc" ${fmt==='doc'?'checked':''}> 📝 Word (.doc)</label><label><input type="radio" name="udlFmt" value="csv"> CSV</label></div>
-   <div class="us-mrow"><b>PDF/Word में समूह</b><select id="udlGb" style="padding:5px 8px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit"><option value="">कोई नहीं (एक सूची)</option><option value="ps">थाना अनुसार</option><option value="st">स्थिति अनुसार</option><option value="off">अपराध प्रकार अनुसार</option><option value="yr">वर्ष अनुसार</option></select><label><input type="checkbox" id="udlInfo" checked> खोज-विवरण शीट (Excel में)</label></div>
+   <div class="us-mrow"><b>PDF/Word में समूह</b><select id="udlGb" style="padding:5px 8px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit"><option value="">कोई नहीं (एक सूची)</option><option value="ps">थाना अनुसार</option><option value="st">स्थिति अनुसार</option><option value="off">अपराध प्रकार अनुसार</option><option value="cat">CCTNS श्रेणी › उपश्रेणी अनुसार</option><option value="yr">वर्ष अनुसार</option></select><label><input type="checkbox" id="udlInfo" checked> खोज-विवरण शीट (Excel में)</label></div>
    <div class="us-mrow"><b>कॉलम</b><button type="button" onclick="udlPreset(0)">संक्षिप्त</button><button type="button" onclick="udlPreset(1)">सभी कॉलम</button></div>
    <div class="us-cols">${UDL_COLS.map(c=>`<label><input type="checkbox" class="udlc" value="${c[0]}" ${on(c)?'checked':''}> ${c[1]}</label>`).join('')}</div>
    <div class="us-mact"><button type="button" class="btn-fill" onclick="univDoDl()">⬇️ डाउनलोड</button><button type="button" onclick="document.getElementById('univDlModal').style.display='none'">रद्द करें</button></div></div>`;
-  m.style.display='flex';
+  m.style.display='flex'; if(gb){ const g=document.getElementById('udlGb'); if(g) g.value=gb; }
 }
 function udlPreset(all){ document.querySelectorAll('#univDlModal .udlc').forEach(c=>{ c.checked=all?true:UDL_COLS.find(x=>x[0]===c.value)[3]===1; }); }
 function univFilterDesc(){
@@ -10382,7 +10389,7 @@ function univSavedGet(){ try{ return JSON.parse(localStorage.getItem('dkUnivSave
 function univRenderSaved(){ const s=document.getElementById('univSavedSel'); if(!s) return; const l=univSavedGet(); s.innerHTML=l.length?l.map((x,i)=>`<option value="${i}">${escHtml(x.n)}</option>`).join(''):'<option value="">— कोई सहेजी खोज नहीं —</option>'; }
 function univSaveSearch(){
   const n=(prompt('इस खोज का नाम लिखें (उदा. "मकराना चोरी 2025")')||'').trim(); if(!n) return;
-  const snap={q:document.getElementById('univSearchInput').value,sc:univActiveScope,sets:UNIV_FILTER_SETS.map(s=>[...s]),df:univDateFrom,dt:univDateTo,ol:univOffLabel,sort:univSortMode};
+  const snap={q:document.getElementById('univSearchInput').value,sc:univActiveScope,sets:UNIV_FILTER_SETS.map(s=>[...s]),df:univDateFrom,dt:univDateTo,ol:univOffLabel,sort:univSortMode,sb:univSecBasis,rq:univOffReq.map(q=>({l:q.l,k:q.k?[...q.k]:null,s:q.s}))};
   try{ const l=univSavedGet().filter(x=>x.n!==n); l.unshift({n,s:snap}); localStorage.setItem('dkUnivSaved',JSON.stringify(l.slice(0,20))); toast('खोज सहेजी गई'); }catch(e){ toast('सहेजना संभव नहीं'); }
   univRenderSaved();
 }
@@ -10390,7 +10397,7 @@ function univLoadSaved(){
   const i=document.getElementById('univSavedSel').value, x=univSavedGet()[+i]; if(!x) return; const o=x.s;
   document.getElementById('univSearchInput').value=o.q||''; univActiveScope=o.sc||null;
   UNIV_FILTER_SETS.forEach((s,k)=>{ s.clear(); (o.sets[k]||[]).forEach(v=>s.add(v)); });
-  univDateFrom=o.df||''; univDateTo=o.dt||''; univOffLabel=o.ol||''; univSortMode=o.sort||'default'; univSyncDates(); univSel.clear();
+  univDateFrom=o.df||''; univDateTo=o.dt||''; univOffLabel=o.ol||''; univSortMode=o.sort||'default'; univSecBasis=o.sb||'all'; univOffReq.length=0; (o.rq||[]).forEach(q=>univOffReq.push({l:q.l,k:q.k?new Set(q.k):null,s:q.s})); { const sbx=document.getElementById('univSecBasisSel'); if(sbx) sbx.value=univSecBasis; } univSyncDates(); univSel.clear();
   const so=document.getElementById('univSortSel'); if(so) so.value=univSortMode;
   [msUnivSrc,msUnivPs,msUnivYear,msUnivMonth,msUnivInfo,msUnivPunishYear,msUnivAct,msUnivFr,msUnivCatField,msUnivStatus].forEach(m=>{ if(m) m.refresh(); });
   populateUnivCatValueOptions(); runUniversalSearch();
@@ -10414,7 +10421,7 @@ function univReportHtml(R,cols,gb,kind){
   const head='<tr>'+cols.map(c=>`<th>${esc(c[1])}</th>`).join('')+'</tr>';
   let n=0;
   const row=r=>{ n++; return '<tr>'+cols.map(c=>{ const v=c[2](r,n-1); if(c[0]==='st'){ const k=usKey(r); return `<td><span class="bd" style="background:${US_CLR[k]};color:#fff">&nbsp;${esc(v)}&nbsp;</span></td>`; } return `<td${['sr','fir','date','year','age'].includes(c[0])?' style="white-space:nowrap"':''}>${esc(v)}</td>`; }).join('')+'</tr>'; };
-  const gk={ps:r=>r.psHi||r.ps||'—',st:r=>US_LBL[usKey(r)],yr:r=>String(r.year||'—'),off:r=>univOffTitles(r)[0]}[gb];
+  const gk={ps:r=>r.psHi||r.ps||'—',st:r=>US_LBL[usKey(r)],yr:r=>String(r.year||'—'),off:r=>univOffTitles(r)[0],cat:r=>univCatLabelOf(r)}[gb];
   let body='';
   if(gk){
     const g=new Map(); R.forEach(r=>{ const k=gk(r); if(!g.has(k)) g.set(k,[]); g.get(k).push(r); });
@@ -10462,11 +10469,11 @@ function univAiOn(){ return !!univAiCfg().url; }
 function univAiSystem(){
   const ps=[...new Set((SEARCH_IDX||[]).map(e=>e.ps).filter(Boolean))].sort().map(p=>p+'='+(ENG2HI_PS[p]||p)).join(', ');
   const secs=Object.keys(BNS_CAT).filter(k=>BNS_CAT[k][0]).map(k=>`${k}: ${BNS_CAT[k][0].split('|')[0]}${BNS_CAT[k][1].length?' (IPC '+BNS_CAT[k][1].slice(0,3).join('/')+')':''}`).join('\n');
-  const t=new Date(), iso=t.toISOString().slice(0,10);
+  const t=new Date(), iso=t.toISOString().slice(0,10), infoVals=[...new Set((SEARCH_IDX||[]).map(e=>e.infoSource).filter(Boolean))].slice(0,40).join(' | ');
   return `तुम राजस्थान पुलिस (जिला डीडवाना-कुचामन) के पोर्टल की "खोज-समझ" सहायक हो। उपयोगकर्ता का वाक्य (हिंदी/अंग्रेज़ी/मिश्रित) पढ़कर केवल एक JSON ऑब्जेक्ट लौटाओ — कोई अन्य शब्द नहीं।
 आज की तारीख: ${iso}. सापेक्ष समय ("पिछले 6 माह", "इस वर्ष") को इसी से YYYY-MM-DD में बदलो।
 JSON के फ़ील्ड (सभी वैकल्पिक, खाली हो तो [] या ""):
-{"offence_groups":[समूह-id],"sections":[BNS धारा-संख्या स्ट्रिंग],"sll":[विशेष-कानून id],"status":[स्थिति-कुंजी],"thana":[थाना-कुंजी],"year":[संख्या],"month":[1-12],"date_from":"YYYY-MM-DD","date_to":"YYYY-MM-DD","text":"बचे हुए खोज-शब्द (नाम/FIR नंबर आदि) या खाली","explain":"एक पंक्ति हिंदी में कि तुमने क्या समझा"}
+{"offence_groups":[समूह-id],"sections":[BNS धारा-संख्या स्ट्रिंग],"sll":[विशेष-कानून id],"status":[स्थिति-कुंजी],"thana":[थाना-कुंजी],"year":[संख्या],"month":[1-12],"date_from":"YYYY-MM-DD","date_to":"YYYY-MM-DD","fr_sub":[F.R. उप-श्रेणी कुंजी],"info_source":[Information Source के मान],"offence_all":[एक साथ चाहिए तो समूह-id / bns:धारा / l:विशेष-कानून-id],"sec_basis":"all|base|reg","cat_head":[CCTNS श्रेणी कुंजी],"cat_sub":[CCTNS उपश्रेणी मान],"pivot_rows":"आयाम-कुंजी या खाली","pivot_cols":"आयाम-कुंजी, गिनती-मात्र हो तो none, या खाली","text":"बचे हुए खोज-शब्द (नाम/FIR नंबर आदि) या खाली","explain":"एक पंक्ति हिंदी में कि तुमने क्या समझा"}
 केवल नीचे की सूचियों के मान प्रयोग करो; अनुमान से नए मान मत गढ़ो। आईपीसी धारा हो तो उसकी BNS धारा लो।
 अपराध-समूह id:
 ${OFF_GROUPS.map(g=>g.id+': '+g.l).join('\n')}
@@ -10476,7 +10483,22 @@ ${OFF_SLL.map(g=>g.id+': '+g.l).join('\n')}
 थाना-कुंजी=नाम: ${ps}
 मुख्य BNS धाराएँ:
 ${secs}
-समूह सबसे उपयुक्त हो तो sections खाली रखो; किसी एक ख़ास धारा की बात हो तभी sections भरो।`;
+समूह सबसे उपयुक्त हो तो sections खाली रखो; किसी एक ख़ास धारा की बात हो तभी sections भरो।
+पिवट-आयाम कुंजी (केवल ये): psHi=थाना, year=वर्ष (FIR दर्ज होने का), monthLabel=महीना, status=स्थिति, punishmentYear=कोर्ट/सजा का वर्ष (केवल Generic डेटा), frSubLabel=F.R. उप-श्रेणी, offence=अपराध प्रकार (धारा अनुसार), actLabel=Act प्रकार, circle=सर्कल, src=डेटा स्रोत, infoSource=Information Source
+F.R. उप-श्रेणी कुंजी (fr_sub): ${Object.keys(FR_SUB_LABELS).map(k=>k+'='+FR_SUB_LABELS[k].split(' (')[0]).join(', ')}
+Information Source के मान (info_source में इन्हीं में से, हू-ब-हू): ${infoVals||'(अज्ञात)'}
+CCTNS अपराध-हेड — श्रेणी कुंजी (cat_head): ${Object.keys(CHART_TITLES).map(k=>k+'='+CHART_TITLES[k]).join(', ')}
+CCTNS उपश्रेणी मान (cat_sub, हू-ब-हू): ${(()=>{ const m=univCatIndex(), by={}; Object.keys(m).forEach(k=>{ const [f,v]=k.split('\u0001'); (by[f]=by[f]||[]).push([v,m[k]]); }); return Object.keys(by).map(f=>f+': '+by[f].sort((a,b)=>b[1]-a[1]).slice(0,25).map(x=>x[0]+(CAT_HI[x[0]]?'('+CAT_HI[x[0]]+')':'')).join(', ')).join(' | ')||'(अज्ञात)'; })()}
+नियम:
+1) "...वार संख्या / कितने / गिनती" जैसे प्रश्न में pivot_rows = वही आयाम (वर्ष-वार→year, थाना-वार→psHi, माह-वार→monthLabel, धारा/अपराध-वार→offence)। दूसरा "-वार" आयाम हो तो वह pivot_cols; केवल एक आयाम पर गिनती माँगी हो तो pivot_cols="none"; कोई गिनती/पिवट न माँगा हो तो pivot_rows व pivot_cols खाली रखो।
+2) "कोर्ट / माननीय न्यायालय से दर्ज होने वाले प्रकरण" = Information Source का न्यायालय वाला मान (info_source में ऊपर की सूची से चुनो) — यह सजा-वर्ष नहीं है। "वर्ष-वार" → year (FIR दर्ज होने का वर्ष)। केवल जब साफ़ "सजा/दंड/दोषसिद्धि वर्ष-वार" कहा हो तभी pivot_rows="punishmentYear"।
+3) "झूठ / झूठे / मिथ्या में लगे नतीजे (एफ.आर.)" → status=["fr"] और fr_sub=["FALSE"]; अन्य एफ.आर. कारण (साक्ष्याभाव→EVIDENCE, सिविल→CIVIL, तथ्य की भूल→MOF, फरार→ABSCONDING आदि) भी fr_sub से।
+4) "173(8)" = "193(9) बीएनएसएस" → status=["1939"]। "एक्ट के प्रकरण" → sll में सही id (पोक्सो→pocso, NDPS→ndps, SC/ST→scst)।
+5) अकेला "हत्या" → offence_groups=["murder1"] (केवल हत्या); "हत्या प्रयास" → attempt; "लापरवाही से मृत्यु / हत्या लापरवाही" → negl; "मानव वध" → culpable; "सभी/समस्त हत्या-मानव वध" → homicide। अलग-अलग अपराधों को मिलाओ मत।
+6) "X के साथ Y / X और Y एक साथ / X की धारा के साथ Y" (एक ही प्रकरण में दोनों धाराएँ) → offence_all=[X, Y, …] (हर तत्व समूह-id, "bns:धारा" या "l:id"), offence_groups/sections खाली।
+7) "FIR में दर्ज धारा / रजिस्ट्रेशन धारा / BASE ACT & SECTION के अनुसार" → sec_basis="base" (INV. BASE ACT & SECTION); अन्यथा खाली।
+8) "CCTNS / हेड / अपराध श्रेणी-उपश्रेणी" से संबंधित वाक्य → cat_head व cat_sub (ऊपर की सूची से) भरो और pivot_rows="catLabel"; ऐसे में offence_groups खाली रखो।
+9) "संख्या" का मतलब केवल गिनती है; शब्द "संख्या/प्रकरण/दर्ज/नतीजे" को text में मत डालो।`;
 }
 async function univAiCall(q){
   const c=univAiCfg(), body={model:c.model||'claude-haiku-5-5',max_tokens:600,system:univAiSystem(),messages:[{role:'user',content:q}]};
@@ -10490,34 +10512,65 @@ async function univAiCall(q){
   const m=(j.content||[]).map(x=>x.text||'').join('').match(/\{[\s\S]*\}/); if(!m) throw new Error('उत्तर में JSON नहीं');
   return JSON.parse(m[0]);
 }
-// ---- स्थानीय स्मार्ट-खोज (AI के बिना): तारीख/वर्ष/थाना/स्थिति/अपराध-प्रकार पहचानना ----
+// ---- स्थानीय स्मार्ट-खोज (AI के बिना): तारीख/वर्ष/थाना/स्थिति/अपराध-प्रकार व पिवट-आयाम पहचानना ----
+const UNIV_FR_WORDS=[[/झूठ|झूठे|झूठा|मिथ्या|\bfalse\b/,'FALSE'],[/साक्ष्य\s*(?:के)?\s*अभाव|साक्ष्याभाव|want of evidence/,'EVIDENCE'],[/सिविल/,'CIVIL'],[/तथ्य\s*की\s*भूल/,'MOF'],[/विधि\s*की\s*भूल/,'MOL'],[/अनट्रेस|अनुद्घाटित|untraced/,'UNTRACED'],[/अनडिटेक्टेड|undetected/,'UNDETECTED'],[/फरार|absconding/,'ABSCONDING'],[/असंज्ञेय/,'NONCOG'],[/कोर्ट\s*द्वारा\s*रद्द|quashed/,'QUASHED']];
+const UNIV_DIM_WORDS=[['punishmentYear',/(?:सजा|दंड|दण्ड|दोषसिद्धि)[^\n]{0,25}?(?:वर्ष|साल)\s*-?\s*वार|(?:सजा|दंड|दण्ड)\s*(?:वर्ष|साल)/],['year',/(?:वर्ष|साल)\s*-?\s*वार|वर्षवार|year\s*-?\s*wise/],['psHi',/थाना\s*-?\s*वार|थानावार|थानेवार|थाने\s*वार|station\s*-?\s*wise/],['monthLabel',/(?:माह|महीने|मास)\s*-?\s*वार|माहवार|month\s*-?\s*wise/],['status',/(?:स्थिति|निस्तारण)\s*-?\s*वार/],['offence',/(?:धारा|अपराध)\s*-?\s*वार|धारावार/],['circle',/(?:सर्कल|सर्किल)\s*-?\s*वार/],['actLabel',/(?:act|एक्ट)\s*-?\s*वार/]];
+const UNIV_NL_STOP=/(?:^|\s)(?:में|के|की|का|को|से|पर|और|व|थाने|थाना|थानों|प्रकरण|प्रकरणों|केस|केसों|दर्ज|होने|वाले|वाली|वाला|जो|हैं|है|संख्या|कितने|कितनी|गिनती|कुल|नतीजे|नतीजों|परिणाम|परिणामों|लगे|लगी|लगा|एक्ट|अधिनियम|act|कोर्ट|न्यायालय|सभी|सारे|बताओ|बताइए|दिखाओ|दिखाइए|निकालो|क्या|कौन|अंतर्गत|तहत|धारा|धाराओं|वर्ष|वार|साल|ऐसे|ऐसा)(?=\s|$)/g;
 function univNLLocal(q){
-  let r=' '+q.toLowerCase()+' '; const p={offence_groups:[],sections:[],sll:[],status:[],thana:[],year:[],month:[],date_from:'',date_to:'',text:'',explain:''};
+  let r=' '+q.toLowerCase().replace(/ॉ/g,'ो')+' '; const p={offence_groups:[],sections:[],sll:[],status:[],fr_sub:[],info_source:[],offence_all:[],sec_basis:'',cat_head:[],cat_sub:[],thana:[],year:[],month:[],date_from:'',date_to:'',text:'',pivot_rows:'',pivot_cols:'',explain:''};
   const f=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'), t=new Date(), cut=re=>{ const m=r.match(re); if(m) r=r.replace(re,' '); return m; };
   let m;
+  // "कोर्ट / माननीय न्यायालय से दर्ज" = Information Source (सजा-वर्ष नहीं, जब तक "सजा/दंड" न कहा हो)
+  if(/माननीय|कोर्ट|न्यायालय|न्यायाल|\bcourt\b/.test(r)&&!/सजा|दंड|दण्ड|दोषसिद्ध/.test(r)){ r=r.replace(/माननीय|कोर्ट|न्यायालय|न्यायाल\S*|\bcourt\b/g,' '); p.info_source=['@court']; }
+  // "FIR दर्ज धारा / रजिस्ट्रेशन धारा / BASE ACT" = INV. BASE ACT & SECTION के अनुसार
+  if(cut(/(?:fir|एफ\s*आई\s*आर|एफआईआर)\s*(?:में)?\s*दर्ज\s*(?:की\s*गई)?\s*धारा|दर्ज\s*धारा|रजिस्ट्रेशन\s*धारा|base\s*act(?:\s*&\s*section)?|आधार\s*धारा/)) p.sec_basis='base';
+  // CCTNS अपराध-हेड (श्रेणी › उपश्रेणी)
+  const CCRE=/cctns|सीसीटीएनएस|हेड\s*वाइज|हेडवाइज|हेड|\bhead\b|उपश्रेणी|श्रेणी|कैटेगरी|category/g, cctns=/cctns|सीसीटीएनएस|हेड|\bhead\b|उपश्रेणी|श्रेणी|कैटेगरी|category/.test(r); if(cctns) r=r.replace(CCRE,' ');
+  // पिवट-आयाम ("वर्ष-वार", "थानावार" …) व गिनती का आशय
+  const orig=r, found=[]; UNIV_DIM_WORDS.forEach(([k,re])=>{ const mm=orig.match(re); if(mm) found.push({k,pos:mm.index,re}); });
+  const dims=found.some(x=>x.k==='punishmentYear')?found.filter(x=>x.k!=='year'):found; dims.sort((a,b)=>a.pos-b.pos); dims.forEach(x=>{ r=r.replace(x.re,' '); });
+  const count=!!cut(/संख्या|कितने|कितनी|गिनती|\bcount\b|\btotal\b|\bnumber\b/);
+  if(dims.length){ p.pivot_rows=dims[0].k; p.pivot_cols=dims[1]?dims[1].k:(count?'none':'status'); }
   if((m=cut(/पिछले\s*(\d+)\s*(माह|महीने|महीनों|दिन|दिनों|सप्ताह|हफ्ते|वर्ष|साल)/))){ const n=+m[1], u=m[2], s=new Date(t); if(/माह|महीन/.test(u)) s.setMonth(s.getMonth()-n); else if(/दिन/.test(u)) s.setDate(s.getDate()-n); else if(/सप्ताह|हफ्ते/.test(u)) s.setDate(s.getDate()-7*n); else s.setFullYear(s.getFullYear()-n); p.date_from=f(s); p.date_to=f(t); }
   else if(cut(/इस\s*(माह|महीने)/)){ p.date_from=f(new Date(t.getFullYear(),t.getMonth(),1)); p.date_to=f(t); }
   else if(cut(/पिछले\s*(माह|महीने)|पिछला\s*(माह|महीना)/)){ p.date_from=f(new Date(t.getFullYear(),t.getMonth()-1,1)); p.date_to=f(new Date(t.getFullYear(),t.getMonth(),0)); }
   else if(cut(/इस\s*(वर्ष|साल)/)){ p.date_from=t.getFullYear()+'-01-01'; p.date_to=f(t); }
   else if(cut(/पिछले\s*(वर्ष|साल)|पिछला\s*(वर्ष|साल)/)){ p.date_from=(t.getFullYear()-1)+'-01-01'; p.date_to=(t.getFullYear()-1)+'-12-31'; }
   while((m=r.match(/\b(20\d\d)\b/))){ p.year.push(+m[1]); r=r.replace(m[0],' '); }
-  [[/1\s*(वर्ष|साल)\s*(से)?\s*(अधिक|ज्यादा|पुराने|पुराना)|एक\s*वर्ष\s*से\s*(अधिक|पुराने)/,'old1'],[/पेंडिंग|पैडिंग|लंबित|लम्बित|pending/,'pending'],[/री-?\s?ओपन|reopen|re-open/,'reopen'],[/रिफ्यूज|refus/,'refuse'],[/चालान|चार्जशीट|chargesheet/,'chargesheet'],[/एफ\.?\s?आर\.?|\bf\.?r\.?\b/,'fr'],[/193\s*\(?9\)?|बीएनएसएस/,'1939']].forEach(([re,k])=>{ if(cut(re)) p.status.push(k); });
+  UNIV_FR_WORDS.forEach(([re,k])=>{ if(cut(re)) p.fr_sub.push(k); }); if(p.fr_sub.length) p.status.push('fr');
+  [[/1\s*(वर्ष|साल)\s*(से)?\s*(अधिक|ज्यादा|पुराने|पुराना)|एक\s*वर्ष\s*से\s*(अधिक|पुराने)/,'old1'],[/पेंडिंग|पैडिंग|लंबित|लम्बित|pending/,'pending'],[/री-?\s?ओपन|reopen|re-open/,'reopen'],[/रिफ्यूज|refus/,'refuse'],[/चालान|चार्जशीट|chargesheet/,'chargesheet'],[/एफ\.?\s?आर\.?|\bf\.?r\.?\b/,'fr'],[/193\s*\(?9\)?|173\s*\(?8\)?|बीएनएसएस/,'1939']].forEach(([re,k])=>{ if(cut(re)&&!p.status.includes(k)) p.status.push(k); });
   const names=[...new Set((SEARCH_IDX||[]).map(e=>e.ps).filter(Boolean))];
   names.forEach(ps=>{ const hi=(ENG2HI_PS[ps]||'').toLowerCase(), en=ps.toLowerCase(); if(hi&&hi.length>2&&r.includes(hi)){ p.thana.push(ps); r=r.replace(hi,' '); } else if(en.length>3&&r.includes(en)){ p.thana.push(ps); r=r.replace(en,' '); } });
-  r=r.replace(/\b(में|के|की|का|को|से|थाने|थाना|थानों|प्रकरण|प्रकरणों|केस|दर्ज|वाले|वाली|जो|हैं|है)\b/g,' ').replace(/\s+/g,' ').trim();
+  const pre=r;
+  r=r.replace(UNIV_NL_STOP,' ').replace(UNIV_NL_STOP,' ').replace(/\s+/g,' ').trim();
+  if(cctns&&r.length>=2){ const cm=univCatMatches(r); if(cm.length){ p.cat_head=[cm[0].field]; p.cat_sub=[cm[0].val]; r=''; if(!p.pivot_rows){ p.pivot_rows='catLabel'; p.pivot_cols=count?'none':'status'; } } }
+  else if(r.length>=2){   // "अपहरण और बलात्कार" / "X के साथ Y" → दोनों धाराएँ एक ही प्रकरण में
+    const clean=x=>x.replace(UNIV_NL_STOP,' ').replace(UNIV_NL_STOP,' ').replace(/\s+/g,' ').trim(), toks=[];
+    pre.split(/\s+(?:के\s+साथ|साथ\s+में|एक\s+साथ|और|तथा|एवं|\+|&|with|and)\s+/).map(clean).filter(x=>x.length>=2).forEach(pt=>{ const f2=univOffMatches(pt).find(x=>x.t==='g'||x.t==='l'||x.t==='s'); if(f2) toks.push((f2.t==='g'?'g:':f2.t==='l'?'l:':'s:')+f2.id); });
+    if(new Set(toks).size>=2){ p.offence_all=[...new Set(toks)]; r=''; if(!p.pivot_rows){ p.pivot_rows='offence'; p.pivot_cols='status'; } }
+  }
   if(r.length>=2){ const it=univOffMatches(r); const g=it.filter(x=>x.t==='g'), l=it.filter(x=>x.t==='l'), s=it.filter(x=>x.t==='s');
-    if(g.length){ p.offence_groups.push(g[0].id); r=''; } else if(l.length){ p.sll.push(l[0].id); r=''; } else if(s.length){ p.sections.push(s[0].id); r=''; } }
-  p.text=r; const ex=[]; if(p.date_from) ex.push('दिनांक '+p.date_from+' से '+(p.date_to||'आज')); if(p.year.length) ex.push('वर्ष '+p.year.join(',')); if(p.thana.length) ex.push('थाना '+p.thana.map(k=>ENG2HI_PS[k]||k).join(',')); if(p.status.length) ex.push('स्थिति '+p.status.map(k=>US_LBL[k]).join(',')); p.offence_groups.forEach(id=>ex.push(OFF_GROUPS.find(g=>g.id===id).l)); p.sll.forEach(id=>ex.push(OFF_SLL_BY[id].l)); p.sections.forEach(k=>ex.push('BNS '+k)); if(p.text) ex.push('शब्द: '+p.text); p.explain=ex.join(' • ')||'कोई विशेष फ़िल्टर नहीं पहचाना';
-  return p;
+    const hasAct=/एक्ट|\bact\b|अधिनियम/.test(orig);
+    if(hasAct&&l.length){ p.sll.push(l[0].id); r=''; } else if(g.length){ p.offence_groups.push(g[0].id); r=''; } else if(l.length){ p.sll.push(l[0].id); r=''; } else if(s.length){ p.sections.push(s[0].id); r=''; } }
+  p.text=r; const ex=[]; if(p.date_from) ex.push('दिनांक '+p.date_from+' से '+(p.date_to||'आज')); if(p.year.length) ex.push('वर्ष '+p.year.join(',')); if(p.thana.length) ex.push('थाना '+p.thana.map(k=>ENG2HI_PS[k]||k).join(',')); if(p.status.length) ex.push('स्थिति '+p.status.map(k=>US_LBL[k]).join(',')); if(p.sec_basis) ex.push('धारा: FIR दर्ज (INV. BASE ACT & SECTION) के अनुसार'); if(p.cat_sub.length) ex.push('CCTNS हेड: '+(CHART_TITLES[p.cat_head[0]]||p.cat_head[0])+' › '+p.cat_sub[0]+(CAT_HI[p.cat_sub[0]]?' ('+CAT_HI[p.cat_sub[0]]+')':'')); if(p.offence_all.length) ex.push('एक साथ: '+p.offence_all.map(t=>(univOffFromTok(t)||{l:t}).l.split(' (')[0].split(' —')[0]).join(' ＋ ')); if(p.info_source.length) ex.push('Information Source: माननीय न्यायालय'); if(p.fr_sub.length) ex.push('F.R. उप-श्रेणी '+p.fr_sub.map(k=>(FR_SUB_LABELS[k]||k).split(' (')[0]).join(',')); p.offence_groups.forEach(id=>ex.push(OFF_GROUPS.find(g=>g.id===id).l)); p.sll.forEach(id=>ex.push(OFF_SLL_BY[id].l)); p.sections.forEach(k=>ex.push('BNS '+k)); if(p.text) ex.push('शब्द: '+p.text);
+  p.explain=ex.join(' • ')||'कोई विशेष फ़िल्टर नहीं पहचाना'; return p;
 }
+const UNIV_PV_KEYS=['','psHi','circle','src','year','monthLabel','infoSource','status','punishmentYear','frSubLabel','actLabel','catLabel','offence'];
 function univApplyPlan(p,src){
-  UNIV_FILTER_SETS.forEach(s=>s.clear()); univDateFrom=''; univDateTo=''; univActiveScope=null; univOffLabel='';
-  const arr=x=>Array.isArray(x)?x:(x==null||x===''?[]:[x]), labels=[], parts=[];
+  UNIV_FILTER_SETS.forEach(s=>s.clear()); univDateFrom=''; univDateTo=''; univActiveScope=null; univOffLabel=''; univOffReq.length=0; univSecBasis=(p.sec_basis==='base'||p.sec_basis==='reg')?p.sec_basis:'all'; { const sbx=document.getElementById('univSecBasisSel'); if(sbx) sbx.value=univSecBasis; }
+  const arr=x=>Array.isArray(x)?x:(x==null||x===''?[]:[x]), labels=[];
   const gs=arr(p.offence_groups).map(id=>OFF_GROUPS.find(g=>g.id===id)).filter(Boolean); gs.forEach(g=>{ g.k.forEach(k=>univOffSet.add(k)); labels.push(g.l); });
   arr(p.sections).map(String).filter(k=>BNS_CAT[k]).forEach(k=>{ univOffSet.add(k); labels.push((BNS_CAT[k][0]?BNS_CAT[k][0].split('|')[0]:'धारा')+' (BNS '+k+')'); });
   if(labels.length) univOffLabel=labels.join(' + ');
+  const allIt=arr(p.offence_all).map(univOffFromTok).filter(Boolean);
+  if(allIt.length){ const f0=allIt[0]; if(f0.s) univSllSet.add(f0.s); else f0.k.forEach(k=>univOffSet.add(k)); univOffLabel=f0.l; allIt.slice(1).forEach(x=>univOffReq.push(x)); }
   arr(p.sll).filter(id=>OFF_SLL_BY[id]).forEach(id=>{ univSllSet.add(id); univOffLabel+=(univOffLabel?' + ':'')+OFF_SLL_BY[id].l; });
   arr(p.status).filter(k=>US_LBL[k]).forEach(k=>univStatusSet.add(k));
+  arr(p.fr_sub).map(x=>String(x).toUpperCase()).filter(k=>FR_SUB_LABELS[k]).forEach(k=>univFrSet.add(k));
+  const infos=[...new Set((SEARCH_IDX||[]).map(e=>e.infoSource).filter(Boolean))]; let warn='';
+  arr(p.info_source).forEach(x=>{ const t=String(x); const hit=t==='@court'?infos.filter(v=>/court|न्यायालय|कोर्ट|न्यायाल/i.test(v)):infos.filter(v=>v===t||v.toLowerCase().includes(t.toLowerCase())); if(hit.length) hit.forEach(v=>univInfoSet.add(v)); else warn=` <br><small>⚠️ Information Source में "${escHtml(t==='@court'?'न्यायालय/कोर्ट':t)}" वाला मान नहीं मिला, इसलिए यह फ़िल्टर नहीं लगा। उपलब्ध: ${escHtml(infos.slice(0,8).join(', ')||'—')}</small>`; });
+  { const ch=arr(p.cat_head).filter(f=>ALL_CAT_FIELDS.includes(f)); ch.forEach(f=>univCatFieldSet.add(f)); if(msUnivCatField) msUnivCatField.refresh(); populateUnivCatValueOptions();
+    arr(p.cat_sub).map(String).forEach(v=>{ if(Object.keys(univCatIndex()).some(k=>k.split('\u0001')[1]===v)) univCatValSet.add(v); }); if(msUnivCatVal) msUnivCatVal.refresh(); }
   const have=new Set((SEARCH_IDX||[]).map(e=>e.ps)), hi={}; have.forEach(k=>hi[(ENG2HI_PS[k]||k).toLowerCase()]=k);
   arr(p.thana).forEach(x=>{ const k=have.has(x)?x:(have.has(String(x).toUpperCase())?String(x).toUpperCase():hi[String(x).toLowerCase()]); if(k) univPsSet.add(k); });
   arr(p.year).map(Number).filter(y=>y>=2000&&y<=2100).forEach(y=>univYearSet.add(String(y)));
@@ -10525,17 +10578,26 @@ function univApplyPlan(p,src){
   const okd=d=>/^\d{4}-\d{2}-\d{2}$/.test(d||''); if(okd(p.date_from)) univDateFrom=p.date_from; if(okd(p.date_to)) univDateTo=p.date_to;
   document.getElementById('univSearchInput').value=String(p.text||'').trim(); univSel.clear(); univSyncDates();
   [msUnivSrc,msUnivPs,msUnivYear,msUnivMonth,msUnivInfo,msUnivPunishYear,msUnivAct,msUnivFr,msUnivCatField,msUnivStatus].forEach(m=>{ if(m) m.refresh(); });
-  univAiNote=`<span class="us-ainote">${src==='ai'?'🤖 AI ने समझा':'🧠 स्मार्ट-खोज ने समझा'}: <b>${escHtml(p.explain||'फ़िल्टर लागू किए गए')}</b> <small>— गलत लगे तो नीचे फ़िल्टर बदलें</small></span>`;
+  // पिवट वाक्य के अनुसार अपने-आप
+  let pv='';
+  const pr=p.pivot_rows==null?'':String(p.pivot_rows), pc=p.pivot_cols==null?'':String(p.pivot_cols);
+  if(pr&&UNIV_PV_KEYS.includes(pr)){
+    populateUnivPivotSelectors();
+    const rs=document.getElementById('univPivotRow'), cs=document.getElementById('univPivotCol'), cv=pc==='none'?'':(UNIV_PV_KEYS.includes(pc)&&pc?pc:'status');
+    if(rs&&cs){ rs.value=pr; cs.value=cv; const lb=k=>(UNIV_PIVOT_DIMS.find(d=>d.key===k)||{}).label||k; pv=` <small>• पिवट: ${escHtml(lb(pr).split(' (')[0])}${cv?' × '+escHtml(lb(cv).split(' (')[0]):' (केवल गणना)'}${pr==='punishmentYear'?' — सजा-वर्ष केवल Generic डेटा में है':''}</small>`; }
+  }
+  univAiNote=`<span class="us-ainote">${src==='ai'?'🤖 AI ने समझा':'🧠 स्मार्ट-खोज ने समझा'}: <b>${escHtml(p.explain||'फ़िल्टर लागू किए गए')}</b>${pv} <small>— गलत लगे तो नीचे फ़िल्टर/पिवट बदलें</small>${warn}${(p.cat_sub&&p.cat_sub.length)?` <a href="#" onclick="univOpenDl(null,'pdf','cat');return false">📄 श्रेणी › उपश्रेणी अनुसार सूची (PDF/Word)</a>`:''}</span>`;
   runUniversalSearch();
+  if(pv) setTimeout(()=>{ const b=document.getElementById('univPivotBox'); if(b&&b.scrollIntoView) b.scrollIntoView({behavior:'smooth',block:'start'}); },350);
 }
 async function univAiSearch(q){
   const inp=document.getElementById('univSearchInput'); q=(q||inp.value).trim();
   if(q.length<3){ toast('सामान्य भाषा में पूरा वाक्य लिखें'); return; }
   hideUnivSuggestions();
   const el=document.getElementById('univStatusChips'); if(el) el.innerHTML='<span class="us-ainote">🤖 समझ रहा है…</span>';
-  let plan,src='local',failed=false;
-  if(univAiOn()){ try{ plan=await univAiCall(q); src='ai'; }catch(e){ console.error(e); failed=true; toast('AI अभी उपलब्ध नहीं ('+(e.message||'त्रुटि')+') — स्थानीय स्मार्ट-खोज चलाई'); } }
-  if(!plan){ plan=univNLLocal(q); if(failed) plan.explain+=' (AI अभी उपलब्ध नहीं — स्थानीय स्मार्ट-खोज चली)'; }
+  let plan,src='local',failed='';
+  if(univAiOn()){ try{ plan=await univAiCall(q); src='ai'; }catch(e){ console.error(e); failed=String(e.message||'त्रुटि'); toast('AI अभी उपलब्ध नहीं ('+failed+') — स्थानीय स्मार्ट-खोज चलाई'); } }
+  if(!plan){ plan=univNLLocal(q); if(failed) plan.explain+=' (AI अभी उपलब्ध नहीं: '+failed+' — स्थानीय स्मार्ट-खोज चली)'; }
   univApplyPlan(plan,src);
 }
 function univAiHint(){
@@ -10549,6 +10611,63 @@ const _rsc2=renderUnivStatusChips;
 renderUnivStatusChips=function(){ _rsc2(); const el=document.getElementById('univStatusChips'); if(el&&univAiNote) el.insertAdjacentHTML('afterbegin',univAiNote+' '); const s=document.getElementById('univAiState'); if(s) s.textContent=univAiOn()?'AI चालू':'AI बंद'; };
 const _caf2=clearAllUnivFilters; clearAllUnivFilters=function(){ univAiNote=''; _caf2(); };
 
+/* ===== v63 — सटीक अपराध-मिलान (केवल हत्या…), एक साथ कई धाराएँ (AND), धारा-आधार (FIR दर्ज/BASE), CCTNS हेड (श्रेणी › उपश्रेणी) ===== */
+let univOffReq=[];   // अतिरिक्त "साथ में भी" शर्तें: {l:लेबल, k:Set(BNS धाराएँ)|null, s:विशेष-कानून id|null}
+function univNormQ(q){ return String(q).toLowerCase().replace(/ॉ/g,'ो').replace(/\s+(?:का|की|के|से|में)\s+/g,' ').replace(/\s+/g,' ').trim(); }
+function univReqOk(r,q){ if(q.s) return OFF_SLL_BY[q.s].re.test(univSllText(r)); for(const k of univRecKeys(r)) if(q.k.has(k)) return true; return false; }
+function univOffFromTok(tok){
+  tok=String(tok||'').trim(); let m;
+  const g=(m=tok.match(/^g:(.+)$/))?OFF_GROUPS.find(x=>x.id===m[1]):OFF_GROUPS.find(x=>x.id===tok);
+  if(g) return {k:new Set(g.k),s:null,l:g.l};
+  const sid=(m=tok.match(/^l:(.+)$/))?m[1]:tok; if(OFF_SLL_BY[sid]) return {k:null,s:sid,l:OFF_SLL_BY[sid].l};
+  const key=String(tok).replace(/^(?:s|bns):/i,'').replace(/\([^)]*\)/g,'').trim(); if(BNS_CAT[key]) return {k:new Set([key]),s:null,l:(BNS_CAT[key][0]?BNS_CAT[key][0].split('|')[0]:'धारा')+' (BNS '+key+')'};
+  return null;
+}
+function addUnivOffAnd(t,id){
+  const o=univOffFromTok((t==='g'?'g:':t==='l'?'l:':'s:')+id); if(!o) return;
+  hideUnivSuggestions(); document.getElementById('univSearchInput').value='';
+  if(!univOffSet.size&&!univSllSet.size&&!univOffReq.length){ applyUnivOffence(t,id); return; }
+  univOffReq.push(o); populateUnivPivotSelectors();
+  const rs=document.getElementById('univPivotRow'), cs=document.getElementById('univPivotCol'); if(rs&&cs){ rs.value='offence'; cs.value='status'; }
+  runUniversalSearch();
+}
+function univRemoveReq(i){ univOffReq.splice(i,1); runUniversalSearch(); }
+function renderUnivStatusChips(){ // चयनित अपराध-प्रकार (व "साथ में" शर्तें) की पट्टी; स्थिति केवल ड्रॉप-डाउन में
+  const el=document.getElementById('univStatusChips'); if(!el) return;
+  if(!(univOffSet.size||univSllSet.size||univOffReq.length)){ el.innerHTML=''; return; }
+  el.innerHTML=`<span class="us-pill">⚖️ अपराध-प्रकार: <b>${escHtml(univOffLabel||'—')}</b>${univOffSet.size>1?` <small>(BNS ${bnsCompact(univOffSet)})</small>`:''}${univOffReq.map((q,i)=>` <span class="us-and">＋ साथ में: <b>${escHtml(q.l)}</b> <a href="#" onclick="univRemoveReq(${i});return false" title="यह शर्त हटाएं">✕</a></span>`).join('')} <button type="button" onclick="univClearOff()">✕ सब हटाएं</button></span>`+(univOffReq.length?` <small style="color:var(--soft)">दोनों/सभी धाराएँ एक ही प्रकरण में</small>`:'');
+}
+function univClearOff(){ univOffSet.clear(); univSllSet.clear(); univOffReq.length=0; univOffLabel=''; runUniversalSearch(); }
+const _caf3=clearAllUnivFilters; clearAllUnivFilters=function(){ univOffReq.length=0; univSecBasis='all'; const b=document.getElementById('univSecBasisSel'); if(b) b.value='all'; _caf3(); };
+function univSetBasis(v){ univSecBasis=v; runUniversalSearch(); }
+// ---- CCTNS अपराध-हेड: श्रेणी (IPC/BNS, SLL, POCSO …) › उपश्रेणी (Murder, Theft …) ----
+const CAT_HI={'Murder':'हत्या','Attempt to Commit Murder':'हत्या का प्रयास','Kidnapping & Abduction':'अपहरण (व्यपहरण)','Rape(Major)':'बलात्कार','Riots':'दंगा','Burglary':'सेंधमारी / नकबजनी','Dacoity':'डकैती','Robbery':'लूट','Snatching':'झपटमारी','Theft':'चोरी','EC Act':'आवश्यक वस्तु अधिनियम','IT Act':'आईटी एक्ट (साइबर)','Noise Pollution':'ध्वनि प्रदूषण','Other SLL':'अन्य विशेष कानून','Dowry Death':'दहेज मृत्यु','Hurt':'चोट / मारपीट','Cheating':'धोखाधड़ी','Forgery':'जालसाजी','Molestation':'छेड़छाड़','Cruelty by Husband or Relatives':'पति/रिश्तेदारों द्वारा क्रूरता','Culpable Homicide Not Amounting to Murder':'आपराधिक मानव वध','Death by Negligence':'लापरवाही से मृत्यु','Criminal Breach of Trust':'विश्वासघात','Arson':'आगजनी','Counterfeiting':'कूटकरण (नकली करेंसी)'};
+let _catIdx=null;
+function univCatIndex(){ if(_catIdx&&_catIdx.n===SEARCH_IDX.length) return _catIdx.m; const m={}; SEARCH_IDX.forEach(e=>{ if(!e.cats) return; Object.keys(e.cats).forEach(f=>{ const v=e.cats[f]; if(v){ const k=f+'\u0001'+v; m[k]=(m[k]||0)+1; } }); }); _catIdx={n:SEARCH_IDX.length,m}; return m; }
+function univCatMatches(q){
+  const qn=univNormQ(q), toks=univTokens(q), m=univCatIndex(), out=[];
+  Object.keys(m).forEach(k=>{ const [f,v]=k.split('\u0001'), hi=CAT_HI[v]||'', hay=univNormQ(v+' '+hi+' '+(CHART_TITLES[f]||'')+' '+f);
+    const ex=univNormQ(v)===qn||univNormQ(hi)===qn;
+    if(ex||hay.includes(qn)||(toks.length&&toks.every(t=>univExpand(t).some(c=>hay.includes(univNormQ(c)))))) out.push({field:f,val:v,cnt:m[k],hi,ex}); });
+  const ex=out.filter(x=>x.ex); return (ex.length?ex:out).sort((a,b)=>b.cnt-a.cnt).slice(0,8);
+}
+function applyUnivCat(field,val){
+  univCatFieldSet.clear(); univCatValSet.clear(); univCatFieldSet.add(field); if(msUnivCatField) msUnivCatField.refresh(); populateUnivCatValueOptions(); univCatValSet.add(val); if(msUnivCatVal) msUnivCatVal.refresh();
+  hideUnivSuggestions(); document.getElementById('univSearchInput').value=''; populateUnivPivotSelectors();
+  const rs=document.getElementById('univPivotRow'), cs=document.getElementById('univPivotCol'); if(rs&&cs){ rs.value='catLabel'; cs.value='status'; }
+  runUniversalSearch();
+}
+function univCatInject(){
+  const q=document.getElementById('univSearchInput').value.trim(), sb=document.getElementById('univSuggestBox'); if(q.length<2||!sb) return;
+  const cm=univCatMatches(q.replace(/cctns|सीसीटीएनएस|हेड\s*वाइज|हेडवाइज|हेड|\bhead\b|उपश्रेणी|श्रेणी|कैटेगरी|category/gi,' ').replace(/\s+/g,' ').trim()||q).slice(0,5); if(!cm.length) return;
+  const h=`<div class="univ-suggest-cat">📋 CCTNS अपराध-हेड (श्रेणी › उपश्रेणी) — SAS Export का वर्गीकरण</div>`+cm.map(x=>`<div class="univ-suggest-item" onclick="applyUnivCat('${x.field}','${escHtml(x.val).replace(/'/g,'&#39;')}')"><span class="usi-icon">📋</span><span class="usi-txt">${escHtml(CHART_TITLES[x.field]||x.field)} › ${escHtml(x.val)}${x.hi?' ('+escHtml(x.hi)+')':''}<br><small style="color:var(--soft)">CCTNS हेड — पिवट: श्रेणी/उपश्रेणी अनुसार</small></span><span class="usi-cnt">${x.cnt}</span></div>`).join('');
+  const last=[...sb.querySelectorAll('[onclick^="applyUnivOffence"]')].pop();
+  if(last) last.insertAdjacentHTML('afterend',h); else sb.insertAdjacentHTML('afterbegin',h);
+  sb.style.display='block';
+}
+const _uoi=univOffInject; univOffInject=function(){ _uoi(); try{ univCatInject(); }catch(e){ console.error(e); } };
+
+function univCatLabelOf(r){ if(!r.cats) return '—'; const fs=univCatFieldSet.size?[...univCatFieldSet].filter(f=>r.cats[f]):Object.keys(r.cats).filter(f=>r.cats[f]); const f=fs[0]; if(!f) return '—'; const v=r.cats[f]; return (CHART_TITLES[f]||f)+' › '+v+(CAT_HI[v]?' ('+CAT_HI[v]+')':''); }
 // hook new pages into nav
 const _origGo = go;
 go = function(id){
