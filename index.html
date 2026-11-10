@@ -1480,6 +1480,111 @@ mark{background:#fde68a;border-radius:3px;padding:0 1px}
  .us-res tr.dt{display:block;margin:0 0 4px}.us-res tr.dt td{display:block}
 }
 </style>
+<style id="usSkin">
+/* ===== v64 — यूनिवर्सल सर्च: आधुनिक "ग्लास + ग्रेडिएंट" स्किन (डार्क मोड सहित) ===== */
+@keyframes usIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes usShine{0%{background-position:0 0}100%{background-position:200% 0}}
+#univsearch .banner{background:radial-gradient(900px 320px at 12% -30%,rgba(99,102,241,.6),transparent 60%),radial-gradient(700px 300px at 92% 0%,rgba(14,165,233,.4),transparent 60%),linear-gradient(160deg,#141D30,#1E2A45 55%,#2B2F6B)!important;padding:26px 18px 74px!important}
+#univsearch .banner h1{font-size:27px;font-weight:800;letter-spacing:.2px;background:linear-gradient(90deg,#fff,#C7D2FE 60%,#7DD3FC);-webkit-background-clip:text;background-clip:text;color:transparent}
+#univsearch .banner p{display:none}
+.us-hero-pills{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.us-hero-pills span{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#E0E7FF;border-radius:999px;padding:4px 13px;font-size:12px;font-weight:600}
+.us-hero-stats{margin-top:12px;font-size:12.5px;color:#C7D2FE;min-height:18px}
+.us-hero-stats b{color:#fff;font-size:15px}
+#univsearch .wrap{margin-top:-52px;position:relative}
+#univsearch .ctx-bar{border-radius:24px;border:1px solid var(--line);background:var(--card);box-shadow:0 24px 60px rgba(30,42,69,.20);padding:18px;animation:usIn .35s ease}
+#univsearch .ctx-bar>.ctx-title{font-size:12px;letter-spacing:.4px;color:var(--soft);font-weight:700;margin-bottom:8px}
+/* ओम्निबार */
+#univsearch .univ-suggest-wrap::before{content:'🔎';position:absolute;left:18px;top:50%;transform:translateY(-50%);z-index:2;font-size:19px;pointer-events:none}
+#univSearchInput{font-size:17px!important;padding:17px 56px 17px 52px!important;border-radius:18px!important;border:2px solid transparent!important;background:linear-gradient(var(--card),var(--card)) padding-box,linear-gradient(135deg,#6366F1,#0EA5E9,#A855F7) border-box!important;box-shadow:0 8px 26px rgba(79,70,229,.16)!important;color:var(--ink)!important;transition:box-shadow .2s}
+#univSearchInput:focus{outline:none;box-shadow:0 10px 34px rgba(79,70,229,.34)!important}
+#univsearch .us-qclear{right:14px;top:50%;transform:translateY(-50%);width:30px;height:30px;line-height:30px;background:var(--gold-tint);color:var(--ink)}
+#univsearch .univ-suggest-box{border-radius:18px;box-shadow:var(--sh-lg);border:1px solid var(--line);background:var(--card);margin-top:6px}
+/* AI पंक्ति */
+#univsearch .us-ai{margin-top:12px;padding:10px 12px;border-radius:16px;background:linear-gradient(135deg,color-mix(in srgb,#7C3AED 10%,var(--card)),color-mix(in srgb,#0EA5E9 10%,var(--card)));border:1px solid color-mix(in srgb,#7C3AED 25%,var(--line))}
+#univsearch .us-ai .btn-fill{border-radius:999px;padding:10px 20px;font-weight:800;box-shadow:0 8px 22px rgba(99,102,241,.35);background:linear-gradient(90deg,#7C3AED,#2F6FED,#0EA5E9,#7C3AED)!important;background-size:200% 100%;animation:usShine 6s linear infinite}
+#univsearch .us-rc,#univsearch .us-sort{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:999px;transition:all .15s}
+#univsearch .us-rc:hover{background:var(--gold-tint);border-color:#6366F1;transform:translateY(-1px)}
+#univsearch .us-recent{margin-top:10px}
+/* एडवांस पैनल */
+#univsearch .us-adv{border-radius:16px;background:var(--card);border:1px solid var(--line);margin-top:12px;overflow:hidden}
+#univsearch .us-adv summary{padding:12px 16px;font-weight:700;list-style:none;display:flex;align-items:center;gap:8px}
+#univsearch .us-adv summary::-webkit-details-marker{display:none}
+#univsearch .us-adv summary::after{content:'▾';margin-left:auto;transition:transform .2s;color:var(--soft)}
+#univsearch .us-adv[open] summary::after{transform:rotate(180deg)}
+#univsearch .us-adv-body{padding:2px 16px 14px;border-top:1px dashed var(--line)}
+#univsearch .us-adv button,#univsearch .us-presets button{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:999px}
+#univsearch .us-adv button:hover{background:var(--gold-tint);border-color:#6366F1}
+/* सक्रिय फ़िल्टर चिप्स */
+.us-fbar{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 2px;align-items:center}
+.us-fbar:empty{display:none}
+.us-fbar .lbl{font-size:12px;font-weight:700;color:var(--soft);margin-right:2px}
+.us-fchip{display:inline-flex;gap:6px;align-items:center;background:var(--blue-tint);border:1px solid color-mix(in srgb,#2F6FED 35%,transparent);color:var(--ink);border-radius:999px;padding:4px 5px 4px 12px;font-size:12.5px;animation:usIn .25s ease}
+.us-fchip b{color:#2F6FED;font-weight:700}
+.us-fchip a{width:20px;height:20px;border-radius:50%;background:#2F6FED;color:#fff;display:grid;place-items:center;text-decoration:none;font-size:10px;line-height:1}
+.us-fchip a:hover{background:#DC2626}
+/* फ़िल्टर पैनल */
+#univsearch .univ-filter-toolbar{margin-top:14px;padding:10px 12px;border-radius:14px;background:var(--gold-tint);border:1px solid var(--line)}
+#univsearch .univ-filter-group{background:color-mix(in srgb,var(--paper) 75%,transparent);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin:10px 0}
+#univsearch .univ-filter-group-label{font-weight:800;font-size:12.5px;color:var(--ink);margin-bottom:8px}
+.us-fbody.collapsed{display:none}
+#univFToggle{border-radius:999px;background:var(--card)!important;color:var(--ink)!important;border:1px solid var(--line)!important;font-weight:700}
+#univStartBox:empty{display:none}
+/* क्रियाएँ */
+#univsearch .univ-filter-actions-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px;padding:12px;border-radius:16px;background:var(--card);border:1px solid var(--line);box-shadow:var(--sh-sm)}
+#univSearchCount{font-weight:800;color:var(--ink);background:var(--gold-tint);border-radius:999px;padding:7px 16px;font-size:13.5px;margin-right:auto}
+#univSearchCount:empty{display:none}
+.us-menu{position:relative}
+.us-menu summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.us-menu summary::-webkit-details-marker{display:none}
+.us-menu summary.btn-fill{border-radius:999px;padding:10px 18px;font-weight:800;background:linear-gradient(135deg,#4F46E5,#2F6FED)!important;color:#fff;box-shadow:0 8px 20px rgba(79,70,229,.3)}
+.us-menu-list{position:absolute;right:0;top:calc(100% + 8px);min-width:250px;background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-lg);padding:6px;z-index:80;display:grid;animation:usIn .18s ease}
+.us-menu-list button{text-align:left;border:0;background:transparent;padding:10px 12px;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer;color:var(--ink)}
+.us-menu-list button:hover{background:var(--gold-tint)}
+/* KPI */
+#univAnalytics{animation:usIn .3s ease}
+#univsearch .us-title{font-size:16px}
+.us-kpis{gap:12px}
+.us-kpi{border:1px solid var(--line)!important;border-top:1px solid var(--line)!important;border-radius:18px!important;background:linear-gradient(180deg,color-mix(in srgb,var(--c) 10%,var(--card)),var(--card) 65%)!important;box-shadow:var(--sh-sm);padding:16px 10px 12px!important;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}
+.us-kpi::before{content:'';position:absolute;left:0;top:0;right:0;height:4px;background:linear-gradient(90deg,var(--c),color-mix(in srgb,var(--c) 35%,#fff))}
+.us-kpi .ic{display:block;font-size:20px;margin-bottom:4px}
+.us-kpi .n{font-size:27px!important;font-weight:800;font-variant-numeric:tabular-nums}
+.us-kpi .l{color:var(--ink);opacity:.75}
+.uac-card,.us-insights{border-radius:18px;background:var(--card);border:1px solid var(--line)}
+.us-insights{background:linear-gradient(135deg,color-mix(in srgb,#6366F1 8%,var(--card)),var(--card))}
+/* परिणाम सारणी */
+table.us-res{border-collapse:separate!important;border-spacing:0;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--card);box-shadow:var(--sh-sm);animation:usIn .3s ease}
+.us-res thead th{background:linear-gradient(135deg,#1E2A45,#2B3F7A)!important;color:#fff!important;border:0!important;font-size:12px;letter-spacing:.2px}
+.us-res tbody td{border-bottom:1px solid var(--line)!important;border-left:0!important;border-right:0!important}
+.us-res tbody tr.rw:hover td,.us-res tbody tr.rw.open td{background:var(--gold-tint)!important}
+.us-res tr.dt td{background:var(--paper)!important}
+.us-badge{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 30%,transparent)}
+#univsearch .pager{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}
+#univsearch .pager button{border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 14px;cursor:pointer;font-family:inherit}
+#univsearch .pager button:hover{background:var(--gold-tint);border-color:#6366F1}
+.us-selbar{padding:10px 12px;border-radius:14px;background:var(--gold-tint);border:1px solid var(--line)}
+.us-selbar button{background:var(--card);color:var(--ink)}
+.us-selbar button.dl{background:#4F46E5!important;color:#fff!important}
+.us-hint,.us-err{background:var(--amber-tint);border:1px solid color-mix(in srgb,#F59E0B 45%,var(--line));border-radius:16px;padding:14px 16px;margin-top:12px}
+.us-err{background:var(--warn-tint)}
+.us-ainote{background:linear-gradient(135deg,color-mix(in srgb,#7C3AED 12%,var(--card)),color-mix(in srgb,#0EA5E9 10%,var(--card)))!important;color:var(--ink)}
+.us-pill{background:var(--blue-tint)!important;color:var(--ink)!important}
+.us-and{background:var(--card)!important}
+.usi-and{background:var(--card)!important}
+/* स्टार्ट-कार्ड */
+.us-start{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin-top:16px;animation:usIn .35s ease}
+.us-start h4{grid-column:1/-1;margin:0;font-size:14px;color:var(--soft)}
+.us-sc{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 14px;cursor:pointer;transition:all .2s;box-shadow:var(--sh-sm);text-align:left;font-family:inherit;color:var(--ink)}
+.us-sc:hover{transform:translateY(-3px);box-shadow:var(--sh-md);border-color:#6366F1}
+.us-sc .e{font-size:24px}.us-sc .t{font-weight:800;margin-top:4px}.us-sc .d{font-size:12px;color:var(--soft);margin-top:2px}
+/* डार्क मोड */
+html[data-theme="dark"] #univsearch .univ-suggest-item:hover{background:#232B3A}
+html[data-theme="dark"] .us-badge{background:color-mix(in srgb,var(--c) 22%,var(--card))}
+html[data-theme="dark"] .us-modal .us-mbox{background:var(--card);color:var(--ink)}
+html[data-theme="dark"] .us-bar{background:#2C3444}
+@media (max-width:640px){ #univsearch .ctx-bar{padding:12px;border-radius:20px} #univSearchInput{font-size:16px!important;padding:15px 48px 15px 46px!important} #univsearch .banner h1{font-size:23px} .us-menu-list{right:auto;left:0} }
+@media (prefers-reduced-motion:reduce){ #univsearch *,.us-modal *{animation:none!important;transition:none!important} }
+</style>
 </head>
 <body>
 <noscript><div style="padding:16px;margin:12px;background:#FEF3C7;color:#7C2D12;border-radius:12px;font-weight:600">⚠️ यह पोर्टल चलाने के लिए ब्राउज़र में JavaScript चालू होना ज़रूरी है।</div></noscript>
@@ -2552,7 +2657,8 @@ mark{background:#fde68a;border-radius:3px;padding:0 1px}
   <div class="banner" style="background:linear-gradient(180deg,var(--navy),var(--navy2))">
     <div class="b-icon">🔎</div>
     <h1>यूनिवर्सल सर्च</h1>
-    <p>Generic(13) + FIR Detail-Current Status + SAS Export — तीनों में एक साथ खोजें</p>
+    <div class="us-hero-pills"><span>Generic (13)</span><span>FIR Current Status</span><span>SAS Export</span><span>✨ AI खोज</span></div>
+    <div class="us-hero-stats" id="usHeroStats"></div>
   </div>
   <div class="wrap">
     <div class="ctx-bar">
@@ -2578,14 +2684,18 @@ mark{background:#fde68a;border-radius:3px;padding:0 1px}
 
       <div id="univStatusChips" class="us-chips"></div>
 
+      <div id="univActiveBar" class="us-fbar"></div>
+
       <div class="univ-filter-toolbar">
         <div class="ctx-title" style="margin:0;">🧰 फ़िल्टर (सभी मल्टीपल-सेलेक्ट — एक साथ कई विकल्प चुनें)</div>
         <div class="univ-filter-toolbar-actions">
+          <button type="button" id="univFToggle" class="univ-clear-btn" onclick="univToggleFilters()">▴ फ़िल्टर छिपाएँ</button>
           <span id="univFilterBadge" class="univ-filter-badge">कोई फ़िल्टर सक्रिय नहीं</span>
           <button type="button" id="univClearFiltersBtn" class="univ-clear-btn" onclick="clearAllUnivFilters()" disabled>✕ सभी फ़िल्टर हटाएं</button>
         </div>
       </div>
 
+      <div id="univFilterBody" class="us-fbody">
       <div class="univ-filter-group">
         <div class="univ-filter-group-label">📍 स्रोत व स्थान</div>
         <div class="ctx-grid">
@@ -2648,19 +2758,26 @@ mark{background:#fde68a;border-radius:3px;padding:0 1px}
         </div>
       </div>
 
+      </div>
+
       <div class="univ-filter-actions-row">
         <div id="univSearchCount" class="univ-search-count"></div>
-        <select class="us-sort" onchange="UNIV_PAGE_SIZE=+this.value;univPage=0;renderUnivPage()" title="प्रति पृष्ठ परिणाम"><option value="25">25 / पृष्ठ</option><option value="50">50 / पृष्ठ</option><option value="100">100 / पृष्ठ</option><option value="250">250 / पृष्ठ</option></select>
-        <select id="univSortSel" class="us-sort" onchange="univSortMode=this.value;runUniversalSearch()" title="क्रम चुनें">
+        <select id="univPageSizeSel" class="us-sort" onchange="UNIV_PAGE_SIZE=+this.value;univPage=0;renderUnivPage();try{localStorage.setItem('dkUsPs',this.value)}catch(e){}" title="प्रति पृष्ठ परिणाम"><option value="25">25 / पृष्ठ</option><option value="50">50 / पृष्ठ</option><option value="100">100 / पृष्ठ</option><option value="250">250 / पृष्ठ</option></select>
+        <select id="univSortSel" class="us-sort" onchange="univSortMode=this.value;try{localStorage.setItem('dkUsSort',this.value)}catch(e){};runUniversalSearch()" title="क्रम चुनें">
           <option value="default">↕ क्रम: डिफ़ॉल्ट</option><option value="new">नवीनतम पहले</option><option value="old">पुराने पहले</option><option value="ps">थाना अनुसार</option><option value="status">स्थिति अनुसार</option>
         </select>
-        <button class="btn-fill" onclick="univOpenDl()">⬇️ डाउनलोड विकल्प (कॉलम / चयनित / CSV-Excel)</button>
-        <button class="btn-fill" style="background:linear-gradient(135deg,#DC2626,#991B1B)" onclick="univOpenDl(null,'pdf')">📄 PDF रिपोर्ट</button>
-        <button class="btn-fill" style="background:linear-gradient(135deg,#2F6FED,#1D4ED8)" onclick="univOpenDl(null,'doc')">📝 Word रिपोर्ट</button>
-        <button class="btn-fill" style="background:linear-gradient(135deg,#138808,#0b5c05)" onclick="downloadUnivExcel()">📗 Excel (विश्लेषण सहित)</button>
+        <details class="us-menu"><summary class="btn-fill">⬇️ डाउनलोड ▾</summary><div class="us-menu-list">
+          <button type="button" onclick="univMenu(()=>univOpenDl())">⚙️ कस्टम डाउनलोड (कॉलम / चयनित / फ़ॉर्मेट)…</button>
+          <button type="button" onclick="univMenu(()=>univOpenDl(null,'pdf'))">📄 PDF रिपोर्ट (आकर्षक सूची)</button>
+          <button type="button" onclick="univMenu(()=>univOpenDl(null,'doc'))">📝 Word रिपोर्ट</button>
+          <button type="button" onclick="univMenu(()=>univOpenDl(null,'xlsx'))">📗 Excel (.xlsx)</button>
+          <button type="button" onclick="univMenu(()=>univOpenDl(null,'csv'))">🧾 CSV</button>
+          <button type="button" onclick="univMenu(()=>downloadUnivExcel())">📊 Excel — विश्लेषण सहित (सारांश + थाना-वार)</button>
+        </div></details>
       </div>
     </div>
 
+    <div id="univStartBox"></div>
     <div id="univAnalytics"></div>
 
     <div id="univSearchResults"></div>
@@ -9811,7 +9928,7 @@ function debouncedUnivSearch(){
 }
 function onUnivSearchInput(){
   univActiveScope = null; // टाइप करते समय पुराना जबरन-स्कोप हटाएं
-  buildUnivSuggestions();
+  clearTimeout(window._univSugT); window._univSugT=setTimeout(()=>buildUnivSuggestions(),(SEARCH_IDX&&SEARCH_IDX.length>25000)?220:90);   // तेज़ टाइपिंग में हर अक्षर पर भारी गणना नहीं
   debouncedUnivSearch();
 }
 function runUniversalSearch(){
@@ -10595,8 +10712,9 @@ async function univAiSearch(q){
   if(q.length<3){ toast('सामान्य भाषा में पूरा वाक्य लिखें'); return; }
   hideUnivSuggestions();
   const el=document.getElementById('univStatusChips'); if(el) el.innerHTML='<span class="us-ainote">🤖 समझ रहा है…</span>';
-  let plan,src='local',failed='';
+  const tok=(window._univAiTok=(window._univAiTok||0)+1); let plan,src='local',failed='';
   if(univAiOn()){ try{ plan=await univAiCall(q); src='ai'; }catch(e){ console.error(e); failed=String(e.message||'त्रुटि'); toast('AI अभी उपलब्ध नहीं ('+failed+') — स्थानीय स्मार्ट-खोज चलाई'); } }
+  if(tok!==window._univAiTok) return;
   if(!plan){ plan=univNLLocal(q); if(failed) plan.explain+=' (AI अभी उपलब्ध नहीं: '+failed+' — स्थानीय स्मार्ट-खोज चली)'; }
   univApplyPlan(plan,src);
 }
@@ -10668,6 +10786,77 @@ function univCatInject(){
 const _uoi=univOffInject; univOffInject=function(){ _uoi(); try{ univCatInject(); }catch(e){ console.error(e); } };
 
 function univCatLabelOf(r){ if(!r.cats) return '—'; const fs=univCatFieldSet.size?[...univCatFieldSet].filter(f=>r.cats[f]):Object.keys(r.cats).filter(f=>r.cats[f]); const f=fs[0]; if(!f) return '—'; const v=r.cats[f]; return (CHART_TITLES[f]||f)+' › '+v+(CAT_HI[v]?' ('+CAT_HI[v]+')':''); }
+/* ===== v64 — आधुनिक UI व तकनीकी सुधार: सक्रिय फ़िल्टर-चिप्स, फ़िल्टर-पैनल, स्टार्ट-कार्ड, तेज़ गिनती (इन्वर्टेड इंडेक्स), त्रुटि-सुरक्षा ===== */
+// ---- तेज़ अपराध-गिनती: धारा→प्रकरण इन्वर्टेड इंडेक्स (एक बार बनता है; 40,000 प्रकरणों पर भी सुझाव-सूची तुरंत) ----
+function univKeyIndex(){
+  const ref=SEARCH_IDX, c=window.__kix; if(c&&c.ref===ref&&c.n===ref.length&&c.b===univSecBasis) return c;
+  const map=Object.create(null), sll={}, N=ref.length; OFF_SLL.forEach(x=>{ sll[x.id]=[]; });
+  for(let i=0;i<N;i++){ const r=ref[i]; r._i=i; for(const k of univRecKeys(r)){ (map[k]||(map[k]=[])).push(i); } const T=univSllText(r); for(const x of OFF_SLL){ if(x.re.test(T)) sll[x.id].push(i); } }
+  return (window.__kix={ref,n:N,b:univSecBasis,map,sll});
+}
+function univOffCounted(q){
+  const kx=univKeyIndex(), pool=getUnivFilteredPool(), inP=new Uint8Array(kx.n), seen=new Uint8Array(kx.n);
+  pool.forEach(r=>{ if(r._i!==undefined) inP[r._i]=1; });
+  return univOffMatches(q).map(o=>{ let n=0;
+    if(o.t==='l'){ (kx.sll[o.id]||[]).forEach(i=>{ if(inP[i]) n++; }); }
+    else { seen.fill(0); o.keys.forEach(k=>{ (kx.map[k]||[]).forEach(i=>{ if(inP[i]&&!seen[i]){ seen[i]=1; n++; } }); }); }
+    o.cnt=n; return o; }).filter(o=>o.cnt>0);
+}
+// ---- सक्रिय फ़िल्टर चिप्स (हर एक ✕ से हटाएँ) ----
+const UNIV_FSET_LABELS=['डेटा स्रोत','थाना','वर्ष','माह','Information Source','Punishment Year','Act प्रकार','F.R. उप-श्रेणी','अपराध श्रेणी','अपराध उपश्रेणी','स्थिति'];
+function univFVal(i,v){ if(i===1) return ENG2HI_PS[v]||v; if(i===3) return (typeof MONTH_NAMES_HI!=='undefined'&&MONTH_NAMES_HI[v])||v; if(i===7) return (FR_SUB_LABELS[v]||v).split(' (')[0]; if(i===8) return CHART_TITLES[v]||v; if(i===10) return US_LBL[v]||v; return v; }
+function univRenderActiveBar(){
+  const el=document.getElementById('univActiveBar'); if(!el) return;
+  const chip=(l,v,js)=>`<span class="us-fchip">${escHtml(l)}: <b>${escHtml(v)}</b><a href="#" onclick="${js};return false" title="हटाएं">✕</a></span>`, out=[];
+  const q=document.getElementById('univSearchInput').value.trim(); if(q) out.push(chip('खोज',q,'univClearQ()'));
+  if(univDateFrom||univDateTo) out.push(chip('दिनांक',(univDateFrom||'…')+' → '+(univDateTo||'…'),"univDateFrom='';univDateTo='';univSyncDates();runUniversalSearch()"));
+  if(univSecBasis!=='all') out.push(chip('धारा-आधार',univSecBasis==='base'?'FIR दर्ज (INV. BASE)':'REG Act Section','univSetBasis(\'all\');document.getElementById(\'univSecBasisSel\').value=\'all\''));
+  UNIV_FILTER_SETS.slice(0,11).forEach((s,i)=>{ [...s].forEach(v=>{ out.push(chip(UNIV_FSET_LABELS[i],univFVal(i,v),`univRmF(${i},${JSON.stringify(String(v)).replace(/"/g,'&quot;')})`)); }); });
+  el.innerHTML=out.length?`<span class="lbl">सक्रिय:</span>`+out.join(''):'';
+}
+function univRmF(i,v){
+  const s=UNIV_FILTER_SETS[i]; [...s].forEach(x=>{ if(String(x)===v) s.delete(x); });
+  const ms=[msUnivSrc,msUnivPs,msUnivYear,msUnivMonth,msUnivInfo,msUnivPunishYear,msUnivAct,msUnivFr,msUnivCatField,null,msUnivStatus][i]; if(ms) ms.refresh();
+  if(i===8){ populateUnivCatValueOptions(); }
+  runUniversalSearch();
+}
+// ---- फ़िल्टर-पैनल खोलना/समेटना (याद रहता है; मोबाइल पर डिफ़ॉल्ट बंद) ----
+function univApplyFPanel(){
+  const b=document.getElementById('univFilterBody'), t=document.getElementById('univFToggle'); if(!b||!t) return;
+  let v=null; try{ v=localStorage.getItem('dkUsFOpen'); }catch(e){}
+  const open=v===null?(window.innerWidth>=700):v==='1'; b.classList.toggle('collapsed',!open); t.textContent=open?'▴ फ़िल्टर छिपाएँ':'▾ फ़िल्टर दिखाएँ';
+}
+function univToggleFilters(){ const b=document.getElementById('univFilterBody'); const open=b.classList.contains('collapsed'); try{ localStorage.setItem('dkUsFOpen',open?'1':'0'); }catch(e){} univApplyFPanel(); }
+// ---- स्टार्ट-कार्ड, हीरो-आँकड़े, KPI आइकन ----
+const UNIV_START=[['🔪','केवल हत्या','BNS 103 / IPC 302','हत्या'],['🚸','नाबालिग अपहरण','IPC 363 / BNS 137(2)','नाबालिग अपहरण'],['🔗','अपहरण + बलात्कार एक साथ','एक ही प्रकरण में दोनों धाराएँ','अपहरण और बलात्कार'],['🧒','POCSO वर्ष-वार संख्या','वाक्य से पिवट अपने-आप','पोक्सो एक्ट वर्ष वार संख्या'],['🔥','1 वर्ष से अधिक पेंडिंग','थाना-वार पिवट सहित','1 वर्ष से अधिक पेंडिंग प्रकरण थानावार संख्या'],['💵','फर्जी करेंसी','BNS 178–188','फर्जी करेंसी'],['📋','CCTNS हेड: चोरी','श्रेणी › उपश्रेणी अनुसार','CCTNS हेड चोरी'],['⚖️','FIR दर्ज धारा 137','INV. BASE ACT & SECTION अनुसार','FIR दर्ज धारा 137']];
+const UNIV_KPI_IC={'कुल प्रकरण':'📁','चालान':'✅','एफ.आर.':'📝','पेंडिंग (अनुसंधान + 193(9))':'⏳','री-ओपन':'🔁','रिफ्यूज FIR':'🚫','निस्तारण दर':'📈','1 वर्ष से अधिक पेंडिंग':'🔥','औसत पेंडिंग आयु (दिन)':'🕒','तीनों स्रोतों में मिलान':'🔗'};
+function univPolish(){
+  univRenderActiveBar();
+  const h=document.getElementById('usHeroStats');
+  if(h&&SEARCH_IDX&&SEARCH_IDX.length&&h.dataset.n!==String(SEARCH_IDX.length)){ h.dataset.n=SEARCH_IDX.length; const ds=SEARCH_IDX.map(e=>String(e.date||'').slice(0,10)).filter(Boolean).sort(); h.innerHTML=`<b>${SEARCH_IDX.length.toLocaleString('en-IN')}</b> प्रकरण · ${new Set(SEARCH_IDX.map(e=>e.ps)).size} थाने${ds.length?` · ${ds[0].slice(0,4)}–${ds[ds.length-1].slice(0,4)}`:''}`; }
+  document.querySelectorAll('#univAnalytics .us-kpi').forEach(k=>{ if(k.querySelector('.ic')) return; const l=k.querySelector('.l'); const ic=l&&UNIV_KPI_IC[l.textContent.trim()]; if(ic) k.insertAdjacentHTML('afterbegin',`<span class="ic">${ic}</span>`); });
+  const q=document.getElementById('univSearchInput').value.trim();
+  const sb2=document.getElementById('univStartBox');
+  if(!(q.length<2&&!univAnyFilterActive()&&!univResultsFull.length)){ if(sb2) sb2.innerHTML=''; }
+  else { const b=sb2; if(b) b.innerHTML=`<div class="us-start"><h4>✨ शुरू करने के लिए कोई उदाहरण चुनें — या ऊपर सामान्य भाषा में लिखें</h4>${UNIV_START.map(c=>`<button type="button" class="us-sc" data-q="${escHtml(c[3])}" onclick="univAiSearch(this.dataset.q)"><div class="e">${c[0]}</div><div class="t">${escHtml(c[1])}</div><div class="d">${escHtml(c[2])}</div></button>`).join('')}</div>`; }
+}
+const _uasBase5=univAfterSearch; univAfterSearch=function(){ _uasBase5(); try{ univPolish(); univApplyFPanel(); univRestorePrefs(); }catch(e){ console.error(e); } };
+let _prefsDone=false;
+function univRestorePrefs(){ if(_prefsDone) return; _prefsDone=true; try{ const ps=localStorage.getItem('dkUsPs'), so=localStorage.getItem('dkUsSort'); if(ps&&[25,50,100,250].includes(+ps)){ UNIV_PAGE_SIZE=+ps; const e=document.getElementById('univPageSizeSel'); if(e) e.value=ps; } if(so){ univSortMode=so; const e=document.getElementById('univSortSel'); if(e) e.value=so; } }catch(e){} }
+// ---- त्रुटि-सुरक्षा, अनुकूली डिबाउंस, शॉर्टकट, मेन्यू ----
+const _rus=runUniversalSearch;
+runUniversalSearch=function(){ try{ _rus(); }catch(e){ console.error(e); const b=document.getElementById('univSearchResults'); if(b) b.innerHTML='<div class="us-err">⚠️ खोज में त्रुटि: '+escHtml(e.message||String(e))+' — फ़िल्टर हटाकर दोबारा प्रयास करें।</div>'; } };
+debouncedUnivSearch=function(){ clearTimeout(univSearchDebounceTimer); univSearchDebounceTimer=setTimeout(()=>runUniversalSearch(),(SEARCH_IDX&&SEARCH_IDX.length>25000)?260:150); };
+document.addEventListener('keydown',e=>{
+  const pg=document.getElementById('univsearch'); if(!pg||pg.offsetParent===null) return;
+  const tag=(e.target.tagName||'').toLowerCase(), typing=tag==='input'||tag==='textarea'||tag==='select';
+  if(e.key==='/'&&!typing){ e.preventDefault(); const i=document.getElementById('univSearchInput'); i.focus(); i.select(); }
+  if(e.key==='Escape'){ document.querySelectorAll('.us-menu[open]').forEach(m=>m.removeAttribute('open')); const sb=document.getElementById('univSuggestBox'); if(sb) sb.style.display='none'; }
+});
+document.addEventListener('click',e=>{ document.querySelectorAll('.us-menu[open]').forEach(m=>{ if(!m.contains(e.target)) m.removeAttribute('open'); }); });
+function univMenu(js){ document.querySelectorAll('.us-menu[open]').forEach(m=>m.removeAttribute('open')); js(); }
+if(window.requestIdleCallback) setTimeout(()=>requestIdleCallback(()=>{ try{ if(SEARCH_IDX&&SEARCH_IDX.length) univKeyIndex(); }catch(e){} },{timeout:4000}),3000);
+
 // hook new pages into nav
 const _origGo = go;
 go = function(id){
