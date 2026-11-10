@@ -1369,6 +1369,44 @@ html #toast{border-radius:var(--r-pill);box-shadow:var(--sh-lg)}
 .ap-chip{font-size:12px;border-radius:12px;padding:2px 9px;border:1px solid}
 .ap-c-ok{background:#e6f5ea;color:#1b5e20;border-color:#a5d6a7}.ap-c-warn{background:#fff3d6;color:#8a5a00;border-color:#f0c75e}.ap-c-err{background:#fde7e7;color:#b71c1c;border-color:#ef9a9a}
 .case-row.ap-lv-ok{box-shadow:inset 4px 0 0 #43a047}.case-row.ap-lv-warn{box-shadow:inset 4px 0 0 #f9a825}.case-row.ap-lv-err{box-shadow:inset 4px 0 0 #e53935}
+
+/* ===== v65 — सूचना-पेज: टाइपिंग विकल्प हाइलाइट + अपराध शाखा सहूलियतें ===== */
+.typing-bar{position:sticky;top:0;z-index:40;background:linear-gradient(135deg,#EAF0FF,#F7FAFF);border:2px solid #2F6FED;box-shadow:0 4px 14px rgba(47,111,237,.22);padding:11px 14px;transition:border-color .2s,background .2s}
+#typing-bar[data-mode=mangal]{border-color:#2E7D32;background:linear-gradient(135deg,#E8F5E9,#F8FCF8);box-shadow:0 4px 14px rgba(46,125,50,.2)}
+#typing-bar[data-mode=devlys]{border-color:#E65100;background:linear-gradient(135deg,#FFF1E6,#FFFAF5);box-shadow:0 4px 14px rgba(230,81,0,.2)}
+.typing-bar.need-pick{animation:tbPulse 1.6s ease-in-out infinite}
+@keyframes tbPulse{0%,100%{box-shadow:0 0 0 0 rgba(47,111,237,.6)}50%{box-shadow:0 0 0 9px rgba(47,111,237,0)}}
+.typing-ttl{font-size:14.5px}
+.typing-top button{padding:8px 15px;font-size:14px;min-height:38px}
+.typing-top button.on{box-shadow:0 2px 8px rgba(27,58,138,.4)}
+.typing-top button.on::before{content:"✔ "}
+.typing-now{margin-left:auto;background:#1B3A8A;color:#fff;border-radius:14px;padding:3px 11px;font-size:12px;font-weight:800}
+#typing-bar[data-mode=mangal] .typing-now{background:#2E7D32}#typing-bar[data-mode=devlys] .typing-now{background:#E65100}
+.typing-pick-note{display:none;font-size:12.5px;font-weight:800;color:#B3261E;margin-top:6px}
+.typing-bar.need-pick .typing-pick-note{display:block}
+.typing-bar.compact .typing-help,.typing-bar.compact .typing-more,.typing-bar.compact .typing-pick-note{display:none}
+#typing-pill{border:2px solid #fff;background:#2F6FED;color:#fff;border-radius:20px;padding:7px 12px;font-weight:800;font-size:12.5px;cursor:pointer;white-space:nowrap}
+#typing-pill[data-mode=mangal]{background:#2E7D32}#typing-pill[data-mode=devlys]{background:#E65100}
+#entry-overlay[data-typing=mangal] .case-field input:focus,#entry-overlay[data-typing=mangal] .case-field textarea:focus{border-color:#2E7D32!important;box-shadow:0 0 0 3px rgba(46,125,50,.25)!important}
+#entry-overlay[data-typing=devlys] .case-field input:focus,#entry-overlay[data-typing=devlys] .case-field textarea:focus{border-color:#E65100!important;box-shadow:0 0 0 3px rgba(230,81,0,.25)!important}
+.apadv-bar{top:calc(var(--tb-h,0px) + 6px)}
+.apadv-actions button.on{background:#1B3A8A;color:#fff;border-color:#1B3A8A}
+.case-row:focus-within{outline:2px solid #2F6FED;outline-offset:1px}
+#cases-form.ap-only-issues .case-row:not(.ap-lv-warn):not(.ap-lv-err){display:none}
+.ap-rc-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.ap-rc,.ap-fd{border:1px solid #c5d3f0;background:#F4F7FF;border-radius:14px;padding:3px 9px;font-size:11.5px;cursor:pointer;font-family:inherit}
+.ap-fd{background:#FFF8E1;border-color:#f0c75e;font-weight:700}
+.save-bar{position:sticky;bottom:0;z-index:35;box-shadow:0 -4px 14px rgba(0,0,0,.12)}
+.ap-fmt-st{margin-left:auto;font-size:11.5px;font-weight:800;border-radius:12px;padding:3px 9px;background:#f2f2f2;color:#555}
+.ap-fmt-st.done{background:#e6f5ea;color:#1b5e20}.ap-fmt-st.todo{background:#fff3d6;color:#8a5a00}
+.ap-prog{margin-top:10px;font-size:12.5px;font-weight:700;color:#243066}
+.ap-prog i{display:block;height:7px;border-radius:5px;background:#e3e8f5;margin-top:5px;overflow:hidden}.ap-prog i b{display:block;height:100%;background:linear-gradient(90deg,#2F6FED,#2E7D32);transition:width .3s}
+details.ap-share{margin-bottom:14px}details.ap-share>summary{cursor:pointer;font-weight:700;font-size:13px;color:#128C7E;padding:8px 2px}
+@media(max-width:700px){.apadv-bar{position:static}.save-bar p{display:none}.case-grid{margin-left:0}.case-row{padding-top:44px}.case-row-num{top:10px}}
+@media(max-width:700px){#entry-overlay input[type=text],#entry-overlay input[type=number],#entry-overlay textarea,#entry-overlay select,.ctx-grid select{font-size:16px!important}}
+.ap-fmt-st{white-space:nowrap}
+
+
 #ap-ac{position:fixed;z-index:2000;background:#fff;border:1.5px solid #9db3e6;border-radius:10px;box-shadow:0 8px 22px rgba(0,0,0,.2);max-height:300px;overflow:auto;display:none}
 .ap-ac-h{font-size:11px;color:#667;padding:5px 10px;background:#f4f7ff;border-bottom:1px solid #dde6fa}
 .ap-ac-i{padding:7px 10px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:13px}.ap-ac-i span{color:#555;margin-left:8px}.ap-ac-i small{display:block;color:#777;margin-top:2px}
@@ -1403,6 +1441,41 @@ table.mk-mx{border-collapse:separate;border-spacing:0;font-size:12.5px;width:100
 .mk-tot td{background:#FFF1D6;font-weight:800}.mk-sub td{background:#F3F0FA;font-weight:700}.mk-cir td{background:#7A1F2B;color:#fff;font-weight:700;text-align:left}
 .mk-nums td{text-align:right}.mk-nums td.mk-th{text-align:left}.mk-nf{color:#b71c1c}
 .mk-iss{max-height:340px;overflow:auto}
+
+/* ===== v67 — मालखाना स्मार्ट फॉर्म ===== */
+.mkf{display:grid;gap:14px}
+.mk-sec{background:var(--card,#fff);border:1px solid var(--line,#e3e6ee);border-radius:16px;padding:14px;box-shadow:0 2px 8px rgba(30,50,110,.06)}
+.mk-sec-h{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-weight:800;color:#1B2A5C;font-size:14.5px}
+.mk-sec-h small{margin-left:auto;font-weight:700;font-size:12px;color:#667;background:#eef2ff;border-radius:12px;padding:2px 10px}.mk-sec-h small.full{background:#e6f5ea;color:#1b5e20}
+.mk-rel{font-size:11.5px;color:#667;margin-bottom:10px}
+.mk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:13px}
+.mk-fld label{display:block;font-size:12px;font-weight:700;color:#445;margin-bottom:4px;line-height:1.35}.mk-fld label small{color:#2E7D32}
+.mk-inp{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.mk-inp input{flex:1 1 72px;min-width:0;height:46px;text-align:center;font-size:18px;font-weight:700;border:2px solid #E8C555;background:#FFFBEA;border-radius:12px;font-family:inherit;color:var(--ink,#222)}
+.mk-inp input:focus{outline:none;border-color:#2F6FED;box-shadow:0 0 0 3px rgba(47,111,237,.2);background:#fff}
+.mk-st{flex:0 0 42px;height:46px;border:1.5px solid #c5d3f0;background:#F4F7FF;border-radius:12px;font-size:20px;font-weight:800;color:#1B3A8A;cursor:pointer;user-select:none}
+.mk-inp .mk-prev{flex:0 0 100%}
+.mk-auto{height:46px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:#e6f5ea;color:#1b5e20;font-weight:800;font-size:20px;border:2px dashed #81c784}
+.mk-auto.mk-bad,.mk-auto.neg{background:#fdeaea;color:#b71c1c;border-color:#e53935}
+.mk-fmsg{font-size:11.5px;font-weight:700;margin-top:4px;display:none;line-height:1.4}
+.mk-fld.bad .mk-fmsg{display:block;color:#b71c1c}.mk-fld.warn .mk-fmsg{display:block;color:#8a5a00}
+.mk-fld.bad .mk-inp input{border-color:#e53935;background:#fff5f5}.mk-fld.warn .mk-inp input{border-color:#f9a825}
+#mk-bottom{margin-top:14px;display:grid;gap:10px}
+.mk-bh{font-weight:800;color:#243066}
+.mk-bp{border:1.5px solid;border-radius:12px;padding:9px 12px;font-size:13px;line-height:1.5;cursor:pointer}
+.mk-bp.err{background:#fde7e7;color:#b71c1c;border-color:#ef9a9a}.mk-bp.warn{background:#fff3d6;color:#8a5a00;border-color:#f0c75e}.mk-bp.info{background:#eef2ff;color:#243066;border-color:#c5d3f0;cursor:default}.mk-bp.ok{background:#e6f5ea;color:#1b5e20;border-color:#a5d6a7;cursor:default;font-weight:700}
+.mk-sg-wrap{background:#FFF8E1;border:1.5px solid #f0c75e;border-radius:12px;padding:10px 12px}.mk-sg-wrap b{display:block;margin-bottom:6px;color:#7a5300}
+.mk-sg{border:1.5px solid #e0b33a;background:#fff;border-radius:18px;padding:5px 12px;font-size:12.5px;font-weight:700;cursor:pointer;margin:0 6px 6px 0;font-family:inherit}
+.mk-act{background:linear-gradient(135deg,#F1F8FF,#fff);border:1.5px solid #90caf9;border-radius:14px;padding:12px 14px;color:#0d3c6b;font-size:13px;line-height:1.55}
+.mk-act-t{font-weight:800;margin-bottom:4px}.mk-act .n{font-size:20px}
+.mk-chips{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}.mk-chips span{background:#fff;border:1px solid #bbdefb;border-radius:12px;padding:2px 9px;font-size:12px;font-weight:700}
+.mk-act-n{margin-top:6px;background:#fff;border-left:4px solid #1976d2;border-radius:6px;padding:6px 10px}.mk-act-s{font-size:11.5px;color:#557;margin-top:5px}
+#mk-adv-msgs{display:none}.mkadv-bar{top:calc(var(--tb-h,0px) + 6px)}
+body.thana-view #mk-cc,body.mon-restricted #mk-cc,body.pgs-restricted #mk-cc{display:none!important}
+
+@media(max-width:700px){.mkadv-bar{position:static}.mk-grid{grid-template-columns:1fr 1fr}.mk-st{flex-basis:38px}.mk-inp input{font-size:17px}}
+@media(max-width:400px){.mk-grid{grid-template-columns:1fr}}
+
 </style>
 <style>
 /* ===== v50: यूनिवर्सल सर्च — स्थिति चिप्स व एडवांस विश्लेषण ===== */
@@ -2815,6 +2888,7 @@ html[data-theme="dark"] .us-bar{background:#2C3444}
       प्रत्येक प्रारूप में थाने के <b>एक से अधिक प्रकरण</b> दर्ज किए जा सकते हैं। डेटा सेव होने पर हर माह अलग-अलग सुरक्षित रहता है।
     </div>
 
+    <details class="ap-share"><summary>🔗 थानों को लिंक भेजें (एडमिन के लिए)</summary>
     <div class="pcard" style="--ca:#128C7E;margin-bottom:14px">
       <div class="pcard-head"><div class="pcard-icon">🔗</div><span class="pcard-badge" style="background:#e7f7f2;color:#128C7E">थानों को लिंक भेजें</span></div>
       <div class="pcard-title">इस पेज की सीधी लिंक शेयर करें</div>
@@ -2824,6 +2898,7 @@ html[data-theme="dark"] .us-bar{background:#2C3444}
         <button class="btn-fill sm" style="background:linear-gradient(135deg,#25D366,#128C7E)" onclick="branchShareWhatsapp('apradh','🚨 अपराध शाखा')">📲 WhatsApp पर भेजें</button>
       </div>
     </div>
+    </details>
 
     <div class="ctx-bar" id="ap-ctx">
       <div class="ctx-title">📍 पहले नीचे चुनें — थाना, वर्ष व माह</div>
@@ -3775,17 +3850,19 @@ function reply(obj) {
       <h2 id="entry-title">डेटा भरें</h2>
       <p id="entry-subtitle">सांख्यिकी शाखा सूचना पोर्टल</p>
     </div>
+    <button type="button" id="typing-pill" onclick="typingCycle()" title="टाइपिंग तरीका बदलें (Alt+1/2/3)">⌨️ English</button>
     <button class="btn-fill sm" id="entry-save-btn-top" style="background:var(--gold);color:var(--navy2)" onclick="saveEntry()">💾 सेव करें</button>
   </div>
   <div class="entry-strip"><span></span><span></span><span></span></div>
   <div class="entry-body">
     <div class="entry-wrap">
       <div id="typing-bar" class="typing-bar">
-        <div class="typing-top"><span class="typing-ttl">⌨️ टाइपिंग विकल्प</span>
+        <div class="typing-top"><span class="typing-ttl">⌨️ टाइपिंग विकल्प <small style="font-weight:600;color:#556">(Alt+1/2/3)</small></span>
           <button type="button" data-tmode="en" onclick="setTypingMode('en')">🔤 English</button>
           <button type="button" data-tmode="mangal" onclick="setTypingMode('mangal')">अ Mangal (हिंदी यूनिकोड)</button>
           <button type="button" data-tmode="devlys" onclick="setTypingMode('devlys')">क DevLys (कृतिदेव कीबोर्ड)</button>
-          <span id="typing-tmp" class="typing-tmp" style="display:none">⏸ अस्थायी English (Ctrl+Space से वापस)</span></div>
+          <span id="typing-tmp" class="typing-tmp" style="display:none">⏸ अस्थायी English (Ctrl+Space से वापस)</span><span id="typing-now" class="typing-now"></span></div>
+        <div class="typing-pick-note">👆 हिंदी भरने से पहले अपना टाइपिंग तरीका चुनें — एक बार चुनने पर याद रहेगा</div>
         <div id="typing-help" class="typing-help"></div>
         <details class="typing-more"><summary>🧪 टाइप करके जाँचें / 📋 DevLys पाठ → यूनिकोड कनवर्टर</summary>
           <input type="text" id="typing-test" placeholder="यहाँ टाइप करके देखें… (चुने गए विकल्प के अनुसार)">
@@ -4720,6 +4797,7 @@ function go(id){
   const btn=document.querySelector(`nav button[data-pg="${id}"]`);
   if(btn) btn.classList.add('on');
   window.scrollTo({top:0});
+  if(typeof apCtxRestoreFor==='function'){ if(id==='apradh') apCtxRestoreFor('ap'); else if(id==='summon') apCtxRestoreFor('sv'); else if(id==='malkhana') apCtxRestoreFor('mk'); }
   if(id==='dashboard' && typeof renderAll==='function'){ if(typeof initControls==='function') initControls(); renderAll(); }
   if(id==='crimeAnalysis' && typeof caInit==='function') caInit();
   if(id==='mob' && typeof mobInit==='function') mobInit();
@@ -4777,9 +4855,9 @@ function initSelects(){
   const dtb=document.getElementById('dt-branch');
   if(dtb) dtBranchChanged(); // अब year/month डिफ़ॉल्ट सेट होने के बाद ही प्रारूप लिस्ट + डेटा लोड करें
 }
-function apCtxUpdate(){ ctxUpdate('ap','ap-ctx-status'); }
-function svCtxUpdate(){ ctxUpdate('sv','sv-ctx-status'); }
-function mkCtxUpdate(){ ctxUpdate('mk','mk-ctx-status'); }
+function apCtxUpdate(){ ctxUpdate('ap','ap-ctx-status'); apSaveThana('ap'); try{ apPageStatus(); }catch(e){} }
+function svCtxUpdate(){ ctxUpdate('sv','sv-ctx-status'); apSaveThana('sv'); try{ apPageStatus(); }catch(e){} }
+function mkCtxUpdate(){ ctxUpdate('mk','mk-ctx-status'); apSaveThana('mk'); try{ apPageStatus(); }catch(e){} }
 function ctxUpdate(pre, statusId){
   const t=document.getElementById(pre+'-thana').value;
   const y=document.getElementById(pre+'-year').value;
@@ -5106,7 +5184,7 @@ function renderApradhRow(cfg,r,i){
     const val=r[k]||'';
     const isLong=k==='vivaran'||k==='karan'||k==='ao';
     if(isLong){
-      fields+=`<div class="case-field" style="grid-column:span 2"><label>${col}</label><textarea name="${k}" rows="2">${val}</textarea></div>`;
+      fields+=`<div class="case-field" style="grid-column:span 2"><label>${col}</label><textarea name="${k}" rows="2">${escHtml(val)}</textarea>${apChipsHtml(k)}</div>`;
     } else {
       fields+=`<div class="case-field"><label>${col}</label><input type="text" name="${k}" value="${escHtml(val)}"></div>`;
     }
@@ -5667,9 +5745,10 @@ function openMalkhanaEntry(fmtKey){
   document.getElementById('entry-help').style.display='block';
   document.getElementById('entry-help').innerHTML=`
     <h3>📋 भरने के निर्देश — ${cfg.title}</h3>
-    <div class="help-step"><span class="help-num">1</span><span>नीचे टेबल में केवल <b>सफ़ेद खाने</b> भरें — मोबाइल व कंप्यूटर दोनों से आसानी से भर सकते हैं।</span></div>
+    <div class="help-step"><span class="help-num">1</span><span>हर खाने में संख्या भरें — <b>− / +</b> बटन से घटा-बढ़ा सकते हैं, <b>Enter</b> दबाने पर अगला खाना खुलता है। खाली खानों के लिए नीचे <b>"💡 सहायता"</b> से 0 भर सकते हैं।</span></div>
     <div class="help-step"><span class="help-num">2</span><span><b>हरे रंग के खाने</b> (योग/शेष) स्वतः जुड़ते/घटते हैं — इन्हें न भरें।</span></div>
-    <div class="help-step"><span class="help-num">3</span><span>सभी खाने भरने के बाद <b>"💾 सेव करें"</b> जरूर दबाएँ।</span></div>`;
+    <div class="help-step"><span class="help-num">3</span><span>गलत/असंगत संख्या होने पर खाने के नीचे व पेज के अंत में <b>लाल/पीले संदेश</b> आएँगे — संदेश पर टैप करने से सीधे उसी खाने पर पहुँचेंगे।</span></div>
+    <div class="help-step"><span class="help-num">4</span><span>सभी खाने भरने के बाद <b>"💾 सेव करें"</b> जरूर दबाएँ।</span></div>`;
 
   entryCtx._cfg=cfg; entryCtx._key=key;
   let mkData=saved.data||{};
@@ -5688,6 +5767,7 @@ function openMalkhanaEntry(fmtKey){
 }
 
 function renderMalkhanaTable(cfg, data, monthName, year){
+  if(typeof mkGuidedOk==='function' && mkGuidedOk(cfg)) return mkRenderGuided(cfg, data, monthName, year);
   const cols=cfg.cols, rows=cfg.rows;
   const hasGrp=cols.some(c=>c.grp);
   let extraHtml='';
@@ -5757,6 +5837,7 @@ function renderMalkhanaTable(cfg, data, monthName, year){
       <tbody>${tbodyHtml}${footHtml}</tbody>
     </table></div>`;
 
+  mkV2Bottom();
   recalcMalkhana();
   mkAdvAfterRender();
 }
@@ -5921,6 +6002,7 @@ function saveEntry(){
 
   if(saveData(_key, payload)){
     apDraftClear();
+    try{ apPageStatus(); }catch(e){}
     if(branch==='malkhana' && typeof renderMkCommand==='function'){ _mkCc.year=year; _mkCc.month=month; try{ renderMkCommand(); }catch(e){} }
     toast('✅ डेटा सफलतापूर्वक सेव हो गया — '+monthName+' '+year);
     showNextFormatPrompt(branch,type);
@@ -5943,6 +6025,7 @@ function closeEntry(){
   const shareBtn=document.getElementById('entry-share-link-btn');
   if(shareBtn) shareBtn.style.display='none';
   entryCtx=null;
+  try{ apPageStatus(); }catch(e){}
 }
 
 // ============================================================
@@ -12571,8 +12654,8 @@ function apRenderRowChips(out){
 function apAdvBarHtml(){
   return '<div id="ap-adv-bar" class="apadv-bar"><div id="ap-adv-stats" class="apadv-stats"></div>'+
    '<div class="apadv-actions"><button type="button" onclick="apShowMissing()">🔎 छूटे CCTNS प्रकरण <b id="ap-miss-n">0</b></button>'+
-   '<button type="button" onclick="apAdvRefresh(true)">🔄 CCTNS से पुनः जाँचें</button>'+
-   '<span class="apadv-keys">⌨️ Ctrl+S सेव • Ctrl+Enter नई पंक्ति • Enter अगला खाना</span></div><div id="ap-draft-banner"></div></div>';
+   '<button type="button" onclick="apJumpNext()">⏭ अगला खाली खाना</button><button type="button" id="ap-only-btn" onclick="apToggleIssues()">⚠️ सिर्फ अधूरी पंक्तियाँ</button><button type="button" onclick="apAdvRefresh(true)">🔄 CCTNS से पुनः जाँचें</button>'+
+   '<span class="apadv-keys">⌨️ Ctrl+S सेव • Ctrl+Enter नई पंक्ति • Enter अगला खाना • Ctrl+Space अस्थायी English</span></div><div id="ap-draft-banner"></div></div>';
 }
 function apAdvRefresh(now){
   clearTimeout(_apTimer); _apTimer=setTimeout(apAdvRun, now?0:250);
@@ -12591,7 +12674,7 @@ function apAdvRun(){
   var mn=document.getElementById('ap-miss-n'); if(mn) mn.textContent=missing.length;
   var ds=document.getElementById('ap-draft-state'); if(ds&&window._apDraftAt) ds.textContent='💾 ड्राफ्ट '+window._apDraftAt;
 }
-function apAdvAfterRender(){ apAdvRefresh(true); }
+function apAdvAfterRender(){ apAdvRefresh(true); setTimeout(function(){ if(typeof apGrowAll==='function') apGrowAll(); },0); }
 function apAddRowFromInfo(info, keepEmpty){
   var cfg=entryCtx._cfg, form=document.getElementById('cases-form'); if(!form) return;
   var obj={fir:(info.fir||info.key)+(info.reg?' दिनांक '+apDmy(info.reg):''), dhara:apSecText(info)};
@@ -12709,6 +12792,108 @@ function apAdvInit(){
   window.addEventListener('beforeunload', function(e){ if(ov.classList.contains('on')){ var cur=apCaptureNow(); if(cur && JSON.stringify(cur)!==_apBaseline && JSON.stringify(cur)!==_apLastDraft){ e.preventDefault(); e.returnValue=''; } } });
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', apAdvInit); else apAdvInit();
+
+/* ===== v65 — सूचना-पेज: टाइपिंग विकल्प हाइलाइट + अपराध शाखा सहूलियतें ===== */
+var AP_REASONS={karan:['साक्ष्य संकलन जारी','FSL/विशेषज्ञ रिपोर्ट प्रतीक्षित','आरोपी की गिरफ्तारी शेष / फरार','मेडिकल/पोस्टमार्टम रिपोर्ट प्रतीक्षित','चालान तैयार — न्यायालय में प्रस्तुति शेष']};
+function apChipsHtml(k){
+  var a=AP_REASONS[k]; if(!a) return '';
+  return '<div class="ap-rc-wrap">'+a.map(function(t,i){ return '<button type="button" class="ap-rc" data-i="'+i+'">'+escHtml(t)+'</button>'; }).join('')+'<button type="button" class="ap-fd" title="इस पंक्ति का कारण नीचे की सभी खाली पंक्तियों में भरें">⤵ सभी खाली पंक्तियों में यही कारण भरें</button></div>';
+}
+function apGrow(t){ t.style.height='auto'; t.style.height=Math.min(t.scrollHeight+2,240)+'px'; }
+function apGrowAll(){ document.querySelectorAll('#cases-form textarea').forEach(apGrow); }
+function apFillDown(btn){
+  var row=btn.closest('.case-row'), src=row&&row.querySelector('textarea[name=karan]'), v=src&&src.value.trim();
+  if(!v){ toast('ℹ️ पहले इस पंक्ति में कारण लिखें'); return; }
+  var n=0; document.querySelectorAll('#cases-form .case-row').forEach(function(r){ var t=r.querySelector('textarea[name=karan]'); if(t&&t!==src&&!t.value.trim()){ t.value=v; apGrow(t); n++; } });
+  apAdvRefresh(true); toast(n?('✅ '+n+' खाली पंक्तियों में कारण भरा गया'):'ℹ️ कोई खाली पंक्ति नहीं मिली');
+}
+function apJumpNext(){
+  var rows=document.querySelectorAll('#cases-form .case-row');
+  for(var i=0;i<rows.length;i++){ var fs=rows[i].querySelectorAll('input[name],textarea[name]'); for(var j=0;j<fs.length;j++){ if(!fs[j].value.trim()){ fs[j].scrollIntoView({behavior:'smooth',block:'center'}); fs[j].focus(); return; } } }
+  toast('✅ सभी पंक्तियों के सभी खाने भरे हैं');
+}
+function apToggleIssues(){
+  var f=document.getElementById('cases-form'), b=document.getElementById('ap-only-btn'); if(!f) return;
+  var on=f.classList.toggle('ap-only-issues'); if(b) b.classList.toggle('on',on);
+  if(on && !f.querySelector('.ap-lv-warn,.ap-lv-err')) toast('✅ कोई अधूरी/त्रुटि वाली पंक्ति नहीं है');
+}
+/* ---- सूचना पेज (अपराध/सम्मन-वारंट/मालखाना): प्रारूप-वार स्थिति व प्रगति ---- */
+var AP_PAGES={apradh:{pre:'ap',fn:'openApradhEntry'},summon:{pre:'sv',fn:'openSummonEntry'},malkhana:{pre:'mk',fn:'openMalkhanaEntry'}};
+function apHasVals(o){ if(o==null) return false; if(typeof o==='object') return Object.keys(o).some(function(k){ return apHasVals(o[k]); }); return String(o).trim()!==''; }
+function apCtxRestoreFor(pre){
+  try{ var t=document.getElementById(pre+'-thana'), v=localStorage.getItem('dk_'+pre+'_thana'); if(t && !t.value && v && Array.prototype.some.call(t.options,function(o){ return o.value===v; })) t.value=v; }catch(e){}
+  try{ ctxUpdate(pre,pre+'-ctx-status'); }catch(e){} apPageStatus();
+}
+function apCtxRestore(){ apCtxRestoreFor('ap'); }
+function apSaveThana(pre){ try{ var t=document.getElementById(pre+'-thana').value; if(t) localStorage.setItem('dk_'+pre+'_thana',t); }catch(e){} }
+function apPageStatusFor(pid){
+  var cf=AP_PAGES[pid], pre=cf.pre, c=getCtx(pre), ok=ctxValid(c), done=0, tot=0;
+  document.querySelectorAll('#'+pid+' .pcard').forEach(function(card){
+    var b=card.querySelector('button[onclick^="'+cf.fn+'("]'); if(!b) return;
+    var type=(b.getAttribute('onclick').match(/'(\w+)'/)||[])[1]; if(!type) return;
+    var st=card.querySelector('.ap-fmt-st'), head=card.querySelector('.pcard-head'); if(!head) return;
+    if(!st){ st=document.createElement('span'); st.className='ap-fmt-st'; head.appendChild(st); }
+    tot++; if(!ok){ st.className='ap-fmt-st'; st.textContent=''; return; }
+    var sv=loadData(sk(pre,type,c.thana,c.year,c.month)), locked=false, has, label;
+    try{ locked=isPeriodLocked(pid,type,c.year,c.month); }catch(e){}
+    if(pid==='apradh'){ var cfg=APRADH_TYPES[type]||{}; has=!!sv; label=sv?(cfg.tableMode?'✅ सेव':'✅ '+((sv.rows||[]).length)+' प्रकरण'):''; }
+    else if(sv && sv.rows){ has=true; label='✅ '+sv.rows.length+' पंक्ति'; }
+    else { has=!!(sv && apHasVals(sv.data)); label=has?'✅ भरा हुआ':''; }
+    if(has) done++;
+    st.className='ap-fmt-st '+(has?'done':'todo'); st.textContent=(has?label:'⚪ अभी नहीं भरा')+(locked?' 🔒':'');
+    st.title='इस डिवाइस/ब्राउज़र में सेव डेटा के अनुसार';
+  });
+  var bar=document.getElementById(pre+'-ctx'), pr=document.getElementById(pre+'-prog'); if(!bar) return;
+  if(!pr){ pr=document.createElement('div'); pr.id=pre+'-prog'; pr.className='ap-prog'; bar.appendChild(pr); }
+  if(!ok||!tot){ pr.innerHTML=''; return; }
+  pr.innerHTML='📊 प्रगति: '+done+'/'+tot+' प्रारूप सेव — '+escHtml(c.thana)+', '+c.monthName+' '+c.year+'<i><b style="width:'+Math.round(done*100/tot)+'%"></b></i>';
+}
+function apPageStatus(){ Object.keys(AP_PAGES).forEach(function(pid){ try{ apPageStatusFor(pid); }catch(e){} }); }
+/* पंक्ति हटाने से पहले पुष्टि (भरा हुआ डेटा गलती से न मिटे) */
+var _delAp0=delApradhRow;
+delApradhRow=function(i){
+  var r=document.getElementById('crow-'+i), o=r?apRowObj(r):{};
+  if(Object.keys(o).some(function(k){ return o[k]; }) && !confirm('पंक्ति '+(i+1)+' में भरा हुआ डेटा है — क्या इसे हटाना है?')) return;
+  _delAp0(i);
+};
+/* ---- टाइपिंग विकल्प: हाइलाइट, रंग-संकेत, शॉर्टकट ---- */
+var TYPING_LABEL={en:'English',mangal:'Mangal (हिंदी)',devlys:'DevLys'};
+function typingChosen(){ try{ return localStorage.getItem('dk_typing_chosen')==='1'; }catch(e){ return true; } }
+function typingMarkChosen(){ try{ localStorage.setItem('dk_typing_chosen','1'); }catch(e){} var b=document.getElementById('typing-bar'); if(b) b.classList.remove('need-pick'); }
+var _stm0=setTypingMode;
+setTypingMode=function(m){
+  _stm0(m);
+  var bar=document.getElementById('typing-bar'); if(bar){ bar.setAttribute('data-mode',m); bar.classList.toggle('need-pick',!typingChosen()); }
+  var pill=document.getElementById('typing-pill'); if(pill){ pill.setAttribute('data-mode',m); pill.textContent='⌨️ '+TYPING_LABEL[m]; }
+  var now=document.getElementById('typing-now'); if(now) now.textContent='सक्रिय: '+TYPING_LABEL[m];
+};
+function typingCycle(){ var o=['en','mangal','devlys'], n=o[(o.indexOf(TYPING_MODE)+1)%3]; typingMarkChosen(); setTypingMode(n); toast('⌨️ टाइपिंग: '+TYPING_LABEL[n]); }
+function apV65Init(){
+  var ov=document.getElementById('entry-overlay'); if(!ov) return;
+  setTypingMode(TYPING_MODE);
+  ov.addEventListener('click',function(e){
+    var t=e.target; if(!t.closest) return;
+    if(t.closest('#typing-bar [data-tmode]')){ typingMarkChosen(); return; }
+    var rc=t.closest('.ap-rc');
+    if(rc){ var f=rc.closest('.case-field').querySelector('textarea'), txt=AP_REASONS.karan[+rc.getAttribute('data-i')]; if(!f) return; var cur=f.value.trim();
+      if(cur.indexOf(txt)<0){ f.value=cur? cur.replace(/[;,\s]+$/,'')+'; '+txt : txt; f.dispatchEvent(new Event('input',{bubbles:true})); apGrow(f); } f.focus(); return; }
+    var fd=t.closest('.ap-fd'); if(fd) apFillDown(fd);
+  });
+  ov.addEventListener('input',function(e){ var t=e.target; if(t && t.tagName==='TEXTAREA' && t.closest && t.closest('.case-field')) apGrow(t); });
+  document.addEventListener('keydown',function(e){
+    if(!ov.classList.contains('on') || !e.altKey || e.ctrlKey || e.metaKey) return;
+    var m={Digit1:'en',Digit2:'mangal',Digit3:'devlys'}[e.code]; if(!m) return;
+    e.preventDefault(); typingMarkChosen(); setTypingMode(m); toast('⌨️ टाइपिंग: '+TYPING_LABEL[m]);
+  },true);
+  var bar=document.getElementById('typing-bar'), body=ov.querySelector('.entry-body');
+  if(bar && body){
+    var upd=function(){ body.style.setProperty('--tb-h',bar.offsetHeight+'px'); };
+    body.addEventListener('scroll',function(){ var y=body.scrollTop; if(y>80) bar.classList.add('compact'); else if(y<20) bar.classList.remove('compact'); },{passive:true});
+    if(window.ResizeObserver) new ResizeObserver(upd).observe(bar); upd();
+  }
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', apV65Init); else apV65Init();
+
 
 /* ===================== मालखाना — एडवांस मॉड्यूल =====================
    A) भरते समय: प्रारूप-अनुसार नियम-इंजन (योग/शेष/संचयी/न्यायालय-क्रम की जाँच), पिछले माह से तुलना, CCTNS संकेत, सेव से पहले गुणवत्ता-जाँच
@@ -12829,6 +13014,147 @@ function mkAdvGate(){
   else if(warns.length) toast('⚠️ '+warns.length+' चेतावनियाँ हैं — सेव हो रहा है; जाँच लें');
   return true;
 }
+
+/* ===== v67 — मालखाना स्मार्ट फॉर्म: सेक्शन-वार कार्ड, − / + बटन, खाने के नीचे व अंत में संदेश, एक्ट-नोट (CCTNS), सहायक सुझाव, अतिरिक्त संबंध-जाँच ===== */
+var MK_STAT=['start_pending','received','total','disposed','balance'];
+var MK_STAT_F='पैंडिंग + प्राप्त = योग  →  योग − निस्तारण = शेष (अपने-आप)';
+var MK_SECS={
+  malkhana_summary:[{t:'📊 माह की स्थिति',k:MK_STAT,f:MK_STAT_F},{t:'⏳ शेष माल की अवधि',k:['age_1yr','age_1to5yr','age_5plus'],f:'तीनों अवधियों का योग = माह के अंत में शेष'}],
+  format01_vehicle:[{t:'📊 वर्ष की स्थिति',k:MK_STAT,f:MK_STAT_F},{t:'📌 शेष वाहनों में से',k:['engine_missing','zipnet_pending','insurance_notice'],f:'हर संख्या शेष से अधिक नहीं हो सकती'},{t:'📨 नोटिस व न्यायालय कार्यवाही',k:['owner_notice','court_application','court_order','court_rejected','application_not_filed'],f:'आदेश + खारिज ≤ प्रस्तुत प्रार्थना पत्र • प्रस्तुत + प्रस्तुत नहीं = शेष'}],
+  format02_arms:[{t:'📊 वर्ष की स्थिति',k:MK_STAT,f:MK_STAT_F},{t:'📌 शेष में से',k:['trial_pending'],f:'ट्रायल जेर शेष आर्म्स, शेष से अधिक नहीं हो सकते'},{t:'⚖️ न्यायालय कार्यवाही',k:['court_application','destroy_order','armoury_deposit','court_rejected','court_pending','application_not_filed'],f:'नष्टीकरण + शस्त्रागार जमा + खारिज + पैंडिंग = प्रस्तुत प्रार्थना पत्र'}],
+  format03_excise:[{t:'📊 वर्ष की स्थिति',k:MK_STAT,f:MK_STAT_F},{t:'⚖️ न्यायालय कार्यवाही',k:['court_application','destroy_order','excise_deposit','court_rejected','court_pending','application_not_filed'],f:'नष्टीकरण + आबकारी कार्यालय जमा + खारिज + पैंडिंग = प्रस्तुत प्रार्थना पत्र'}],
+  format04_ndps:[{t:'📊 वर्ष की स्थिति',k:MK_STAT,f:MK_STAT_F},{t:'🧪 धारा 52ए प्रक्रिया',k:['sec52a','magistrate','verification','drug_committee'],f:'52ए प्रार्थना पत्र ≥ मजिस्ट्रेट नियुक्त ≥ सत्यापन रिपोर्ट'},{t:'⚖️ धारा 452 CrPC व निस्तारण',k:['sec452','disposal_order','court_rejected','court_pending','application_not_filed'],f:'निस्तारण आदेश + खारिज + पैंडिंग = 452 में प्रस्तुत प्रार्थना पत्र'}],
+  format05_other:[{t:'📊 वर्ष की स्थिति',k:MK_STAT,f:MK_STAT_F},{t:'⚖️ कार्यवाही',k:['party_notice','court_application','disposal_order','court_rejected','court_pending','application_not_filed'],f:'आदेश + खारिज + पैंडिंग = प्रस्तुत प्रार्थना पत्र'}]
+};
+var MK_ACT_NOTES={
+  format02_arms:'आर्म्स एक्ट माल: "ट्रायल जेर शेष आर्म्स" शेष का हिस्सा है, इसलिए शेष से अधिक नहीं हो सकता। न्यायालय परिणामों (नष्टीकरण + शस्त्रागार जमा + खारिज + पैंडिंग) का योग प्रस्तुत प्रार्थना पत्रों के बराबर होना चाहिए।',
+  format03_excise:'आबकारी एक्ट माल: न्यायालय परिणामों (नष्टीकरण + जिला आबकारी कार्यालय में जमा + खारिज + पैंडिंग) का योग प्रस्तुत प्रार्थना पत्रों के बराबर होना चाहिए।',
+  format04_ndps:'NDPS एक्ट माल: धारा 52ए प्रार्थना पत्र ≥ मजिस्ट्रेट नियुक्त ≥ सत्यापन रिपोर्ट। धारा 452 CrPC के परिणामों (निस्तारण आदेश + खारिज + पैंडिंग) का योग 452 में प्रस्तुत प्रार्थना पत्रों के बराबर होना चाहिए।'
+};
+function mkGuidedOk(cfg){ return !!(cfg && cfg.rows.length===1 && cfg.rows[0].k==='data' && !cfg.rows[0].autoRow && !cfg.hasYogCol && !cfg.cols.some(function(c){ return c.grp; })); }
+function mkFldHtml(c,data,mon,yr){
+  var id='mk_data_'+c.k, lbl=monthizeLabel(c.label,mon,yr);
+  if(c.auto) return '<div class="mk-fld" data-k="'+c.k+'"><label>'+lbl+' <small>(स्वतः)</small></label><div class="mk-auto" id="'+id+'">—</div></div>';
+  var v=(data.data&&data.data[c.k]!==undefined)?data.data[c.k]:'';
+  return '<div class="mk-fld" data-k="'+c.k+'"><label for="'+id+'">'+lbl+'</label><div class="mk-inp"><button type="button" class="mk-st" tabindex="-1" data-d="-1" aria-label="घटाएँ">−</button><input type="number" inputmode="numeric" min="0" step="1" id="'+id+'" value="'+escHtml(v)+'" placeholder="0" oninput="recalcMalkhana()"><button type="button" class="mk-st" tabindex="-1" data-d="1" aria-label="बढ़ाएँ">+</button></div><div class="mk-fmsg"></div></div>';
+}
+function mkRenderGuided(cfg,data,mon,yr){
+  var extra='';
+  if(cfg.extraField){ var ef=cfg.extraField, ev=data[ef.k]||''; extra='<div class="mk-sec" style="margin-bottom:14px"><div class="mk-fld"><label>'+ef.label+'</label><input type="text" id="mk_extra_'+ef.k+'" value="'+escHtml(ev)+'" placeholder="'+(ef.placeholder||'')+'" style="width:100%;height:44px;padding:0 12px;border:2px solid #E8C555;background:#FFFBEA;border-radius:12px;font-size:15px;font-family:inherit"></div></div>'; }
+  var defs=(MK_SECS[entryCtx.type]||[]).map(function(x){ return {t:x.t,k:x.k.slice(),f:x.f}; });
+  var used={}; defs.forEach(function(d){ d.k=d.k.filter(function(k){ return cfg.cols.some(function(c){ return c.k===k; }); }); d.k.forEach(function(k){ used[k]=1; }); });
+  var rest=cfg.cols.filter(function(c){ return !used[c.k]; }).map(function(c){ return c.k; });
+  if(rest.length||!defs.length) defs.push({t:'📋 विवरण',k:rest.length?rest:cfg.cols.map(function(c){return c.k;}),f:''});
+  var html='<div class="mkf">'+defs.map(function(d){
+    return '<div class="mk-sec"><div class="mk-sec-h">'+d.t+'<small>0/0</small></div>'+(d.f?'<div class="mk-rel">🔗 '+d.f+'</div>':'')+'<div class="mk-grid">'+d.k.map(function(k){ return mkFldHtml(cfg.cols.filter(function(c){return c.k===k;})[0],data,mon,yr); }).join('')+'</div></div>';
+  }).join('')+'</div>';
+  document.getElementById('entry-content').innerHTML=mkAdvBarHtml()+extra+html+'<div id="mk-bottom"><div id="mk-bsugg"></div><div id="mk-bmsgs"></div><div id="mk-act"></div></div>';
+  recalcMalkhana(); mkAdvAfterRender();
+}
+function mkV2Bottom(){
+  var c=document.getElementById('entry-content'); if(!c||document.getElementById('mk-bottom')) return;
+  c.insertAdjacentHTML('beforeend','<div id="mk-bottom"><div id="mk-bsugg"></div><div id="mk-bmsgs"></div><div id="mk-act"></div></div>');
+}
+/* ---- अतिरिक्त संबंध-जाँच (शुद्ध गणना; किसी DOM/थाने पर निर्भर नहीं) ---- */
+function mkExtra(fmt,d,prev,out){
+  var cfg=MALKHANA_FORMATS[fmt]; if(!cfg||!(cfg.rows.length===1&&cfg.rows[0].k==='data')) return;
+  function add(l,m,cells){ out.push({lvl:l,msg:m,cells:cells||[]}); }
+  var N=function(c){ return mkn(d,'data',c); }, has=function(c){ return cfg.cols.some(function(x){ return x.k===c; }); };
+  var tot=N('start_pending')+N('received');
+  if(fmt!=='malkhana_summary' && N('disposed')>tot) add('err','निस्तारण ('+N('disposed')+') योग ('+tot+') से अधिक है — शेष ऋणात्मक हो जाएगा',['mk_data_disposed','mk_data_start_pending','mk_data_received']);
+  var bl=tot-N('disposed');
+  if(fmt==='format04_ndps' && N('drug_committee')>N('sec52a') && N('sec52a')>=0 && String(d&&d.data&&d.data.drug_committee||'')!=='') add('warn','ड्रग कमेटी द्वारा निस्तारण ('+N('drug_committee')+') धारा 52ए प्रार्थना पत्र ('+N('sec52a')+') से अधिक है',['mk_data_drug_committee','mk_data_sec52a']);
+  if(fmt==='format01_vehicle' && N('owner_notice')>bl && bl>=0) add('warn','वाहन मालिक को नोटिस ('+N('owner_notice')+') शेष वाहनों ('+bl+') से अधिक है',['mk_data_owner_notice']);
+  if(has('application_not_filed') && fmt!=='format04_ndps' && bl>0){
+    var done=N('court_application')+N('application_not_filed');
+    if(done<bl && String(d&&d.data&&d.data.application_not_filed||'')!=='') add('info','शेष '+bl+' में से '+(bl-done)+' पर न प्रार्थना पत्र दर्ज है न "प्रस्तुत नहीं किए" — जाँच लें',['mk_data_application_not_filed']);
+  }
+}
+var _mkEval0=mkEvaluate;
+mkEvaluate=function(fmt,d,prev){ var out=_mkEval0(fmt,d,prev); try{ mkExtra(fmt,d,prev,out); }catch(e){} return out; };
+var _mkRun0=mkAdvRun;
+mkAdvRun=function(){ _mkRun0(); try{ mkV2After(window._mkLast); }catch(e){ if(window.console) console.error(e); } };
+/* ---- सहायक सुझाव ---- */
+function mkV2Sugg(fmt,d,prev){
+  var cfg=MALKHANA_FORMATS[fmt], out=[], N=function(c){ return mkn(d,'data',c); }, empties=0;
+  cfg.cols.forEach(function(c){ if(c.auto) return; var el=document.getElementById('mk_data_'+c.k); if(el&&el.tagName==='INPUT'&&el.value==='') empties++; });
+  if(empties) out.push({t:'⓪ सभी खाली खाने ('+empties+') में 0 भरें',zero:1});
+  if(fmt==='malkhana_summary' && prev && String(prev.data&&prev.data.balance||'')!=='' && mkn(prev,'data','balance')!==N('start_pending')) out.push({t:'↩ शुरू में पैंडिंग = पिछले माह का शेष ('+mkn(prev,'data','balance')+')',k:'start_pending',v:mkn(prev,'data','balance')});
+  if(MK_ANNUAL.indexOf(fmt)>=0 && fmt!=='item_wise_annual' && prev && prev.data && String(prev.data.start_pending||'')!=='' && mkn(prev,'data','start_pending')!==N('start_pending')) out.push({t:'↩ वर्ष शुरू में पैंडिंग = पिछले माह जैसा ('+mkn(prev,'data','start_pending')+')',k:'start_pending',v:mkn(prev,'data','start_pending')});
+  if(cfg.cols.some(function(c){return c.k==='application_not_filed';}) && fmt!=='format04_ndps'){ var bl=N('balance'), sg=Math.max(0,bl-N('court_application')); if(bl>0 && N('application_not_filed')!==sg) out.push({t:'💡 प्रस्तुत नहीं किए = शेष − प्रस्तुत ('+sg+')',k:'application_not_filed',v:sg}); }
+  if(fmt==='malkhana_summary'){ var b2=N('balance'), fy=b2-N('age_1to5yr')-N('age_5plus'); if(b2>0 && fy>=0 && N('age_1yr')!==fy) out.push({t:'💡 1 वर्ष तक = शेष − (1–5 व 5+ वर्ष) = '+fy,k:'age_1yr',v:fy}); }
+  return out;
+}
+/* ---- एक्ट-वार CCTNS प्रकरण-नोट ---- */
+function mkV2Act(fmt,d){
+  var box=document.getElementById('mk-act'); if(!box) return; var cm=MK_CCTNS_MAP[fmt]; if(!cm){ box.innerHTML=''; return; }
+  var ps=hi2engPs(entryCtx.thana), N=function(c){ return mkn(d,'data',c); };
+  var h='<div class="mk-act"><div class="mk-act-t">📡 '+cm.label+' — प्रकरण नोट ('+escHtml(entryCtx.thana)+')</div>';
+  if(!ps||typeof RAW==='undefined'||!RAW||!RAW.length) h+='<div>CCTNS (SAS Export) डेटा लोड नहीं है — प्रकरण-मिलान उपलब्ध नहीं।</div>';
+  else{
+    var y=String(entryCtx.year), mm=pad2(entryCtx.month), mon=[], ytd=0;
+    RAW.forEach(function(r){ if(String(r[0]||'').toUpperCase()!==ps||r[4]!==cm.sll) return; var reg=String(r[1]||''); if(reg.slice(0,4)!==y) return; var m=reg.slice(5,7); if(m>mm) return; ytd++; if(m===mm) mon.push(String(r[2]||'').trim()); });
+    h+='<div>'+MONTHS[entryCtx.month-1]+' '+entryCtx.year+' में <b class="n">'+mon.length+'</b> प्रकरण दर्ज • जनवरी से अब तक <b class="n">'+ytd+'</b></div>';
+    if(mon.length) h+='<div class="mk-chips">'+mon.slice(0,24).map(function(f){ return '<span>'+escHtml(f)+'</span>'; }).join('')+(mon.length>24?'<span>+'+(mon.length-24)+' और</span>':'')+'</div>';
+    var rc=N('received');
+    h+='<div>'+(ytd>0&&rc===0?'⚠️ CCTNS में प्रकरण हैं पर "वर्ष में अब तक प्राप्त" 0 है — माल की प्राप्ति दर्ज करना रह तो नहीं गया?':(ytd===0&&rc>0?'⚠️ CCTNS में इस वर्ष इस एक्ट का कोई प्रकरण नहीं मिला, पर "वर्ष में अब तक प्राप्त" = '+rc+' दर्ज है — जाँचें।':'आपके द्वारा दर्ज: वर्ष में अब तक प्राप्त = <b>'+rc+'</b>, शेष = <b>'+N('balance')+'</b>'))+'</div>';
+  }
+  h+='<div class="mk-act-n">📝 '+MK_ACT_NOTES[fmt]+'</div><div class="mk-act-s">संकेत मात्र — एक प्रकरण में कई मद हो सकते हैं या बिना जब्ती भी, इसलिए संख्या बराबर होना आवश्यक नहीं।</div></div>';
+  box.innerHTML=h;
+}
+/* ---- हर जाँच के बाद स्क्रीन अद्यतन ---- */
+function mkV2After(res){
+  if(!entryCtx||entryCtx.branch!=='malkhana') return;
+  var root=document.getElementById('entry-content'); if(!root) return; res=res||[];
+  root.querySelectorAll('.mk-fld.bad,.mk-fld.warn').forEach(function(f){ f.classList.remove('bad','warn'); var m=f.querySelector('.mk-fmsg'); if(m) m.textContent=''; });
+  res.forEach(function(r){ if(r.lvl==='info') return; r.cells.forEach(function(id,ix){
+    var el=document.getElementById(id), f=el&&el.closest&&el.closest('.mk-fld'); if(!f) return;
+    if(r.lvl==='err'||!f.classList.contains('bad')){ f.classList.remove('warn'); f.classList.add(r.lvl==='err'?'bad':'warn'); var m=f.querySelector('.mk-fmsg'); if(m) m.textContent=(r.lvl==='err'?'❌ ':'⚠️ ')+(ix===0?r.msg:'संबंधित खाना — पूरा संदेश नीचे देखें'); }
+  }); });
+  root.querySelectorAll('.mk-auto').forEach(function(a){ a.classList.toggle('neg',(parseInt(a.textContent,10)||0)<0); });
+  var f=0,t=0; root.querySelectorAll('input[type=number]').forEach(function(i){ t++; if(i.value!=='') f++; });
+  root.querySelectorAll('.mk-sec').forEach(function(sc){ var ins=sc.querySelectorAll('input[type=number]'), n=0; ins.forEach(function(i){ if(i.value!=='') n++; }); var sm=sc.querySelector('.mk-sec-h small'); if(sm){ sm.textContent=n+'/'+ins.length; sm.classList.toggle('full',ins.length>0&&n===ins.length); } });
+  var st=document.getElementById('mk-adv-stats'); if(st&&t) st.insertAdjacentHTML('beforeend','<span class="apadv-pill">📝 भरे <b>'+f+'/'+t+'</b></span>');
+  var d=collectMalkhanaData(), wrapD=d, prev=mkPrev(entryCtx.type,entryCtx.thana,entryCtx.year,entryCtx.month);
+  var bm=document.getElementById('mk-bmsgs');
+  if(bm){
+    var errs=res.filter(function(r){return r.lvl==='err';}), warns=res.filter(function(r){return r.lvl==='warn';}), infos=res.filter(function(r){return r.lvl==='info'&&r.cells.length;});
+    var h='';
+    if(errs.length||warns.length) h+='<div class="mk-bh">📋 जाँच-संदेश '+(errs.length?'<span class="apadv-pill err">❌ '+errs.length+'</span> ':'')+(warns.length?'<span class="apadv-pill warn">⚠️ '+warns.length+'</span>':'')+'</div>';
+    errs.concat(warns,infos).forEach(function(r){ h+='<div class="mk-bp '+r.lvl+'"'+(r.cells.length?' data-cell="'+r.cells[0]+'"':'')+'>'+(r.lvl==='err'?'❌ ':r.lvl==='warn'?'⚠️ ':'ℹ️ ')+escHtml(r.msg)+(r.lvl!=='info'&&r.cells.length?' <u>→ खाने पर जाएँ</u>':'')+'</div>'; });
+    if(!errs.length&&!warns.length&&mkHasAny(d)) h+='<div class="mk-bp ok">✅ अभी तक सभी जाँच सही हैं — सेव किया जा सकता है।</div>';
+    bm.innerHTML=h;
+  }
+  var sg=document.getElementById('mk-bsugg');
+  if(sg){ var list=mkV2Sugg(entryCtx.type,d,prev); window._mkSugg=list; sg.innerHTML=list.length?'<div class="mk-sg-wrap"><b>💡 सहायता</b>'+list.map(function(x,i){ return '<button type="button" class="mk-sg" data-i="'+i+'">'+escHtml(x.t)+'</button>'; }).join('')+'</div>':''; }
+  mkV2Act(entryCtx.type,d);
+}
+/* ---- इवेंट: − / +, सुझाव, संदेश पर टैप, Enter-नेविगेशन, मान-सुरक्षा ---- */
+function mkV2Init(){
+  var ov=document.getElementById('entry-overlay'); if(!ov) return;
+  function fire(el){ el.dispatchEvent(new Event('input',{bubbles:true})); }
+  function isMk(){ return entryCtx&&entryCtx.branch==='malkhana'; }
+  ov.addEventListener('click',function(e){
+    if(!isMk()) return; var t=e.target; if(!t.closest) return;
+    var st=t.closest('.mk-st'); if(st){ var inp=st.parentNode.querySelector('input'); if(inp){ inp.value=Math.max(0,(parseInt(inp.value,10)||0)+(+st.getAttribute('data-d'))); fire(inp); } return; }
+    var sg=t.closest('.mk-sg'); if(sg){ var x=(window._mkSugg||[])[+sg.getAttribute('data-i')]; if(!x) return;
+      if(x.zero){ document.querySelectorAll('#entry-content input[type=number]').forEach(function(i){ if(i.value===''){ i.value='0'; } }); recalcMalkhana(); }
+      else { var el=document.getElementById('mk_data_'+x.k); if(el){ el.value=x.v; fire(el); } } return; }
+    var bp=t.closest('.mk-bp[data-cell]'); if(bp){ var c=document.getElementById(bp.getAttribute('data-cell')); if(c&&c.scrollIntoView){ c.scrollIntoView({behavior:'smooth',block:'center'}); if(c.focus) c.focus(); } }
+  });
+  ov.addEventListener('focusin',function(e){ var t=e.target; if(isMk()&&t&&t.type==='number'&&t.closest('#entry-content')) setTimeout(function(){ try{ t.select(); }catch(x){} },0); });
+  ov.addEventListener('keydown',function(e){
+    if(!isMk()) return; var t=e.target; if(!t||t.type!=='number'||!t.closest('#entry-content')) return;
+    if(['e','E','+','-','.',','].indexOf(e.key)>=0){ e.preventDefault(); return; }
+    if(e.key==='Enter'&&!e.ctrlKey){ e.preventDefault(); var all=Array.prototype.slice.call(document.querySelectorAll('#entry-content input[type=number]')), ix=all.indexOf(t)+(e.shiftKey?-1:1); if(ix>=0&&ix<all.length){ all[ix].focus(); if(all[ix].scrollIntoView) all[ix].scrollIntoView({block:'center',behavior:'smooth'}); } else t.blur(); }
+  },true);
+  ov.addEventListener('focusout',function(e){
+    if(!isMk()) return; var t=e.target; if(!t||t.type!=='number'||!t.closest('#entry-content')||t.value==='') return;
+    var n=Math.min(99999999,Math.floor(Math.abs(parseFloat(t.value)))); if(isNaN(n)) n=0; if(String(n)!==t.value){ t.value=n; fire(t); }
+  });
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', mkV2Init); else mkV2Init();
+
 /* ===================== B) कमांड सेंटर ===================== */
 var MK_FMT_ORDER=['malkhana_summary','vehicle_thana','vehicle_gic','format01_vehicle','format02_arms','format03_excise','format04_ndps','format05_other','item_wise_annual'];
 var _mkCc={year:null,month:null,fmt:'malkhana_summary',row:null};
@@ -12846,8 +13172,15 @@ function mkSvgTrend(vals,labels){
   var bars=vals.map(function(v,i){ var x=pad+i*((W-2*pad)/vals.length)+4, h=Math.round((H-2*pad)*v/max), y=H-pad-h; return '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+h+'" rx="4" fill="#C2185B" opacity=".85"/><text x="'+(x+bw/2)+'" y="'+(y-4)+'" font-size="11" text-anchor="middle" fill="#333">'+v+'</text><text x="'+(x+bw/2)+'" y="'+(H-10)+'" font-size="10" text-anchor="middle" fill="#555">'+labels[i]+'</text>'; }).join('');
   return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:640px">'+bars+'</svg>';
 }
+/* थाना-दृश्य: थानों को भेजी गई लिंक (?entry= / ?pgs= / ?mon= / ?openpg=) से खुलने पर कमांड सेंटर नहीं दिखेगा */
+function mkIsThanaView(){
+  try{ var q=new URLSearchParams(location.search); if(q.has('entry')||q.has('pgs')||q.has('mon')||q.has('openpg')) return true; }catch(e){}
+  return !!(document.body&&(document.body.classList.contains('mon-restricted')||document.body.classList.contains('pgs-restricted')||document.body.classList.contains('thana-view')));
+}
+(function(){ if(mkIsThanaView()){ try{ document.body.classList.add('thana-view'); }catch(e){} } })();
 function renderMkCommand(){
   var host=document.getElementById('mk-cc'); if(!host) return;
+  if(mkIsThanaView()){ host.innerHTML=''; host.style.display='none'; return; }
   if(!_mkCc.year){ var lp=mkLatestPeriod(); _mkCc.year=lp.year; _mkCc.month=lp.month; }
   var Y=_mkCc.year, Mo=_mkCc.month, M=mkLoadAll(Y,Mo), issues=mkIssuesAll(M,Y,Mo);
   var yrs=[]; var cy=new Date().getFullYear(); for(var y=cy+1;y>=cy-3;y--) yrs.push(y);
